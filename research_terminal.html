@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --bg2: #0a1118;
+    --bg3: #0f1923;
+    --panel: #111d27;
+    --border: #1e3448;
+    --accent: #00d4ff;
+    --accent2: #00ff9d;
+    --accent3: #ff6b35;
+    --warn: #ffb830;
+    --red: #ff4757;
+    --green: #2ed573;
+    --text: #e8f4f8;
+    --text2: #7a9db5;
+    --text3: #3d6478;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.015) 2px, rgba(0,212,255,0.015) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--text2); font-weight: 400; }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text3);
+    font-size: 11px;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46,213,115,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(46,213,115,0); }
+  }
+
+  /* Nav tabs */
+  .nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .nav-tab:hover { color: var(--text); }
+
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Main layout */
+  .main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+  /* Section */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .section-title span { color: var(--accent); }
+
+  .section-sub {
+    color: var(--text3);
+    font-size: 11px;
+    margin-top: 3px;
+  }
+
+  .section-date {
+    color: var(--text3);
+    font-size: 11px;
+  }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,52,72,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(0,212,255,0.04); }
+
+  td {
+    padding: 11px 14px;
+    font-size: 12px;
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .ticker-badge {
+    display: inline-block;
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.25);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .ticker-badge a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ticker-badge:hover { background: rgba(0,212,255,0.18); }
+
+  .yes { color: var(--green); }
+  .no { color: var(--red); }
+
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .status-completed { background: rgba(46,213,115,0.12); color: var(--green); border: 1px solid rgba(46,213,115,0.3); }
+  .status-upcoming { background: rgba(255,184,48,0.12); color: var(--warn); border: 1px solid rgba(255,184,48,0.3); }
+  .status-pipeline { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.25); }
+  .status-withdrawn { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.25); }
+
+  .text-muted { color: var(--text2); }
+  .text-dim { color: var(--text3); }
+  .text-small { font-size: 11px; }
+
+  .thesis-cell {
+    max-width: 280px;
+    color: var(--text2);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .risk-cell {
+    max-width: 220px;
+    color: var(--accent3);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .notes-cell {
+    max-width: 200px;
+    color: var(--text3);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.warn { color: var(--warn); }
+
+  /* Investor section layout */
+  .investor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 900px) { .investor-grid { grid-template-columns: 1fr; } }
+
+  .investor-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .investor-card-header {
+    background: var(--bg3);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .investor-card-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .investor-card-sub { color: var(--text3); font-size: 11px; }
+
+  /* Trump holdings color coding */
+  .holder-trump { color: var(--accent); }
+  .holder-cabinet { color: var(--warn); }
+  .holder-family { color: var(--accent2); }
+
+  /* Search/filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
+  .filter-input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 3px;
+    outline: none;
+    width: 240px;
+    transition: border-color 0.2s;
+  }
+
+  .filter-input:focus { border-color: var(--accent); }
+  .filter-input::placeholder { color: var(--text3); }
+
+  .filter-label { color: var(--text3); font-size: 11px; }
+
+  /* Links */
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* Tooltip */
+  [data-tooltip] { position: relative; cursor: help; }
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    max-width: 300px;
+    white-space: normal;
+    width: 220px;
+    line-height: 1.4;
+  }
+
+  .highlight-row { background: rgba(0,255,157,0.04) !important; }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin: 1px;
+    background: rgba(122,157,181,0.12);
+    color: var(--text2);
+    border: 1px solid rgba(122,157,181,0.2);
+  }
+
+  .chart-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent);
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 2px;
+    margin-top: 4px;
+    transition: all 0.15s;
+  }
+
+  .chart-link:hover { background: rgba(0,212,255,0.1); text-decoration: none; }
+
+  .quick-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">MERIDIAN <span>// Research Terminal</span></div>
+  <div class="header-meta">
+    <span><span class="live-dot"></span>LOCAL SESSION</span>
+    <span id="clock"></span>
+    <span>v1.0 &mdash; May 23 2026</span>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-tab active" onclick="showTab('tracker')">01 &mdash; Stock Tracker</div>
+  <div class="nav-tab" onclick="showTab('ipo')">02 &mdash; IPO Calendar</div>
+  <div class="nav-tab" onclick="showTab('institutional')">03 &mdash; Institutional Investors</div>
+  <div class="nav-tab" onclick="showTab('political')">04 &mdash; Political Holdings</div>
+  <div class="nav-tab" onclick="showTab('unicorns')">05 &mdash; Unicorn Watchlist</div>
+  <div class="nav-tab" onclick="showTab('notes')">06 &mdash; Research Notes</div>
+</nav>
+
+<main class="main">
+
+  <!-- TAB 01: STOCK TRACKER -->
+  <section class="section active" id="tab-tracker">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Stock <span>Tracker</span></div>
+        <div class="section-sub">Active research positions — Space / Defense / Quantum cluster</div>
+      </div>
+      <div class="section-date">Last updated: May 23, 2026</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Tickers Tracked</div>
+        <div class="stat-value accent">4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sectors</div>
+        <div class="stat-value">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Profitable</div>
+        <div class="stat-value green">1 / 4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Market Cap</div>
+        <div class="stat-value warn">~$9.5B</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cluster Theme</div>
+        <div class="stat-value" style="font-size:13px;">Space Intelligence</div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="tracker-filter" placeholder="Search ticker, sector, company..." oninput="filterTable('tracker-table', this.value)">
+    </div>
+
+    <div class="table-wrap">
+      <table id="tracker-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Company</th>
+            <th>Sector</th>
+            <th>Date Added</th>
+            <th>Entry Price</th>
+            <th>Market Cap</th>
+            <th>Revenue TTM</th>
+            <th>Profitable</th>
+            <th>Key Thesis</th>
+            <th>Risk Factors</th>
+            <th>Notes</th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HAWK/" target="_blank">HAWK</a></span></td>
+            <td><strong>HawkEye 360</strong></td>
+            <td><span class="tag">Defense Tech</span><span class="tag">SIGINT</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$30.44</strong></td>
+            <td class="text-muted">$2.85B</td>
+            <td class="text-muted">$118M</td>
+            <td><span class="yes">✓ YES</span></td>
+            <td class="thesis-cell">Fresh IPO defense-grade SIGINT. 30+ satellite constellation. ~57% revenue CAGR 2022–2025. First profitable year. Golden Dome tailwind.</td>
+            <td class="risk-cell">Customer concentration (top 3 = 61% revenue). Rich valuation. Limited trading history.</td>
+            <td class="notes-cell">IPO $26 May 7. Opened $33.80. ATH $35.73 May 12.</td>
+            <td>
+              <div class="quick-links">
+                <a class="chart-link" href="https://finance.yahoo.com/quote/HAWK/" target="_blank">↗ Yahoo</a>
+                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:HAWK" target="_blank">↗ Chart</a>
+                <a class="chart-link" href="https://stockanalysis.com/stocks/hawk/" target="_blank">↗ Analysis</a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/PL/" target="_blank">PL</a></span></td>
+            <td><strong>Planet Labs PBC</strong></td>
+            <td><span class="tag">Space</span><span class="tag">Earth Obs</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$42.48</strong></td>
+            <td class="text-muted">$14.70B</td>
+            <td class="text-muted">$308M</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Largest commercial satellite imagery constellation. Daily Earth imaging. Defense pivot. Revenue +26% YoY. Google 10% stakeholder. Wedbush PT $50.</td>
+            <td class="risk-cell">Losses $247M FY2026. ~48x revenue valuation. High beta 2.03. Heavy cash burn.</td>
+            <td class="notes-cell">52-wk: $3.53–$45.78. ATH $43.45 May 14. Earnings Jun 4 2026.</td>
+            <td>
+              <div class="quick-links">
+                <a class="chart-link" href="https://finance.yahoo.com/quote/PL/" target="_blank">↗ Yahoo</a>
+                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:PL" target="_blank">↗ Chart</a>
+                <a class="chart-link" href="https://stockanalysis.com/stocks/pl/" target="_blank">↗ Analysis</a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/SATL/" target="_blank">SATL</a></span></td>
+            <td><strong>Satellogic</strong></td>
+            <td><span class="tag">Space</span><span class="tag">Earth Obs</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$7.55</strong></td>
+            <td class="text-muted">$907M</td>
+            <td class="text-muted">$17.7M</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Vertically integrated high-res imagery. Q1 2026 rev +80% YoY. First positive operating cash flow. Merlin constellation Oct 2026. Sovereign defense contracts growing.</td>
+            <td class="risk-cell">Very small revenue base. Loss-making. Extremely volatile (52-wk $1.26–$8.90). Merlin execution risk.</td>
+            <td class="notes-cell">FY2026 guidance $30.87M. Analyst PTs $9–$10. Cantor Fitz 17.6% holder.</td>
+            <td>
+              <div class="quick-links">
+                <a class="chart-link" href="https://finance.yahoo.com/quote/SATL/" target="_blank">↗ Yahoo</a>
+                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:SATL" target="_blank">↗ Chart</a>
+                <a class="chart-link" href="https://stockanalysis.com/stocks/satl/" target="_blank">↗ Analysis</a>
+              </div>
+            </td>
+          </tr>
+          <tr class="highlight-row">
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/IONQ/" target="_blank">IONQ</a></span></td>
+            <td><strong>IonQ Inc</strong></td>
+            <td><span class="tag">Quantum</span><span class="tag">Space Tech</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$47.68</strong></td>
+            <td class="text-muted">$20.79B</td>
+            <td class="text-muted">$130M</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Pure-play quantum computing. Q1 2026 rev +755% YoY. FY2026 guidance $260–270M. Acquired Capella Space + Skyloom. Building first space quantum key distribution network. 13 analysts Strong Buy, avg PT $67.64.</td>
+            <td class="risk-cell">EBITDA loss $96.8M. Expensive valuation. Quantum still early-stage. Complex multi-business pivot.</td>
+            <td class="notes-cell">Capella acquired Jul 2025. SkyWater foundry acquisition pending. 256-qubit system Q4 2026.</td>
+            <td>
+              <div class="quick-links">
+                <a class="chart-link" href="https://finance.yahoo.com/quote/IONQ/" target="_blank">↗ Yahoo</a>
+                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:IONQ" target="_blank">↗ Chart</a>
+                <a class="chart-link" href="https://stockanalysis.com/stocks/ionq/" target="_blank">↗ Analysis</a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 02: IPO CALENDAR -->
+  <section class="section" id="tab-ipo">
+    <div class="section-header">
+      <div>
+        <div class="section-title">IPO <span>Calendar</span></div>
+        <div class="section-sub">2026 pipeline — completed, upcoming & watchlist</div>
+      </div>
+      <div class="section-date">Refreshed: May 23, 2026 &mdash; check Wed/Thu evenings for updates</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Completed 2026</div><div class="stat-value green">2</div></div>
+      <div class="stat-card"><div class="stat-label">Upcoming (Filed)</div><div class="stat-value warn">4</div></div>
+      <div class="stat-card"><div class="stat-label">Pipeline</div><div class="stat-value accent">7</div></div>
+      <div class="stat-card"><div class="stat-label">Withdrawn</div><div class="stat-value" style="color:var(--red)">1</div></div>
+      <div class="stat-card"><div class="stat-label">Largest Expected</div><div class="stat-value" style="font-size:13px;">SpaceX ~$1.75T</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="ipo-filter" placeholder="Search company, sector, status..." oninput="filterTable('ipo-table', this.value)">
+    </div>
+
+    <div class="table-wrap">
+      <table id="ipo-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Company</th>
+            <th>Ticker</th>
+            <th>Exchange</th>
+            <th>Sector</th>
+            <th>IPO Date</th>
+            <th>Price</th>
+            <th>Deal Size</th>
+            <th>Market Cap</th>
+            <th>Revenue TTM</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td><strong>HawkEye 360</strong></td>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HAWK/" target="_blank">HAWK</a></span></td>
+            <td>NYSE</td>
+            <td><span class="tag">Space / SIGINT</span></td>
+            <td class="text-muted">2026-05-07</td>
+            <td class="yes">$26.00</td>
+            <td class="text-muted">$416M</td>
+            <td class="text-muted">$2.42B</td>
+            <td class="text-muted">$118M</td>
+            <td class="notes-cell">Opened +30% at $33.80. ATH $35.73.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td><strong>Cerebras Systems</strong></td>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/CBRS/" target="_blank">CBRS</a></span></td>
+            <td>NASDAQ</td>
+            <td><span class="tag">AI Chips</span></td>
+            <td class="text-muted">2026-05-14</td>
+            <td class="yes">$185.00</td>
+            <td class="text-muted">$5.55B</td>
+            <td class="text-muted">$39.82B</td>
+            <td class="text-muted">$510M</td>
+            <td class="notes-cell">Day 1 close $311.07. $20B OpenAI deal. Nvidia competitor.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-upcoming">Upcoming</span></td>
+            <td><strong>Lime (Neutron Holdings)</strong></td>
+            <td><span class="ticker-badge">LIME</span></td>
+            <td>NASDAQ</td>
+            <td><span class="tag">Micro-Mobility</span></td>
+            <td class="text-muted">Q2/Q3 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">S-1 filed May 8 2026. Blackstone backed. Electric scooters/bikes.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-upcoming">Upcoming</span></td>
+            <td><strong>Jersey Mike's</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">Restaurant</span></td>
+            <td class="text-muted">Q2/Q3 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Confidential S-1 mid-April 2026. Blackstone majority stake.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-upcoming">Upcoming</span></td>
+            <td><strong>Quantinuum</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">Quantum</span></td>
+            <td class="text-muted">Q2/Q3 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$10B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Confidential S-1 Feb 2026. Fault-tolerant quantum roadmap 2030.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-upcoming">Upcoming</span></td>
+            <td><strong>Kraken (Payward)</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">Crypto Exchange</span></td>
+            <td class="text-muted">Q2/Q3 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$20B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Confidential S-1 Nov 2025. $800M raised pre-IPO.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>OpenAI</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">AI</span></td>
+            <td class="text-muted">Q3/Q4 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$1T</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">May file confidentially May/June. IPO as early as Sept 2026.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>SpaceX</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">Aerospace</span><span class="tag">AI Infra</span></td>
+            <td class="text-muted">2026 H2</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$1.5–1.75T</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">S-1 filed with SEC. Largest IPO in US history if completed. Includes Starlink.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>Anthropic</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">AI</span></td>
+            <td class="text-muted">Late 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$300B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Contingent on $10B annualized run-rate. Claude product line. Amazon + Google backed.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>Revolut</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>NASDAQ</td>
+            <td><span class="tag">Fintech</span></td>
+            <td class="text-muted">2026 TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$75B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Confidential S-1 filed. UK neobank.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>Canva</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>NYSE/ASX</td>
+            <td><span class="tag">Design SaaS</span></td>
+            <td class="text-muted">2026 TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$42B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Goldman + Morgan Stanley engaged. Dual listing under consideration.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>Crusoe Energy</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">AI Infra</span><span class="tag">Energy</span></td>
+            <td class="text-muted">Q4 2026</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$13B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Largest pure-play AI infrastructure IPO of cycle if completed.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-pipeline">Pipeline</span></td>
+            <td><strong>Consensys</strong></td>
+            <td><span class="ticker-badge">TBD</span></td>
+            <td>TBD</td>
+            <td><span class="tag">Crypto</span><span class="tag">Web3</span></td>
+            <td class="text-muted">2026 TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-muted">~$7B</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Parent of MetaMask + Infura. Dominant Ethereum infrastructure.</td>
+          </tr>
+          <tr>
+            <td><span class="status-badge status-withdrawn">Withdrawn</span></td>
+            <td><strong>Clear Street</strong></td>
+            <td><span class="ticker-badge" style="opacity:0.5">N/A</span></td>
+            <td>N/A</td>
+            <td><span class="tag">Fintech</span></td>
+            <td class="text-muted">Feb 2026 (pulled)</td>
+            <td class="text-dim">N/A</td>
+            <td class="text-dim">N/A</td>
+            <td class="text-dim">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="notes-cell">Withdrew after trimming price range. AI sell-off weakened demand. No timeline.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 03: INSTITUTIONAL INVESTORS -->
+  <section class="section" id="tab-institutional">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Institutional <span>Investors</span></div>
+        <div class="section-sub">Major stakeholders across tracked tickers</div>
+      </div>
+      <div class="section-date">Based on latest 13F / OGE filings</div>
+    </div>
+
+    <div class="investor-grid">
+      <!-- HAWK -->
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title"><span class="ticker-badge" style="margin-right:8px"><a href="https://finance.yahoo.com/quote/HAWK/" target="_blank">HAWK</a></span> HawkEye 360</div>
+            <div class="investor-card-sub">Total pre-IPO funding: ~$560M from 44 investors</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Investor</th><th>Type</th><th>Stake</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Insight Partners</strong></td><td class="text-muted">VC / PE</td><td class="yes">15.0%</td><td class="notes-cell">Led $145M Series D 2021. Largest pre-IPO backer.</td></tr>
+            <tr><td><strong>NightDragon</strong></td><td class="text-muted">PE Defense/Cyber</td><td class="warn">9.7%</td><td class="notes-cell">Defense-focused growth equity.</td></tr>
+            <tr><td><strong>Razor's Edge</strong></td><td class="text-muted">PE Nat. Security</td><td class="text-muted">5.0%</td><td class="notes-cell">$1.25B+ AUM. Nat. security focused.</td></tr>
+            <tr><td><strong>BlackRock</strong></td><td class="text-muted">Asset Manager</td><td class="text-muted">Led D-1 round</td><td class="notes-cell">Led $58M Series D-1 2023.</td></tr>
+            <tr><td><strong>Leidos Ventures</strong></td><td class="text-muted">Corporate VC</td><td class="text-muted">Unknown</td><td class="notes-cell">Defense contractor. Strategic.</td></tr>
+            <tr><td><strong>Lockheed Martin Ventures</strong></td><td class="text-muted">Corporate VC</td><td class="text-muted">Unknown</td><td class="notes-cell">Defense contractor. Strategic.</td></tr>
+            <tr><td><strong>Raytheon</strong></td><td class="text-muted">Corporate VC</td><td class="text-muted">Unknown</td><td class="notes-cell">Defense contractor. Strategic.</td></tr>
+            <tr><td><strong>NRO (Gov Grant)</strong></td><td class="text-muted">U.S. Government</td><td class="text-muted">N/A</td><td class="notes-cell">$40M grant Dec 2025. Non-dilutive.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PL -->
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title"><span class="ticker-badge" style="margin-right:8px"><a href="https://finance.yahoo.com/quote/PL/" target="_blank">PL</a></span> Planet Labs PBC</div>
+            <div class="investor-card-sub">455 institutional owners — 67.6% institutional ownership</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Investor</th><th>Type</th><th>Stake</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Google LLC (Alphabet)</strong></td><td class="text-muted">Strategic / Corp.</td><td class="yes">10.18%</td><td class="notes-cell">31.94M shares ~$1.5B. Largest holder. Strategic partner.</td></tr>
+            <tr><td><strong>BlackRock</strong></td><td class="text-muted">Asset Manager</td><td class="text-muted">Top 3</td><td class="notes-cell">One of three largest institutional holders.</td></tr>
+            <tr><td><strong>Vanguard Group</strong></td><td class="text-muted">Index Fund</td><td class="text-muted">Top 3</td><td class="notes-cell">Increased stake +1.6% recently.</td></tr>
+            <tr><td><strong>D.E. Shaw & Co.</strong></td><td class="text-muted">Hedge Fund (Quant)</td><td class="text-muted">Top 5</td><td class="notes-cell">Quantitative hedge fund.</td></tr>
+            <tr><td><strong>Canada Pension Plan (CPP)</strong></td><td class="text-muted">Sovereign Pension</td><td class="text-muted">Top 5</td><td class="notes-cell">Sovereign pension fund.</td></tr>
+            <tr><td><strong>Capricorn Investment Group</strong></td><td class="text-muted">Impact Investing</td><td class="text-muted">Top 10</td><td class="notes-cell">Early backer.</td></tr>
+            <tr><td><strong>State Street Corp.</strong></td><td class="text-muted">Index Fund</td><td class="text-muted">Top 10</td><td class="notes-cell">Passive index holder.</td></tr>
+            <tr><td><strong>Driehaus Capital</strong></td><td class="text-muted">Growth Equity</td><td class="text-muted">Top 5</td><td class="notes-cell">Active growth manager.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SATL -->
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title"><span class="ticker-badge" style="margin-right:8px"><a href="https://finance.yahoo.com/quote/SATL/" target="_blank">SATL</a></span> Satellogic</div>
+            <div class="investor-card-sub">~48% institutional — 43% insider owned</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Investor</th><th>Type</th><th>Stake</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Liberty 77 Capital L.P.</strong></td><td class="text-muted">Private Investment</td><td class="yes">18.87%</td><td class="notes-cell">~20M shares. Largest institutional holder.</td></tr>
+            <tr><td><strong>Cantor Fitzgerald L.P.</strong></td><td class="text-muted">Investment Bank</td><td class="warn">17.62%</td><td class="notes-cell">25.21M shares ~$160M. Also acts as analyst (PT $10).</td></tr>
+            <tr><td><strong>BlackRock Funding</strong></td><td class="text-muted">Asset Manager</td><td class="text-muted">4.74%</td><td class="notes-cell">5.02M shares ~$43M.</td></tr>
+            <tr><td><strong>Emiliano Kargieman (CEO)</strong></td><td class="text-muted">Insider</td><td class="text-muted">~8.8%</td><td class="notes-cell">Co-founder and Board member.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- IONQ -->
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title"><span class="ticker-badge" style="margin-right:8px"><a href="https://finance.yahoo.com/quote/IONQ/" target="_blank">IONQ</a></span> IonQ Inc</div>
+            <div class="investor-card-sub">52.8% institutional — 37% insider ownership</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Investor</th><th>Type</th><th>Stake</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>GV 2016 GP LLC (Google Ventures)</strong></td><td class="text-muted">Corporate VC</td><td class="yes">4.01%</td><td class="notes-cell">14.71M shares ~$645M. Google's venture arm. Strategic.</td></tr>
+            <tr><td><strong>BlackRock Inc.</strong></td><td class="text-muted">Asset Manager</td><td class="warn">5%+ (13G)</td><td class="notes-cell">Filed 13G indicating 5%+ ownership ~$1B+.</td></tr>
+            <tr><td><strong>Morgan Stanley Inv. Mgmt.</strong></td><td class="text-muted">Asset Manager</td><td class="text-muted">5%+ (13G)</td><td class="notes-cell">Filed 13G via MS Investment Management.</td></tr>
+            <tr><td><strong>Vanguard Group</strong></td><td class="text-muted">Index Fund</td><td class="text-muted">Top 5</td><td class="notes-cell">Passive index holder.</td></tr>
+            <tr><td><strong>ARK Invest</strong></td><td class="text-muted">Active ETF</td><td class="text-muted">Top institutional</td><td class="notes-cell">Core IONQ holding in ARKK + ARKQ ETFs.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 04: POLITICAL HOLDINGS -->
+  <section class="section" id="tab-political">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Political <span>Holdings</span></div>
+        <div class="section-sub">Trump, cabinet members & family — public OGE disclosures</div>
+      </div>
+      <div class="section-date">Source: OGE Form 278-T, Q1 2026 (filed May 8, 2026)</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Trump Q1 Trades</div><div class="stat-value accent">3,642</div></div>
+      <div class="stat-card"><div class="stat-label">Q1 Trade Value</div><div class="stat-value warn">$220M–$750M</div></div>
+      <div class="stat-card"><div class="stat-label">Cabinet Members</div><div class="stat-value">~23</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Profit (Named)</div><div class="stat-value green">+20%+</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="political-filter" placeholder="Search person, ticker, asset..." oninput="filterTable('political-table', this.value)">
+      <span class="filter-label" style="margin-left:10px;">SHOW:</span>
+      <select class="filter-input" style="width:160px;" onchange="filterByPerson(this.value)">
+        <option value="">All</option>
+        <option value="Donald Trump">Trump</option>
+        <option value="Cabinet">Cabinet</option>
+        <option value="Family">Family</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table id="political-table">
+        <thead>
+          <tr>
+            <th>Person</th>
+            <th>Role</th>
+            <th>Ticker / Asset</th>
+            <th>Asset Name</th>
+            <th>Approx. Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/DJT/" target="_blank">DJT</a></span></td><td>Trump Media & Technology</td><td class="warn">~$1.2B</td><td class="notes-cell">Controlling stake. Truth Social. Holds Bitcoin.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/NVDA/" target="_blank">NVDA</a></span></td><td>Nvidia</td><td class="text-muted">$1.8M–$6.6M</td><td class="notes-cell">Q1 2026 buy. Bought as admin cleared chip sales to China.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/ORCL/" target="_blank">ORCL</a></span></td><td>Oracle</td><td class="text-muted">$2.2M–$10.6M</td><td class="notes-cell">Q1 2026 buy. Bought around TikTok/Oracle deal.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/MSFT/" target="_blank">MSFT</a></span></td><td>Microsoft</td><td class="text-muted">$2.4M–$8.1M</td><td class="notes-cell">Q1 2026 buy.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/AMZN/" target="_blank">AMZN</a></span></td><td>Amazon</td><td class="text-muted">$2.5M–$8.3M</td><td class="notes-cell">Q1 2026 buy. Also sold $5M–$25M.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/AVGO/" target="_blank">AVGO</a></span></td><td>Broadcom</td><td class="text-muted">$1M–$5M</td><td class="notes-cell">Q1 2026 buy. Semiconductor.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/AAPL/" target="_blank">AAPL</a></span></td><td>Apple</td><td class="text-muted">$2.1M–$7.2M</td><td class="notes-cell">Q1 2026 buy.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/AMD/" target="_blank">AMD</a></span></td><td>AMD</td><td class="text-muted">$635K–$1.4M</td><td class="notes-cell">Q1 2026 buy. 100%+ profit noted.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/COIN/" target="_blank">COIN</a></span></td><td>Coinbase</td><td class="text-muted">$500K–$1M</td><td class="notes-cell">Bought during active pro-crypto policy window.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HOOD/" target="_blank">HOOD</a></span></td><td>Robinhood</td><td class="text-muted">$500K–$1M</td><td class="notes-cell">Robinhood is trustee of Trump Accounts retirement program.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/DELL/" target="_blank">DELL</a></span></td><td>Dell Technologies</td><td class="text-muted">$1M–$5M</td><td class="notes-cell">Bought reportedly before public endorsement.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/LUNR/" target="_blank">LUNR</a></span></td><td>Intuitive Machines</td><td class="text-muted">100%+ profit</td><td class="notes-cell">Space company. Strong gain noted in filing.</td></tr>
+          <tr><td class="holder-trump"><strong>Donald Trump</strong></td><td class="text-muted">President</td><td><span class="ticker-badge">WLFI</span></td><td>World Liberty Financial</td><td class="warn">~$570M est.</td><td class="notes-cell">Family owns ~75%. DeFi project. Abu Dhabi $500M investment.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Scott Bessent</strong></td><td class="text-muted">Sec. Treasury</td><td><span class="ticker-badge">ETFs</span></td><td>Broad ETF Portfolio</td><td class="text-muted">$50M+</td><td class="notes-cell">Majority of holdings. Winding down Key Square hedge fund.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Scott Bessent</strong></td><td class="text-muted">Sec. Treasury</td><td><span class="ticker-badge">BTC-ETF</span></td><td>iShares Bitcoin Trust ETF</td><td class="text-muted">$250K–$500K</td><td class="notes-cell">Pledged to divest within 90 days of confirmation.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Howard Lutnick</strong></td><td class="text-muted">Sec. Commerce</td><td><span class="ticker-badge">CFG/BGC</span></td><td>Cantor Fitzgerald / BGC</td><td class="warn">~$800M+</td><td class="notes-cell">CEO of Cantor Fitzgerald. 800+ individual positions. Divesting stocks.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Linda McMahon</strong></td><td class="text-muted">Sec. Education</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/TKO/" target="_blank">TKO</a></span></td><td>TKO Group (WWE/UFC)</td><td class="text-muted">$50M+</td><td class="notes-cell">Co-founder of WWE. Major TKO stake.</td></tr>
+          <tr><td class="holder-cabinet"><strong>RFK Jr.</strong></td><td class="text-muted">Sec. HHS</td><td><span class="ticker-badge">BTC</span></td><td>Bitcoin (Fidelity)</td><td class="text-muted">$1M–$5M</td><td class="notes-cell">Largest known crypto holding.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Tulsi Gabbard</strong></td><td class="text-muted">Dir. Nat. Intel.</td><td><span class="ticker-badge">BTC</span></td><td>Bitcoin</td><td class="text-muted">$15K–$50K</td><td class="notes-cell">Said she would divest.</td></tr>
+          <tr><td class="holder-cabinet"><strong>Pete Hegseth</strong></td><td class="text-muted">Sec. Defense</td><td><span class="ticker-badge">BTC</span></td><td>Bitcoin</td><td class="text-muted">$15K–$50K</td><td class="notes-cell">Disclosed in ethics filing.</td></tr>
+          <tr><td class="holder-family"><strong>Donald Trump Jr.</strong></td><td class="text-muted">President's Son</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/UMAC/" target="_blank">UMAC</a></span></td><td>Unusual Machines</td><td class="text-muted">331,580 shares</td><td class="notes-cell">Drone components. Advisory board + investor. Gov contracts.</td></tr>
+          <tr><td class="holder-family"><strong>Donald Trump Jr.</strong></td><td class="text-muted">President's Son</td><td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/DMNR/" target="_blank">DMNR</a></span></td><td>Dominari Holdings</td><td class="text-muted">~12% stake</td><td class="notes-cell">Advisory board w/ Eric. Financial services in Trump Tower.</td></tr>
+          <tr><td class="holder-family"><strong>Donald Trump Jr.</strong></td><td class="text-muted">President's Son</td><td><span class="ticker-badge">PSQ</span></td><td>PSQ Holdings / PublicSquare</td><td class="text-muted">Board member</td><td class="notes-cell">Conservative commerce platform. Joined Dec 2024.</td></tr>
+          <tr><td class="holder-family"><strong>Eric Trump</strong></td><td class="text-muted">President's Son</td><td><span class="ticker-badge">ABTC</span></td><td>American Bitcoin</td><td class="text-muted">Undisclosed</td><td class="notes-cell">Co-founded with Don Jr. Crypto mining venture.</td></tr>
+          <tr><td class="holder-family"><strong>Eric Trump</strong></td><td class="text-muted">President's Son</td><td><span class="ticker-badge">WLFI</span></td><td>World Liberty Financial</td><td class="warn">~$187M deal</td><td class="notes-cell">Signed Abu Dhabi deal Jan 2026. Family owns ~75%.</td></tr>
+          <tr><td class="holder-family"><strong>Jared Kushner</strong></td><td class="text-muted">Son-in-Law</td><td><span class="ticker-badge">Saudi PIF</span></td><td>Affinity Partners Fund</td><td class="warn">$2B investment</td><td class="notes-cell">Saudi Arabia PIF invested $2B in Kushner's Affinity Partners.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px; padding:12px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.2); border-radius:3px; font-size:11px; color:var(--accent3); line-height:1.6;">
+      ⚠ <strong>DISCLAIMER:</strong> All data sourced from public OGE Form 278-T disclosures (Q1 2026, filed May 8 2026) and public reporting. OGE filings use broad value bands — not exact figures. Presidents are not prohibited from trading stocks but must disclose. No charges have been filed. This is for research purposes only and does not constitute investment advice.
+    </div>
+  </section>
+
+  <!-- TAB 05: UNICORN WATCHLIST -->
+  <section class="section" id="tab-unicorns">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Unicorn <span>Watchlist</span></div>
+        <div class="section-sub">Private companies $1B+ valuation — pre-IPO tracking &mdash; Cluster 01: Defense Tech</div>
+      </div>
+      <div class="section-date">Last updated: May 23, 2026</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Unicorns Tracked</div><div class="stat-value accent">10</div></div>
+      <div class="stat-card"><div class="stat-label">Combined Valuation</div><div class="stat-value warn">~$114B+</div></div>
+      <div class="stat-card"><div class="stat-label">Likely IPO 12-24mo</div><div class="stat-value green">3</div></div>
+      <div class="stat-card"><div class="stat-label">Sector</div><div class="stat-value" style="font-size:13px;">Defense Tech</div></div>
+      <div class="stat-card"><div class="stat-label">Q1 2026 Sector Funding</div><div class="stat-value" style="font-size:13px;">~$17.8B</div></div>
+    </div>
+
+    <div style="margin-bottom:16px; padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent);">SECTOR THESIS:</strong> Defense tech VC hit ~$17.8B in Q1 2026 alone — near record highs. US defense budget ~$960B. Golden Dome ($185B missile defense system), NATO members racing to 5% GDP spending, and AI-enabled autonomous warfare are the three primary demand drivers. Manufacturing scale is the 2026 battleground — companies that can convert from prototype to repeatable production will capture outsized contract velocity.
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="unicorn-filter" placeholder="Search company, sub-sector, investor..." oninput="filterTable('unicorn-table', this.value)">
+      <span class="filter-label" style="margin-left:10px;">IPO LIKELIHOOD:</span>
+      <select class="filter-input" style="width:140px;" onchange="filterUnicornIPO(this.value)">
+        <option value="">All</option>
+        <option value="Likely">Likely</option>
+        <option value="Possible">Possible</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table id="unicorn-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Sub-Sector</th>
+            <th>Valuation</th>
+            <th>Total Raised</th>
+            <th>Latest Round</th>
+            <th>Lead Investors</th>
+            <th>Revenue Est.</th>
+            <th>IPO Outlook</th>
+            <th>Key Product</th>
+            <th>Why It Matters</th>
+            <th>Risk Factors</th>
+            <th>Founded</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Anduril Industries</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://equityzen.com/company/andurilindustries/" target="_blank">↗ EquityZen</a>
+                <a class="chart-link" href="https://forgeglobal.com/anduril_ipo/" target="_blank">↗ Forge</a>
+              </div>
+            </td>
+            <td><span class="tag">Autonomous Weapons</span><span class="tag">AI Defense</span></td>
+            <td><strong style="color:var(--green);">$61B</strong></td>
+            <td class="text-muted">$11.96B</td>
+            <td>
+              <strong>Series H — $5B</strong>
+              <div class="text-dim text-small">May 2026</div>
+            </td>
+            <td class="text-muted">Thrive Capital<br>a16z</td>
+            <td class="text-muted">~$2B (2026E)</td>
+            <td><span class="status-badge status-upcoming">Likely 12-18mo</span></td>
+            <td class="thesis-cell">Lattice AI command platform + autonomous drones + counter-drone systems</td>
+            <td class="thesis-cell">$20B US Army enterprise contract Mar 2026. Golden Dome participant. Doubling revenue YoY. Largest defense tech unicorn. Palmer Luckey says IPO "definitely" coming.</td>
+            <td class="risk-cell">$1.2B projected 2026 loss. Heavy govt dependency. 30x revenue valuation.</td>
+            <td class="text-muted">2017</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Shield AI</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://equityzen.com/company/shieldai/" target="_blank">↗ EquityZen</a>
+              </div>
+            </td>
+            <td><span class="tag">Autonomous Aviation</span><span class="tag">AI Pilot</span></td>
+            <td><strong style="color:var(--green);">$12.7B</strong></td>
+            <td class="text-muted">$2B+</td>
+            <td>
+              <strong>Series G — $1.5B</strong>
+              <div class="text-dim text-small">Q1 2026</div>
+            </td>
+            <td class="text-muted">Advent International<br>JPMorgan Chase</td>
+            <td class="text-muted">~$267M (2024)</td>
+            <td><span class="status-badge status-upcoming">Likely 12-24mo</span></td>
+            <td class="thesis-cell">Hivemind AI pilot — autonomous flight without GPS or comms in contested environments</td>
+            <td class="thesis-cell">Won Air Force CCA autonomous combat aircraft contract. AI pilot flew with AIM-120 AMRAAM. Integration with Anduril. Crossover investors (Advent + JPMorgan) signal IPO readiness.</td>
+            <td class="risk-cell">Dependent on Air Force program of record. Hardware + software execution risk.</td>
+            <td class="text-muted">2015</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Saronic Technologies</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://equityzen.com/company/saronic/" target="_blank">↗ EquityZen</a>
+              </div>
+            </td>
+            <td><span class="tag">Autonomous Naval</span><span class="tag">Maritime</span></td>
+            <td><strong style="color:var(--green);">$9.25B</strong></td>
+            <td class="text-muted">$2.35B</td>
+            <td>
+              <strong>Series D — $1.75B</strong>
+              <div class="text-dim text-small">Q1 2026</div>
+            </td>
+            <td class="text-muted">Kleiner Perkins</td>
+            <td class="text-muted">~$200M (2025)</td>
+            <td><span class="status-badge status-upcoming">Likely 12-24mo</span></td>
+            <td class="thesis-cell">Autonomous surface vessels — drones for the US Navy</td>
+            <td class="thesis-cell">More than doubled valuation in 9 months. US Navy autonomous fleet push. Underwater autonomy emerging as next frontier. $670M+ raised across Saronic + peers for autonomous naval.</td>
+            <td class="risk-cell">Hardware manufacturing at scale is hard. Naval procurement cycles are long.</td>
+            <td class="text-muted">2022</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Helsing</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://helsing.ai" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">AI Military Software</span><span class="tag">Drones</span></td>
+            <td><strong style="color:var(--warn);">~$18B (pending)</strong></td>
+            <td class="text-muted">$2B+</td>
+            <td>
+              <strong>Raising — $1.2B</strong>
+              <div class="text-dim text-small">Q2 2026</div>
+            </td>
+            <td class="text-muted">Daniel Ek (Spotify)<br>General Catalyst</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible</span></td>
+            <td class="thesis-cell">AI perception + decision software for military drones and autonomous defense systems</td>
+            <td class="thesis-cell">Largest European defense tech startup. Germany $100B defense fund. NATO 5% GDP push. Founded by ex-Palantir + Google engineers. Spotify founder backing signals mainstream tech interest.</td>
+            <td class="risk-cell">European regulatory complexity. Not US-listed. Conflict resolution could reduce urgency.</td>
+            <td class="text-muted">2021</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Skydio</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://equityzen.com/company/skydio/" target="_blank">↗ EquityZen</a>
+                <a class="chart-link" href="https://www.ipo.club/deals/skydio" target="_blank">↗ IPO Club</a>
+              </div>
+            </td>
+            <td><span class="tag">Autonomous Drones</span><span class="tag">UAS</span></td>
+            <td><strong style="color:var(--green);">$4.4B</strong></td>
+            <td class="text-muted">$966M</td>
+            <td>
+              <strong>Series F — $110M</strong>
+              <div class="text-dim text-small">Apr 2026</div>
+            </td>
+            <td class="text-muted">Not disclosed</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible 2026-27</span></td>
+            <td class="thesis-cell">X10D autonomous AI drone + Skydio Dock for perimeter defense</td>
+            <td class="thesis-cell">Largest US drone manufacturer. $52M Army contract Mar 2026 — largest single UAS purchase in US military history. DJI federal ban = regulatory moat. Tripling production in 2026. Backed by NVIDIA + a16z.</td>
+            <td class="risk-cell">DJI ban court challenge ongoing. Hardware margin pressure. Anduril drone division competition.</td>
+            <td class="text-muted">2014</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">True Anomaly</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://www.trueanomaly.space" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">Space Defense</span><span class="tag">Interceptors</span></td>
+            <td><strong style="color:var(--green);">$2.2B</strong></td>
+            <td class="text-muted">~$1B</td>
+            <td>
+              <strong>Series D — $650M</strong>
+              <div class="text-dim text-small">Apr 28 2026</div>
+            </td>
+            <td class="text-muted">Eclipse + Riot Ventures</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible — monitoring</span></td>
+            <td class="thesis-cell">Jackal autonomous satellites + Mosaic mission control — space interceptors for Golden Dome</td>
+            <td class="thesis-cell">1 of 12 Golden Dome contractors. Only pure-play space defense startup. Dozen missions planned next 18 months incl. VICTUS HAZE. Funding tripled each round A→D. Plans 500 employees by EOY.</td>
+            <td class="risk-cell">Very early stage commercially. Classified program dependencies. Only 250 employees today.</td>
+            <td class="text-muted">2022</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Chaos Industries (CHAOS)</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://chaosindustries.com" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">Counter-Drone</span><span class="tag">Electronic Warfare</span></td>
+            <td><strong style="color:var(--green);">$4.5B</strong></td>
+            <td class="text-muted">$930M+</td>
+            <td>
+              <strong>Not disclosed</strong>
+              <div class="text-dim text-small">2025-2026</div>
+            </td>
+            <td class="text-muted">General Catalyst</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible</span></td>
+            <td class="thesis-cell">Counter-drone and electronic warfare systems</td>
+            <td class="thesis-cell">Third highest valuation in defense tech sector. Counter-drone is fastest-growing investment category. Ukraine conflict validated demand — cheap $30K drones beat $3M interceptor missiles.</td>
+            <td class="risk-cell">Very limited public information. Stealth mode operations.</td>
+            <td class="text-muted">2022</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Epirus</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://www.epirusinc.com" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">Directed Energy</span><span class="tag">Counter-Drone</span></td>
+            <td><strong style="color:var(--green);">$1.35B+</strong></td>
+            <td class="text-muted">$550M+</td>
+            <td>
+              <strong>Series D — $250M</strong>
+              <div class="text-dim text-small">Mar 2025</div>
+            </td>
+            <td class="text-muted">Not disclosed</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible — needs growth</span></td>
+            <td class="thesis-cell">Leonidas high-power microwave (HPM) directed energy weapon — zaps drone swarms simultaneously</td>
+            <td class="thesis-cell">Handheld + vehicle-mounted (Stryker) + miniature versions in dev. $250M Series D shows sustained investor conviction. Counter-drone spending exploding globally.</td>
+            <td class="risk-cell">Directed energy still proving out at scale. DEW export regulatory constraints.</td>
+            <td class="text-muted">2018</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Defense Unicorns</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://defenseunicorns.com" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">Defense Software</span><span class="tag">DevSecOps</span></td>
+            <td><strong style="color:var(--green);">$1B+</strong></td>
+            <td class="text-muted">$186.5M</td>
+            <td>
+              <strong>Series B — $136M</strong>
+              <div class="text-dim text-small">Jan 13 2026</div>
+            </td>
+            <td class="text-muted">Bain Capital Tech Opportunities</td>
+            <td class="text-muted">$30M (2024)</td>
+            <td><span class="status-badge status-pipeline">Too early — Series B</span></td>
+            <td class="thesis-cell">Airgap software delivery platform — secure software updates in disconnected combat environments</td>
+            <td class="thesis-cell">300% YoY military adoption growth. Already profitable. Gen. Petraeus advisory. Solves a real and urgent problem: deployed forces need software updates in zero-connectivity environments.</td>
+            <td class="risk-cell">Very early stage. Niche product. Long govt sales cycles.</td>
+            <td class="text-muted">2021</td>
+          </tr>
+          <tr>
+            <td>
+              <strong style="color:var(--accent); font-size:13px;">Onebrief</strong>
+              <div class="quick-links">
+                <a class="chart-link" href="https://onebrief.com" target="_blank">↗ Website</a>
+              </div>
+            </td>
+            <td><span class="tag">Battlefield AI</span><span class="tag">Military Planning</span></td>
+            <td><strong style="color:var(--green);">$1B+</strong></td>
+            <td class="text-muted">$323M</td>
+            <td>
+              <strong>Not disclosed</strong>
+              <div class="text-dim text-small">2024-2025</div>
+            </td>
+            <td class="text-muted">General Catalyst</td>
+            <td class="text-muted">Not disclosed</td>
+            <td><span class="status-badge status-pipeline">Possible</span></td>
+            <td class="thesis-cell">AI-powered military planning and command software — replacing manual planning processes</td>
+            <td class="thesis-cell">Pure software play proving defense doesn't need hardware. Defense AI software is second-largest investment category after autonomous drones. General Catalyst conviction backing.</td>
+            <td class="risk-cell">Very niche. Dependent on govt procurement modernization pace.</td>
+            <td class="text-muted">2019</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:16px; padding:12px 14px; background:rgba(0,255,157,0.04); border:1px solid rgba(0,255,157,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent2);">NEXT SECTORS TO HUNT:</strong>
+      <span class="tag" style="margin-left:8px;">AI / LLMs</span>
+      <span class="tag">Fintech</span>
+      <span class="tag">Biotech</span>
+      <span class="tag">Quantum</span>
+      <span class="tag">Energy / Nuclear</span>
+      <span class="tag">Cyber</span>
+      <span class="tag">Crypto / Web3</span>
+    </div>
+  </section>
+
+  <!-- TAB 06: RESEARCH NOTES -->
+  <section class="section" id="tab-notes">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Research <span>Notes</span></div>
+        <div class="section-sub">Personal notes — saved locally in your browser</div>
+      </div>
+      <div class="section-date">Auto-saves as you type</div>
+    </div>
+
+    <div style="margin-bottom:12px; display:flex; gap:10px; align-items:center;">
+      <input class="filter-input" type="text" id="note-title" placeholder="Note title..." style="width:240px;">
+      <button onclick="saveNote()" style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); color:var(--accent); font-family:var(--mono); font-size:11px; padding:8px 16px; cursor:pointer; border-radius:3px; letter-spacing:0.1em;">+ SAVE NOTE</button>
+      <button onclick="clearNotes()" style="background:rgba(255,71,87,0.08); border:1px solid rgba(255,71,87,0.2); color:var(--red); font-family:var(--mono); font-size:11px; padding:8px 16px; cursor:pointer; border-radius:3px; letter-spacing:0.1em;">CLEAR ALL</button>
+    </div>
+
+    <textarea id="note-body" placeholder="Type your research notes here... (e.g. thesis thoughts, price targets, sector observations)" style="width:100%; height:180px; background:var(--panel); border:1px solid var(--border); color:var(--text); font-family:var(--mono); font-size:12px; padding:14px; resize:vertical; outline:none; border-radius:3px; line-height:1.6;"></textarea>
+
+    <div id="notes-list" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;"></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>MERIDIAN Research Terminal &mdash; v1.0 &mdash; Local Build</span>
+  <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
+</footer>
+
+<script>
+  // Unicorn IPO filter
+  function filterUnicornIPO(val) {
+    const rows = document.querySelectorAll('#unicorn-table tbody tr');
+    rows.forEach(row => {
+      if (!val) { row.style.display = ''; return; }
+      row.style.display = row.textContent.includes(val) ? '' : 'none';
+    });
+  }
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {hour12: false});
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Tab switching
+  function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Table filter
+  function filterTable(tableId, query) {
+    const q = query.toLowerCase();
+    const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+    rows.forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  // Political filter by person category
+  function filterByPerson(val) {
+    const rows = document.querySelectorAll('#political-table tbody tr');
+    rows.forEach(row => {
+      if (!val) { row.style.display = ''; return; }
+      const person = row.cells[0]?.textContent || '';
+      const role = row.cells[1]?.textContent || '';
+      if (val === 'Donald Trump') {
+        row.style.display = person.includes('Donald Trump') && !person.includes('Jr') ? '' : 'none';
+      } else if (val === 'Cabinet') {
+        const cabinetRoles = ['Sec.', 'Dir.', 'OMB'];
+        row.style.display = cabinetRoles.some(r => role.includes(r)) ? '' : 'none';
+      } else if (val === 'Family') {
+        row.style.display = (role.includes("Son") || role.includes("Son-in-Law")) ? '' : 'none';
+      }
+    });
+  }
+
+  // Notes (localStorage)
+  function saveNote() {
+    const title = document.getElementById('note-title').value || 'Untitled';
+    const body = document.getElementById('note-body').value;
+    if (!body.trim()) return;
+    const notes = JSON.parse(localStorage.getItem('meridian-notes') || '[]');
+    notes.unshift({ title, body, date: new Date().toLocaleString() });
+    localStorage.setItem('meridian-notes', JSON.stringify(notes));
+    document.getElementById('note-title').value = '';
+    document.getElementById('note-body').value = '';
+    renderNotes();
+  }
+
+  function clearNotes() {
+    if (confirm('Clear all saved notes?')) {
+      localStorage.removeItem('meridian-notes');
+      renderNotes();
+    }
+  }
+
+  function deleteNote(i) {
+    const notes = JSON.parse(localStorage.getItem('meridian-notes') || '[]');
+    notes.splice(i, 1);
+    localStorage.setItem('meridian-notes', JSON.stringify(notes));
+    renderNotes();
+  }
+
+  function renderNotes() {
+    const notes = JSON.parse(localStorage.getItem('meridian-notes') || '[]');
+    const container = document.getElementById('notes-list');
+    if (!notes.length) {
+      container.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:20px 0;">No notes saved yet.</div>';
+      return;
+    }
+    container.innerHTML = notes.map((n, i) => `
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="color:var(--accent);font-size:13px;">${n.title}</strong>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="color:var(--text3);font-size:10px;">${n.date}</span>
+            <button onclick="deleteNote(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-family:var(--mono);">✕</button>
+          </div>
+        </div>
+        <div style="color:var(--text2);font-size:12px;white-space:pre-wrap;line-height:1.6;">${n.body}</div>
+      </div>
+    `).join('');
+  }
+
+  renderNotes();
+</script>
+</body>
+</html>
