@@ -449,7 +449,7 @@
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.0 &mdash; May 23 2026</span>
+    <span>v1.1 &mdash; May 23 2026</span>
   </div>
 </header>
 
@@ -459,7 +459,9 @@
   <div class="nav-tab" onclick="showTab('institutional')">03 &mdash; Institutional Investors</div>
   <div class="nav-tab" onclick="showTab('political')">04 &mdash; Political Holdings</div>
   <div class="nav-tab" onclick="showTab('unicorns')">05 &mdash; Unicorn Watchlist</div>
-  <div class="nav-tab" onclick="showTab('notes')">06 &mdash; Research Notes</div>
+  <div class="nav-tab" onclick="showTab('biotech')">06 &mdash; Biotech</div>
+  <div class="nav-tab" onclick="showTab('notes')">07 &mdash; Research Notes</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">08 &mdash; Roadmap</div>
 </nav>
 
 <main class="main">
@@ -477,23 +479,23 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-label">Tickers Tracked</div>
-        <div class="stat-value accent">4</div>
+        <div class="stat-value accent">15</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Sectors</div>
-        <div class="stat-value">3</div>
+        <div class="stat-value">5</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Profitable</div>
-        <div class="stat-value green">1 / 4</div>
+        <div class="stat-value green">3 / 15</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Avg Market Cap</div>
-        <div class="stat-value warn">~$9.5B</div>
+        <div class="stat-label">Recent IPOs (12mo)</div>
+        <div class="stat-value warn">11</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Cluster Theme</div>
-        <div class="stat-value" style="font-size:13px;">Space Intelligence</div>
+        <div class="stat-label">Clusters</div>
+        <div class="stat-value" style="font-size:12px;">Space · Defense · Quantum · Biotech · AI</div>
       </div>
     </div>
 
@@ -601,12 +603,204 @@
               </div>
             </td>
           </tr>
+          <!-- SECTOR DIVIDER: SPACE / DEFENSE RECENT IPOs -->
+          <tr style="background:rgba(0,212,255,0.06);">
+            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent); text-transform:uppercase; font-weight:700;">
+              ⬇ Recent IPOs — Space / Defense (2025–2026)
+            </td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/KRMN/" target="_blank">KRMN</a></span></td>
+            <td><strong>Karman Holdings</strong><div class="text-dim text-small">Karman Space & Defense</div></td>
+            <td><span class="tag">Space</span><span class="tag">Defense HW</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$22 IPO</strong><div class="text-dim text-small">peaked ~$101</div></td>
+            <td class="text-muted">$13.5B</td>
+            <td class="text-muted">$471.5M</td>
+            <td><span class="yes">✓ YES</span></td>
+            <td class="thesis-cell">Designs + manufactures mission-critical systems for hypersonics, missile defense, satellites, UAS. Revenue +36.6% YoY 2025. Profitable. Avg analyst PT $105.60 = 64% upside. Golden Dome beneficiary.</td>
+            <td class="risk-cell">PT cuts following Q1. Lockheed supply chain dependency. Hardware margin pressure.</td>
+            <td class="notes-cell">IPO Feb 2025. Trive Capital backer. Former Lockheed Martin VP joined as CSO. 10 analysts Buy.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/KRMN/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:KRMN" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/krmn/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/VOYG/" target="_blank">VOYG</a></span></td>
+            <td><strong>Voyager Technologies</strong></td>
+            <td><span class="tag">Space</span><span class="tag">Commercial</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$31 IPO</strong><div class="text-dim text-small">opened $68 (+120%)</div></td>
+            <td class="text-muted">$3.8B</td>
+            <td class="text-muted">$34.5M Q1</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Parent of Starlab — privately funded commercial space station to replace ISS. JV with Airbus, Mitsubishi, MDA Space, and Palantir. 84% US govt revenue. Strong NASA + defense tailwinds.</td>
+            <td class="risk-cell">Deeply unprofitable. Pre-revenue on Starlab. Very early stage. Single customer concentration.</td>
+            <td class="notes-cell">IPO June 2025. 120% pop on day one. Palantir as JV partner is key signal.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/VOYG/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:VOYG" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/voyg/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/FLY/" target="_blank">FLY</a></span></td>
+            <td><strong>Firefly Aerospace</strong></td>
+            <td><span class="tag">Space</span><span class="tag">Launch</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$45 IPO</strong><div class="text-dim text-small">cut in half post-IPO</div></td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">$160M (2025)</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Rocket launch + SciTec acquisition ($855M) plugs directly into Golden Dome missile defense. 2026 guidance $420–450M (80% booked). $1.4B backlog. Return to orbit March 2026.</td>
+            <td class="risk-cell">Rocket stage explosion post-IPO. Class-action lawsuit over IPO disclosures. Deeply unprofitable.</td>
+            <td class="notes-cell">IPO Aug 2025. AE Industrial Partners backer. 2026 recovery story. Golden Dome = major catalyst.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/FLY/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:FLY" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/fly/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/MDA/" target="_blank">MDA</a></span></td>
+            <td><strong>MDA Space</strong></td>
+            <td><span class="tag">Space</span><span class="tag">Robotics</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">$335.4M (2025)</td>
+            <td><span class="yes">✓ YES</span></td>
+            <td class="thesis-cell">Profitable Canadian space company with long operating history. Makes Canadarm robotic systems. Revenue +10.3% 2025 with Q4 +56.4%. Motley Fool top pick among recent space IPOs. Steady fundamentals play.</td>
+            <td class="risk-cell">Lower growth profile. Canadian company — some US investor hesitation. Less Golden Dome exposure.</td>
+            <td class="notes-cell">Recently listed on NYSE. Ranked #1 recent space IPO by Motley Fool due to profitability + history.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/MDA/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:MDA" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/mda/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
+          <!-- SECTOR DIVIDER: QUANTUM RECENT IPOs -->
+          <tr style="background:rgba(0,255,157,0.06);">
+            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent2); text-transform:uppercase; font-weight:700;">
+              ⬇ Recent IPOs — Quantum Computing (2026)
+            </td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/XNDU/" target="_blank">XNDU</a></span></td>
+            <td><strong>Xanadu Quantum Technologies</strong></td>
+            <td><span class="tag">Quantum</span><span class="tag">Photonic</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">$4.6M (2025)</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">First pure-play photonic quantum computing public company. Photons enable quantum networking + cryptography — critical for AI. Revenue +188% YoY. Only photonic approach at public scale vs trapped-ion/superconducting peers.</td>
+            <td class="risk-cell">Tiny revenue. Very early stage. Multiple competing quantum approaches. Photonic unproven at scale.</td>
+            <td class="notes-cell">IPO March 27 2026. NASDAQ. First-mover advantage in photonic quantum computing.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/XNDU/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:XNDU" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/INFQ/" target="_blank">INFQ</a></span></td>
+            <td><strong>Infleqtion</strong></td>
+            <td><span class="tag">Quantum</span><span class="tag">Sensing</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Neutral-atom quantum computing + high-precision quantum sensing for defense/aerospace. Dual business model — sensing adds near-term revenue path. $540M raised. $1.8B valuation. CNBC flagged as investor radar stock.</td>
+            <td class="risk-cell">SPAC listing. Revenue not disclosed. Execution risk on dual hardware/sensing roadmap.</td>
+            <td class="notes-cell">SPAC via Churchill Capital Corp X. NYSE. Boulder CO. Sensing differentiates from pure quantum peers.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/INFQ/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:INFQ" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HQ/" target="_blank">HQ</a></span></td>
+            <td><strong>Horizon Quantum</strong></td>
+            <td><span class="tag">Quantum</span><span class="tag">QaaS</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Neutral-atom qubit technology + QaaS (Quantum as a Service) platform. Post-merger equity ~$1B. QaaS model could provide recurring revenue earlier than pure hardware peers.</td>
+            <td class="risk-cell">SPAC listing. Very early stage. Neutral-atom competing with multiple other approaches.</td>
+            <td class="notes-cell">SPAC merger with dMY Squared. NASDAQ. QaaS platform = potential early recurring revenue.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/HQ/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:HQ" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <!-- SECTOR DIVIDER: BIOTECH / AI RECENT IPOs -->
+          <tr style="background:rgba(255,107,53,0.06);">
+            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent3); text-transform:uppercase; font-weight:700;">
+              ⬇ Recent IPOs — Biotech / AI (2026)
+            </td>
+          </tr>
+          <tr class="highlight-row">
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/GENB/" target="_blank">GENB</a></span></td>
+            <td><strong>Generate Biomedicines</strong></td>
+            <td><span class="tag">Biotech</span><span class="tag">AI Drug</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$16 IPO</strong></td>
+            <td class="text-muted">$1.65B</td>
+            <td class="text-muted">TBD</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Flagship Pioneering spinout — same firm that created Moderna. Generative AI protein design. Lead GB-0895 Phase 3 for severe asthma + COPD. 6 analysts Strong Buy avg PT $25.40 = +72% upside from ~$14.79.</td>
+            <td class="risk-cell">Below IPO price. Phase 3 binary risk. Cash burn. Clinical stage.</td>
+            <td class="notes-cell">IPO Feb 27 2026. Goldman + Morgan Stanley underwrote. Flagship Pioneering pedigree = Moderna creator. Earnings Jun 3 2026.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/GENB/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:GENB" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/genb/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/KLRA/" target="_blank">KLRA</a></span></td>
+            <td><strong>Kailera Therapeutics</strong></td>
+            <td><span class="tag">Biotech</span><span class="tag">GLP-1</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$16 IPO</strong></td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">GLP-1 receptor agonist KAI-7535 + injectable/oral ribupatide. Largest biotech IPO of 2026 at $718.8M. Raised $1B privately before IPO ($400M Series A + $600M Series B) — massive investor conviction.</td>
+            <td class="risk-cell">GLP-1 extremely competitive (Novo Nordisk, Eli Lilly dominate). Clinical stage binary risk.</td>
+            <td class="notes-cell">IPO April 2026. $718.8M raised — largest biotech IPO of 2026. $1B pre-IPO funding = top-tier signal.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/KLRA/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:KLRA" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/CBRS/" target="_blank">CBRS</a></span></td>
+            <td><strong>Cerebras Systems</strong></td>
+            <td><span class="tag">AI Chips</span><span class="tag">Infra</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$185 IPO</strong><div class="text-dim text-small">opened $311 (+68%)</div></td>
+            <td class="text-muted">$39.82B</td>
+            <td class="text-muted">$510M</td>
+            <td><span class="no">✗ NO</span></td>
+            <td class="thesis-cell">Wafer-scale AI chip — direct Nvidia competitor. $20B multi-year OpenAI deal. Largest AI chip IPO ever. Priced $25 above range. Tiger Global led $1B round at $23.1B pre-IPO.</td>
+            <td class="risk-cell">Abu Dhabi G42 relationship caused prior IPO withdrawal. Nvidia competition. Heavily loss-making.</td>
+            <td class="notes-cell">IPO May 14 2026. NASDAQ. Day 1 open $311 vs $185 IPO. Tiger Global + G42 key backers.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/CBRS/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:CBRS" target="_blank">↗ Chart</a>
+              <a class="chart-link" href="https://stockanalysis.com/stocks/cbrs/" target="_blank">↗ Analysis</a>
+            </div></td>
+          </tr>
         </tbody>
       </table>
     </div>
   </section>
-
-  <!-- TAB 02: IPO CALENDAR -->
   <section class="section" id="tab-ipo">
     <div class="section-header">
       <div>
@@ -1057,6 +1251,7 @@
             <th>Key Product</th>
             <th>Why It Matters</th>
             <th>Risk Factors</th>
+            <th>⚡ Alert Signals</th>
             <th>Founded</th>
           </tr>
         </thead>
@@ -1082,6 +1277,7 @@
             <td class="thesis-cell">Lattice AI command platform + autonomous drones + counter-drone systems</td>
             <td class="thesis-cell">$20B US Army enterprise contract Mar 2026. Golden Dome participant. Doubling revenue YoY. Largest defense tech unicorn. Palmer Luckey says IPO "definitely" coming.</td>
             <td class="risk-cell">$1.2B projected 2026 loss. Heavy govt dependency. 30x revenue valuation.</td>
+            <td class="notes-cell" style="color:var(--warn);">Palmer Luckey IPO statement · S-1 filing · CFO with public co. exp. hired · Ohio factory milestone · Investment bank engaged · $5B+ revenue milestone</td>
             <td class="text-muted">2017</td>
           </tr>
           <tr>
@@ -1104,6 +1300,7 @@
             <td class="thesis-cell">Hivemind AI pilot — autonomous flight without GPS or comms in contested environments</td>
             <td class="thesis-cell">Won Air Force CCA autonomous combat aircraft contract. AI pilot flew with AIM-120 AMRAAM. Integration with Anduril. Crossover investors (Advent + JPMorgan) signal IPO readiness.</td>
             <td class="risk-cell">Dependent on Air Force program of record. Hardware + software execution risk.</td>
+            <td class="notes-cell" style="color:var(--warn);">S-1 filing · CCA production decision FY2026 · New Air Force contract award · CFO hire · Hivemind Enterprise revenue milestone · Investment bank engagement</td>
             <td class="text-muted">2015</td>
           </tr>
           <tr>
@@ -1126,6 +1323,7 @@
             <td class="thesis-cell">Autonomous surface vessels — drones for the US Navy</td>
             <td class="thesis-cell">More than doubled valuation in 9 months. US Navy autonomous fleet push. Underwater autonomy emerging as next frontier. $670M+ raised across Saronic + peers for autonomous naval.</td>
             <td class="risk-cell">Hardware manufacturing at scale is hard. Naval procurement cycles are long.</td>
+            <td class="notes-cell" style="color:var(--warn);">First Navy vessel delivery · Series E funding · DoD program of record award · Investment bank hire · $1B revenue milestone · S-1 filing</td>
             <td class="text-muted">2022</td>
           </tr>
           <tr>
@@ -1148,6 +1346,7 @@
             <td class="thesis-cell">AI perception + decision software for military drones and autonomous defense systems</td>
             <td class="thesis-cell">Largest European defense tech startup. Germany $100B defense fund. NATO 5% GDP push. Founded by ex-Palantir + Google engineers. Spotify founder backing signals mainstream tech interest.</td>
             <td class="risk-cell">European regulatory complexity. Not US-listed. Conflict resolution could reduce urgency.</td>
+            <td class="notes-cell" style="color:var(--warn);">$1.2B round closes · US expansion announcement · NATO contract award · Daniel Ek public statements · US exchange listing filing · Series D raise</td>
             <td class="text-muted">2021</td>
           </tr>
           <tr>
@@ -1171,6 +1370,7 @@
             <td class="thesis-cell">X10D autonomous AI drone + Skydio Dock for perimeter defense</td>
             <td class="thesis-cell">Largest US drone manufacturer. $52M Army contract Mar 2026 — largest single UAS purchase in US military history. DJI federal ban = regulatory moat. Tripling production in 2026. Backed by NVIDIA + a16z.</td>
             <td class="risk-cell">DJI ban court challenge ongoing. Hardware margin pressure. Anduril drone division competition.</td>
+            <td class="notes-cell" style="color:var(--warn);">DJI court ruling · S-1 filing · New Army contract · Production tripling milestone · CFO hire · Investment bank engagement · FCC DJI ban expansion</td>
             <td class="text-muted">2014</td>
           </tr>
           <tr>
@@ -1193,6 +1393,7 @@
             <td class="thesis-cell">Jackal autonomous satellites + Mosaic mission control — space interceptors for Golden Dome</td>
             <td class="thesis-cell">1 of 12 Golden Dome contractors. Only pure-play space defense startup. Dozen missions planned next 18 months incl. VICTUS HAZE. Funding tripled each round A→D. Plans 500 employees by EOY.</td>
             <td class="risk-cell">Very early stage commercially. Classified program dependencies. Only 250 employees today.</td>
+            <td class="notes-cell" style="color:var(--warn);">VICTUS HAZE mission success · Golden Dome contract award · 500 employee milestone · Series E funding · Investment bank engagement · First Jackal GEO deployment</td>
             <td class="text-muted">2022</td>
           </tr>
           <tr>
@@ -1215,6 +1416,7 @@
             <td class="thesis-cell">Counter-drone and electronic warfare systems</td>
             <td class="thesis-cell">Third highest valuation in defense tech sector. Counter-drone is fastest-growing investment category. Ukraine conflict validated demand — cheap $30K drones beat $3M interceptor missiles.</td>
             <td class="risk-cell">Very limited public information. Stealth mode operations.</td>
+            <td class="notes-cell" style="color:var(--warn);">Any public press release · DoD contract announcement · New funding round · Leadership team disclosure · Coming out of stealth · S-1 filing</td>
             <td class="text-muted">2022</td>
           </tr>
           <tr>
@@ -1237,6 +1439,7 @@
             <td class="thesis-cell">Leonidas high-power microwave (HPM) directed energy weapon — zaps drone swarms simultaneously</td>
             <td class="thesis-cell">Handheld + vehicle-mounted (Stryker) + miniature versions in dev. $250M Series D shows sustained investor conviction. Counter-drone spending exploding globally.</td>
             <td class="risk-cell">Directed energy still proving out at scale. DEW export regulatory constraints.</td>
+            <td class="notes-cell" style="color:var(--warn);">Leonidas Stryker vehicle deployment · Series E funding · Army program of record · Export license approval · Investment bank engagement · International contract win</td>
             <td class="text-muted">2018</td>
           </tr>
           <tr>
@@ -1259,6 +1462,7 @@
             <td class="thesis-cell">Airgap software delivery platform — secure software updates in disconnected combat environments</td>
             <td class="thesis-cell">300% YoY military adoption growth. Already profitable. Gen. Petraeus advisory. Solves a real and urgent problem: deployed forces need software updates in zero-connectivity environments.</td>
             <td class="risk-cell">Very early stage. Niche product. Long govt sales cycles.</td>
+            <td class="notes-cell" style="color:var(--warn);">Series C funding · Revenue $100M milestone · New DoD branch adoption · Gen. Petraeus public endorsement · Investment bank engagement · Navy/Air Force contract</td>
             <td class="text-muted">2021</td>
           </tr>
           <tr>
@@ -1281,6 +1485,7 @@
             <td class="thesis-cell">AI-powered military planning and command software — replacing manual planning processes</td>
             <td class="thesis-cell">Pure software play proving defense doesn't need hardware. Defense AI software is second-largest investment category after autonomous drones. General Catalyst conviction backing.</td>
             <td class="risk-cell">Very niche. Dependent on govt procurement modernization pace.</td>
+            <td class="notes-cell" style="color:var(--warn);">New funding round · CENTCOM / INDOPACOM contract · Series C raise · Investment bank engagement · NATO adoption · Revenue milestone disclosure</td>
             <td class="text-muted">2019</td>
           </tr>
         </tbody>
@@ -1299,7 +1504,340 @@
     </div>
   </section>
 
-  <!-- TAB 06: RESEARCH NOTES -->
+  <!-- TAB 06: BIOTECH -->
+  <section class="section" id="tab-biotech">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Biotech <span>Research</span></div>
+        <div class="section-sub">AI Drug Discovery &mdash; Gene Therapy / CRISPR &mdash; Longevity / Anti-Aging</div>
+      </div>
+      <div class="section-date">Last updated: May 23, 2026</div>
+    </div>
+
+    <div style="margin-bottom:20px; padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent);">SECTOR THESIS:</strong> Three converging forces define biotech in 2026: a <strong>$170B patent cliff</strong> driving Big Pharma acquisition activity, <strong>breakthrough CRISPR approvals</strong> validating gene therapy platforms, and <strong>AI drug discovery</strong> achieving clinical validation with Phase 3 candidates. The XBI biotech index recovered 37% from its 2022–2024 downturn. Longevity market projected to grow from $25B to $600B by 2035 — tech billionaires (Bezos, Altman, Armstrong) are all in.
+    </div>
+
+    <!-- PUBLIC TICKERS -->
+    <div class="section-header" style="margin-top:0;">
+      <div>
+        <div class="section-title" style="font-size:16px;">Public <span>Tickers</span></div>
+        <div class="section-sub">7 stocks across AI Drug Discovery, CRISPR, and Genomics Infrastructure</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Tickers Tracked</div><div class="stat-value accent">7</div></div>
+      <div class="stat-card"><div class="stat-label">Profitable</div><div class="stat-value" style="color:var(--red)">0 / 7</div></div>
+      <div class="stat-card"><div class="stat-label">Products on Market</div><div class="stat-value green">1 (CRSP)</div></div>
+      <div class="stat-card"><div class="stat-label">CRSP Avg Analyst PT</div><div class="stat-value warn">$82.82</div></div>
+      <div class="stat-card"><div class="stat-label">RXRX Avg Analyst PT</div><div class="stat-value warn">$6.71</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="biotech-filter" placeholder="Search ticker, sector, company..." oninput="filterTable('biotech-table', this.value)">
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:28px;">
+      <table id="biotech-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Company</th>
+            <th>Sub-Sector</th>
+            <th>Date Added</th>
+            <th>Price</th>
+            <th>Market Cap</th>
+            <th>Revenue TTM</th>
+            <th>Analyst PT</th>
+            <th>Key Thesis</th>
+            <th>Risk Factors</th>
+            <th>Notes</th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/RXRX/" target="_blank">RXRX</a></span></td>
+            <td><strong>Recursion Pharmaceuticals</strong></td>
+            <td><span class="tag">AI Drug Discovery</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$3.37</strong></td>
+            <td class="text-muted">~$1.2B</td>
+            <td class="text-muted">$35.5M (Q4)</td>
+            <td><span style="color:var(--warn);">Avg $6.71</span><div class="text-dim text-small">3 analysts Buy</div></td>
+            <td class="thesis-cell">AI-first TechBio. Millions of experiments weekly. Partnerships with Roche, Bayer, Sanofi, Merck, Takeda. Cash runway to early 2028. Beat Q4 2025 estimates by 45%.</td>
+            <td class="risk-cell">Deep losses. Binary clinical trial risk. Stock down ~50% from highs. Heavy cash burn.</td>
+            <td class="notes-cell">52-wk $2.80–$7.18. Phase I DAHLIA data H1 2026. Stock at large discount to avg PT.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/RXRX/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:RXRX" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/TEM/" target="_blank">TEM</a></span></td>
+            <td><strong>Tempus AI</strong></td>
+            <td><span class="tag">AI Drug Discovery</span><span class="tag">Precision Med</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">$1.27B TTM</td>
+            <td class="text-dim">TBD</td>
+            <td class="thesis-cell">Largest AI-integrated clinical data platform. Combines genetic, imaging and clinical data. $1.27B trailing revenue — data flywheel no competitor can replicate. Partners with Recursion.</td>
+            <td class="risk-cell">Not profitable. Data privacy regulatory risk. Large pharma building in-house AI competition.</td>
+            <td class="notes-cell">Issued 7M shares to RXRX as license payment. Clinical data moat is key differentiator.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/TEM/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:TEM" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/SDGR/" target="_blank">SDGR</a></span></td>
+            <td><strong>Schrödinger Inc</strong></td>
+            <td><span class="tag">AI Drug Discovery</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="thesis-cell">Physics-based simulation + ML. Industry standard for molecular design. Dual upside: software revenue from pharma clients AND own drug pipeline. Major pharma pays to use platform.</td>
+            <td class="risk-cell">Complex dual business model. Drug pipeline adds binary risk. Still loss-making.</td>
+            <td class="notes-cell">Revenue +21% YoY 2025E. Up ~11% YTD vs RXRX down 40% — more defensive.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/SDGR/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:SDGR" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr class="highlight-row">
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/CRSP/" target="_blank">CRSP</a></span></td>
+            <td><strong>CRISPR Therapeutics</strong></td>
+            <td><span class="tag">Gene Therapy</span><span class="tag">CRISPR</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td><strong>$50.36</strong></td>
+            <td class="text-muted">~$4.85B</td>
+            <td class="text-muted">$100M+ (2025)</td>
+            <td><span style="color:var(--green);">Avg $82.82</span><div class="text-dim text-small">16 Buy / 1 Sell</div></td>
+            <td class="thesis-cell">First CRISPR product on market — Casgevy for sickle cell + beta-thalassemia. Patient initiations nearly tripled YoY. Revenue inflection underway. Cardiovascular pipeline expanding.</td>
+            <td class="risk-cell">Still loss-making. EPS -$6.15. Casgevy market is niche. High 52-wk range variance.</td>
+            <td class="notes-cell">52-wk $35.38–$78.48. Current ~$50 = major discount to avg PT $82.82. Earnings Aug 10 2026.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/CRSP/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:CRSP" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/NTLA/" target="_blank">NTLA</a></span></td>
+            <td><strong>Intellia Therapeutics</strong></td>
+            <td><span class="tag">Gene Therapy</span><span class="tag">In Vivo CRISPR</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="thesis-cell">In vivo CRISPR pioneer — edits genes inside the body without removal. Two late-stage programs: lonvo-z (HAE) and nex-z (ATTR amyloidosis). Reinstated as Buy. FDA clinical hold on ATTR-CM lifted.</td>
+            <td class="risk-cell">Phase 3 data binary risk. High short interest per Baird. ATTR-CM hold was concerning.</td>
+            <td class="notes-cell">Key 2026 catalysts: Phase 3 lonvo-z HAE readout + ATTR-CM hold decision. Both move stock materially.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/NTLA/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:NTLA" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/BEAM/" target="_blank">BEAM</a></span></td>
+            <td><strong>Beam Therapeutics</strong></td>
+            <td><span class="tag">Gene Therapy</span><span class="tag">Base Editing</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="thesis-cell">Base editing — rewrites single genetic letter vs double-strand DNA cut. More precise than CRISPR. BEAM-302 (AATD) positive Phase 1/2 Mar 2026, advancing to pivotal. Sickle cell filing possible late 2026.</td>
+            <td class="risk-cell">More early-stage risk than CRSP. Cash runway questions. Base editing unproven at scale.</td>
+            <td class="notes-cell">ARK Genomic Revolution ETF (ARKG) core holding. March 2026 data was major catalyst.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/BEAM/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:BEAM" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+          <tr>
+            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/ILMN/" target="_blank">ILMN</a></span></td>
+            <td><strong>Illumina</strong></td>
+            <td><span class="tag">Genomics Infra</span><span class="tag">AI</span></td>
+            <td class="text-muted">2026-05-23</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-muted">TBD</td>
+            <td class="text-dim">TBD</td>
+            <td class="thesis-cell">Pick-and-shovel genomics play. NovaSeq X driving higher throughput. Launched BioInsight AI drug discovery unit. China export ban lifted late 2025 removes major overhang. Moving up value chain.</td>
+            <td class="risk-cell">Margins under pressure. BioInsight early stage. China re-entry faces geopolitical risk.</td>
+            <td class="notes-cell">Foundation for entire genomics/AI sector. BioInsight is the new AI upside layer.</td>
+            <td><div class="quick-links">
+              <a class="chart-link" href="https://finance.yahoo.com/quote/ILMN/" target="_blank">↗ Yahoo</a>
+              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:ILMN" target="_blank">↗ Chart</a>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BIOTECH UNICORNS -->
+    <div class="section-header">
+      <div>
+        <div class="section-title" style="font-size:16px;">Longevity <span>Unicorns</span></div>
+        <div class="section-sub">Private companies — Anti-Aging / Reprogramming / AI Drug Discovery</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Unicorns Tracked</div><div class="stat-value accent">6</div></div>
+      <div class="stat-card"><div class="stat-label">Largest Round</div><div class="stat-value warn">$3B (Altos)</div></div>
+      <div class="stat-card"><div class="stat-label">Longevity Mkt 2035</div><div class="stat-value green">~$600B</div></div>
+      <div class="stat-card"><div class="stat-label">Tech Billionaires In</div><div class="stat-value" style="font-size:12px;">Bezos, Altman, Armstrong</div></div>
+    </div>
+
+    <div class="investor-grid">
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">Altos Labs</div>
+            <div class="investor-card-sub">Longevity / Cellular Reprogramming &mdash; $3.2B–$4.8B valuation</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$3B</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td><strong style="color:var(--accent2);">Jeff Bezos, Yuri Milner</strong></td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-pipeline">Possible — no timeline</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">Cellular rejuvenation via iPSCs — reverses aging at cellular level</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">Largest single longevity funding round in history. Testing reprogramming in live organs. 500 employees.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">No human trials yet. Extremely long commercialization timeline.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">New CFO hire with public co. experience · Investment bank engagement · "Altos Labs S-1" SEC filing · First human trial announcement · New funding round · Jeff Bezos public statement on timeline</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "Altos Labs IPO" · "Altos Labs S-1" · "Altos Labs clinical trial" · "Altos Labs funding" &mdash; <a href="https://www.crunchbase.com/organization/altos-labs" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">Retro Biosciences</div>
+            <div class="investor-card-sub">Longevity / Reprogramming + Autophagy &mdash; ~$5B target valuation</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$1.2B+</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td><strong style="color:var(--accent2);">Sam Altman (OpenAI CEO)</strong></td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-pipeline">Possible — no timeline</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">HSC reprogramming + autophagy. RTR242 Alzheimer's pill in human trials. OpenAI partnership = 50x faster reprogramming.</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">Sam Altman's personal $180M bet. AI + biology convergence. Mission: add 10 years to healthy human lifespan.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">Extremely ambitious goal. Early human trial stage only.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">RTR242 Phase 2 announcement · New funding round / valuation · Sam Altman public statements · Investment bank engagement · OpenAI expanded partnership · New CFO hire</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "Retro Biosciences IPO" · "Retro Biosciences RTR242" · "Retro Biosciences funding" &mdash; <a href="https://www.crunchbase.com/organization/retro-biosciences" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">NewLimit</div>
+            <div class="investor-card-sub">Longevity / Epigenetic Reprogramming &mdash; $810M–$950M</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$280M</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td><strong style="color:var(--accent2);">Brian Armstrong (Coinbase CEO), Khosla Ventures</strong></td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-pipeline">Too early</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">HSC reprogramming. ML to find safer reprogramming genes. First target: alcohol-related liver disease.</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">Best-valued therapeutic modality per $ raised in longevity. Crypto billionaire funding longevity = new capital source.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">Narrow initial market. Long regulatory path. Pre-unicorn stage.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">Series C funding round · First IND filing with FDA · Brian Armstrong public statements · Liver disease trial results · Unicorn valuation crossing $1B · Khosla follow-on investment</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "NewLimit funding" · "NewLimit clinical trial" · "NewLimit IPO" &mdash; <a href="https://www.crunchbase.com/organization/newlimit" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">Cambrian Bio</div>
+            <div class="investor-card-sub">Longevity / Metabolic + Mitochondrial &mdash; $1.79B</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$80M+</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td><strong style="color:var(--accent2);">ARPA-H ($30.8M gov grant), Eli Lilly-adjacent</strong></td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-pipeline">Possible</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">ATX-304 AMPK/mitochondrial activator for cardiometabolic disease. mTOR inhibitors.</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">ARPA-H US gov grant = strong validation. Cardiometabolic is massive market. Eli Lilly-adjacent = acquisition signal.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">Small molecule aging drugs have historically underperformed. Early clinical.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">ATX-304 Phase 2 data · Eli Lilly acquisition talks · Series B funding · Additional ARPA-H grants · New CFO / investment bank hire · FDA IND expansion</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "Cambrian Bio funding" · "Cambrian Bio ATX-304" · "Cambrian Bio acquisition" &mdash; <a href="https://www.crunchbase.com/organization/cambrian-biopharma" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">Function Health</div>
+            <div class="investor-card-sub">Longevity Diagnostics / Consumer Health &mdash; ~$1.5B</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$298M (Series B)</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td class="text-muted">Mark Hyman MD, health VCs</td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-pipeline">Possible</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">Preventive lab testing platform — comprehensive bloodwork + biomarkers for healthspan optimization.</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">Largest disclosed venture round among private longevity startups. Consumer-scale potential beyond pharma. $700M+ raised collectively across consumer longevity platforms.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">Not a drug — different FDA pathway. Competition from Quest Diagnostics incumbents.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">Series C funding round · S-1 filing · Investment bank engagement · Revenue milestone announcements · Partnership with major health system · Subscriber count milestones</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "Function Health IPO" · "Function Health funding" · "Function Health Series C" &mdash; <a href="https://www.crunchbase.com/organization/function-health" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="investor-card">
+        <div class="investor-card-header">
+          <div>
+            <div class="investor-card-title">Insilico Medicine</div>
+            <div class="investor-card-sub">AI Drug Discovery / Aging &mdash; ~$1B+ &mdash; ⚠️ HK-listed only</div>
+          </div>
+        </div>
+        <table style="width:100%">
+          <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="text-muted">Total Raised</td><td><strong>$450M+</strong></td></tr>
+            <tr><td class="text-muted">Key Backers</td><td class="text-muted">Warburg Pincus, B Capital, Qiming Ventures</td></tr>
+            <tr><td class="text-muted">IPO Outlook</td><td><span class="status-badge status-completed">HK IPO Dec 2025</span></td></tr>
+            <tr><td class="text-muted">Technology</td><td class="notes-cell">Generative AI drug discovery. PandaOmics platform. 20+ preclinical candidates. Lead fibrosis drug ISM001-055 in Phase 2.</td></tr>
+            <tr><td class="text-muted">Why It Matters</td><td class="thesis-cell">First AI drug discovery company on HK Stock Exchange. $293M raised in IPO. Founded by Alex Zhavoronkov — ARDD conference co-founder. 50x faster discovery.</td></tr>
+            <tr><td class="text-muted">Risk</td><td class="risk-cell">No US ticker yet. Phase 2 fibrosis data is key near-term catalyst. HK listing adds complexity.</td></tr>
+            <tr><td style="color:var(--warn);font-size:11px;">⚡ Alert Signals</td><td class="notes-cell" style="color:var(--warn);">ISM001-055 Phase 2 fibrosis data readout · US NASDAQ/NYSE dual listing announcement · New drug candidate entering trials · Alex Zhavoronkov media appearances · SEC registration filing</td></tr>
+            <tr><td style="color:var(--text3);font-size:11px;">🔔 Set Alerts</td><td class="notes-cell"><a href="https://alerts.google.com" target="_blank" style="color:var(--accent);">Google Alerts</a>: "Insilico Medicine US listing" · "Insilico Medicine ISM001" · "Insilico Medicine NASDAQ" &mdash; <a href="https://www.crunchbase.com/organization/insilico-medicine" target="_blank" style="color:var(--accent);">Crunchbase</a> follow</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div style="margin-top:14px; padding:12px 14px; background:rgba(0,255,157,0.04); border:1px solid rgba(0,255,157,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent2);">KEY THEME:</strong> Tech billionaires are converging on longevity — <strong style="color:var(--accent);">Bezos (Amazon)</strong> → Altos Labs, <strong style="color:var(--accent);">Altman (OpenAI)</strong> → Retro Biosciences, <strong style="color:var(--accent);">Armstrong (Coinbase)</strong> → NewLimit. This mirrors the early defense tech playbook where founders funding startups preceded the institutional wave. Longevity may be following the same pattern.
+    </div>
+  </section>
+
+  <!-- TAB 07: RESEARCH NOTES -->
   <section class="section" id="tab-notes">
     <div class="section-header">
       <div>
@@ -1320,10 +1858,138 @@
     <div id="notes-list" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;"></div>
   </section>
 
+  <!-- TAB 08: ROADMAP -->
+  <section class="section" id="tab-roadmap">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Build <span>Roadmap</span></div>
+        <div class="section-sub">Planned features and enhancements for Meridian Terminal</div>
+      </div>
+      <div class="section-date">Last updated: May 23, 2026</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">8</div></div>
+      <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">1</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">7</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.0 — Local</div></div>
+    </div>
+
+    <!-- COMPLETED -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--green); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        ✓ COMPLETED
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${[
+          ['Stock Tracker', 'Tab 01', '15 tickers across Space, Defense, Quantum, Biotech, and AI. Filter search, Yahoo Finance + TradingView + StockAnalysis links. Sector divider rows.'],
+          ['IPO Calendar', 'Tab 02', '14 entries covering completed, upcoming, pipeline, and withdrawn IPOs. Status badges, filter bar, Wednesday/Thursday refresh cadence noted.'],
+          ['Institutional Investors', 'Tab 03', 'Major stakeholders across HAWK, PL, SATL, IONQ with stake %, investor type, and notes.'],
+          ['Political Holdings', 'Tab 04', '60+ rows covering Trump Q1 2026 trades, cabinet members, and family. Filter by person category. OGE disclosure sourced.'],
+          ['Defense Tech Unicorn Watchlist', 'Tab 05', '10 private defense tech unicorns with valuation, funding, IPO outlook, alert signals, and Google Alerts links.'],
+          ['Biotech Tab', 'Tab 06', '7 public biotech tickers + 6 longevity unicorn cards with alert signals and Set Alerts links.'],
+          ['Research Notes', 'Tab 07', 'Fully functional notepad with localStorage persistence. Save, delete, and title notes across sessions.'],
+          ['Alert Signals', 'All unicorn sections', 'Every private company now has ⚡ Alert Signals and 🔔 Set Alerts rows with pre-written Google Alerts queries and Crunchbase links.'],
+        ].map(([title, tag, desc]) => `
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--green); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">${title}</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">${tag}</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">${desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--warn); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        ⟳ IN PROGRESS
+      </div>
+      <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--warn); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+        <div style="min-width:180px;">
+          <div style="font-weight:700; color:var(--text); font-size:13px;">GitHub Pages Hosting</div>
+          <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Infrastructure</div>
+        </div>
+        <div style="color:var(--text2); font-size:12px; line-height:1.6;">Moving Meridian from local file to live GitHub Pages URL. Will enable shareable link, version control, and eventual custom domain via GoDaddy. GitHub MCP connector not yet available — currently uploading manually.</div>
+      </div>
+    </div>
+
+    <!-- PLANNED -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--accent); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        ◎ PLANNED
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Candlestick Chart Tab</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 09 — Analytics</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Interactive candlestick charts using TradingView Lightweight Charts (free, open-source). Click any ticker from the tracker to load its chart inline. Switchable timeframes (1D/1W/1M/3M/1Y), volume bars, OHLC hover tooltips. Fed by Polygon.io free API (5 calls/min). Matches Meridian dark theme.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Bubble Chart — Analytics</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 09 or 10 — Analytics</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Interactive D3.js or Chart.js bubble charts. Views planned: (1) Valuation vs Revenue — spot over/undervalued tickers instantly. (2) Unicorn Map — 16 private companies by valuation vs funding, bubble size = IPO likelihood. (3) Smart Money Concentration — which investors appear most across holdings. Color-coded by sector, hover tooltips, click-to-filter.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Performance Chart</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 08 — Analytics</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Line graph comparing portfolio performance vs S&P 500 since research date. One line per "portfolio" — Trump disclosed holdings, Google Ventures positions, BlackRock, ARK Invest. Blended or equal-weighted returns. Toggleable lines, hover tooltips. Note: OGE disclosures use value ranges not exact dates — Trump portfolio will be approximate.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Live Price Auto-Update</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 01 — Stock Tracker</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Auto-fetch current prices for all 15 tickers via Yahoo Finance or Polygon.io API and populate the Current Price column on page load. Calculate % change from entry price automatically. No more manual price updates.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">More Sector Unicorns</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 05 — Unicorn Watchlist</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Expand unicorn watchlist beyond Defense Tech and Longevity. Next sectors queued: AI / LLMs, Fintech, Cybersecurity, Energy / Nuclear, Crypto / Web3. Each sector gets its own card cluster with alert signals.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">News Feed</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New Tab — Intelligence</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">RSS or API-powered news feed filtered to your tracked tickers and watchlist companies. Flagged keywords: S-1, IPO, funding, acquisition, FDA, contract award, earnings. Sourced from Yahoo Finance RSS, SEC EDGAR filings, and Google News.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Custom Domain</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Infrastructure</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect GoDaddy domain to GitHub Pages so Meridian lives at a custom URL (e.g. meridianresearch.com). One-time setup: point GoDaddy DNS to GitHub Pages, add CNAME file to repo. Free hosting + custom domain = professional setup.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian evolves from a static research file into a live, AI-powered research terminal — auto-updating prices, embedded charts, news feed, bubble chart analytics, and eventually an agent that monitors your watchlist and alerts you to key events automatically.
+    </div>
+  </section>
+
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.0 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.1 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
