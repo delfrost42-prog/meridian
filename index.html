@@ -449,7 +449,7 @@
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.2 &mdash; May 23 2026</span>
+    <span>v1.3 &mdash; May 23 2026</span>
   </div>
 </header>
 
@@ -472,15 +472,19 @@
     <div class="section-header">
       <div>
         <div class="section-title">Stock <span>Tracker</span></div>
-        <div class="section-sub">Active research positions — Space / Defense / Quantum cluster</div>
+        <div class="section-sub">Active research positions — <span id="db-ticker-status" style="color:var(--text3);">Static data loaded · Connect Google Sheets to enable live sync</span></div>
       </div>
-      <div class="section-date">Last updated: May 23, 2026</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="openDBSettings()" style="background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">⚙️ DB SETTINGS</button>
+        <button onclick="loadTickersFromSheet()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">↺ SYNC</button>
+        <button onclick="openAddTicker()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 14px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;font-weight:700;">➕ ADD TICKER</button>
+      </div>
     </div>
 
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-label">Tickers Tracked</div>
-        <div class="stat-value accent">15</div>
+        <div class="stat-value accent" id="db-tracker-count">15</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Sectors</div>
@@ -495,9 +499,41 @@
         <div class="stat-value warn">11</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Clusters</div>
-        <div class="stat-value" style="font-size:12px;">Space · Defense · Quantum · Biotech · AI</div>
+        <div class="stat-label">DB Status</div>
+        <div class="stat-value" id="db-status-badge" style="font-size:11px;color:var(--text3);">Not connected</div>
       </div>
+    </div>
+
+    <!-- GOOGLE SHEETS DYNAMIC TABLE -->
+    <div style="margin-bottom:16px; padding:12px 14px; background:rgba(0,255,157,0.04); border:1px solid rgba(0,255,157,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;" id="db-setup-banner">
+      <strong style="color:var(--accent2);">🗄️ GOOGLE SHEETS DATABASE</strong> — Click <strong>⚙️ DB SETTINGS</strong> to connect your sheet and enable live sync, Add, Edit, and Delete. Once connected, your data loads from Google Sheets automatically and the table below replaces the static data.
+    </div>
+
+    <div id="db-dynamic-section" style="display:none; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <div style="font-size:11px; color:var(--accent2); letter-spacing:0.1em;">⚡ LIVE — GOOGLE SHEETS</div>
+        <div class="filter-bar" style="margin-bottom:0;">
+          <input class="filter-input" type="text" placeholder="Filter dynamic table..." oninput="filterTable('tracker-table-dynamic', this.value)" style="width:200px;">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="tracker-table-dynamic">
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Company</th><th>Sector</th><th>Date Added</th>
+              <th>Entry Price</th><th>Market Cap</th><th>Revenue TTM</th><th>Profitable</th>
+              <th>Key Thesis</th><th>Risk Factors</th><th>Notes</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="12" style="text-align:center;color:var(--text3);padding:30px;">Click ↺ SYNC to load from Google Sheets</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="font-size:10px; letter-spacing:0.15em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">
+      📌 Static Data — Hardcoded Research (pre-database)
     </div>
 
     <div class="filter-bar">
@@ -2244,7 +2280,7 @@
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.2 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.3 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
@@ -2493,7 +2529,344 @@
 
   startNewsAutoRefresh();
 
-  // Clock
+  // ============================================================
+  // GOOGLE SHEETS DATABASE LAYER
+  // ============================================================
+  const SHEET_ID = '2PACX-1vRmFPz1LytEmFRBmvHE8sE-QYaRUiLt3eYb_LYXijBggT5vAk4QoOZnFSCAkO_lMOiBWWwi5r9uyLyg';
+  const SHEET_BASE = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+
+  // Sheet tab GIDs — update these after you note the gid= values from your sheet URLs
+  const SHEETS = {
+    Tickers:   `${SHEET_BASE}&gid=0`,
+    IPO:       `${SHEET_BASE}&gid=1`,
+    Unicorns:  `${SHEET_BASE}&gid=2`,
+    Political: `${SHEET_BASE}&gid=3`,
+  };
+
+  // Apps Script Web App URL — paste here after deploying (Step 2 below)
+  let APPS_SCRIPT_URL = localStorage.getItem('meridian_script_url') || '';
+
+  // ---- CSV Parser ----
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    return lines.slice(1).map(line => {
+      const vals = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { inQ = !inQ; continue; }
+        if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ''; continue; }
+        cur += c;
+      }
+      vals.push(cur.trim());
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = vals[i] || '');
+      return obj;
+    });
+  }
+
+  // ---- Fetch a sheet tab ----
+  async function fetchSheet(tab) {
+    try {
+      const res = await fetch(SHEETS[tab]);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      return parseCSV(text);
+    } catch (e) {
+      console.error(`Error fetching ${tab}:`, e);
+      return null;
+    }
+  }
+
+  // ---- Write to sheet via Apps Script ----
+  async function writeToSheet(action, tab, data) {
+    if (!APPS_SCRIPT_URL) {
+      showDBToast('⚠️ Apps Script URL not set. Go to DB Settings to configure.', 'warn');
+      return false;
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, tab, data }),
+        mode: 'no-cors'
+      });
+      return true;
+    } catch (e) {
+      showDBToast('❌ Write failed. Check Apps Script URL.', 'error');
+      return false;
+    }
+  }
+
+  // ---- Toast notification ----
+  function showDBToast(msg, type = 'success') {
+    const colors = { success: 'var(--green)', warn: 'var(--warn)', error: 'var(--red)' };
+    const toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid ${colors[type]};color:${colors[type]};font-family:var(--mono);font-size:12px;padding:10px 16px;border-radius:4px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.3s;`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+  }
+
+  // ---- Modal system ----
+  function showModal(title, fields, onSave, prefill = {}) {
+    // Remove existing modal
+    document.getElementById('db-modal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'db-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;';
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:var(--sans);font-size:18px;font-weight:700;color:var(--text);">${title}</div>
+      <button onclick="document.getElementById('db-modal').remove()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;">✕</button>
+    </div>`;
+
+    fields.forEach(f => {
+      const val = prefill[f.key] || '';
+      html += `<div style="margin-bottom:14px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">${f.label}</label>`;
+      if (f.type === 'textarea') {
+        html += `<textarea id="dbf_${f.key}" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;resize:vertical;height:80px;line-height:1.5;">${val}</textarea>`;
+      } else if (f.type === 'select') {
+        html += `<select id="dbf_${f.key}" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">`;
+        f.options.forEach(o => html += `<option value="${o}" ${val===o?'selected':''}>${o}</option>`);
+        html += `</select>`;
+      } else {
+        html += `<input id="dbf_${f.key}" type="text" value="${val}" placeholder="${f.placeholder||''}" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">`;
+      }
+      html += `</div>`;
+    });
+
+    html += `<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="document.getElementById('db-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+      <button id="db-save-btn" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE</button>
+    </div>`;
+
+    box.innerHTML = html;
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+    document.getElementById('db-save-btn').onclick = async () => {
+      const data = {};
+      fields.forEach(f => {
+        const el = document.getElementById(`dbf_${f.key}`);
+        data[f.key] = el ? el.value : '';
+      });
+      document.getElementById('db-save-btn').textContent = 'SAVING...';
+      await onSave(data);
+      modal.remove();
+    };
+  }
+
+  // ---- Confirm delete dialog ----
+  function confirmDelete(msg, onConfirm) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;max-width:400px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">🗑️</div>
+      <div style="color:var(--text);font-size:13px;margin-bottom:20px;line-height:1.6;">${msg}</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="this.closest('[style]').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button id="confirm-del-btn" style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--red);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">DELETE</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('confirm-del-btn').onclick = async () => { modal.remove(); await onConfirm(); };
+  }
+
+  // ---- TICKER FIELDS ----
+  const TICKER_FIELDS = [
+    { key: 'Ticker', label: 'Ticker Symbol', placeholder: 'e.g. PLTR' },
+    { key: 'Company', label: 'Company Name', placeholder: 'e.g. Palantir Technologies' },
+    { key: 'Sector', label: 'Sector / Tags', placeholder: 'e.g. AI / Defense Software' },
+    { key: 'Date_Researched', label: 'Date Researched', placeholder: 'e.g. 2026-05-23' },
+    { key: 'Price_At_Research', label: 'Entry Price', placeholder: 'e.g. $24.50' },
+    { key: 'Market_Cap', label: 'Market Cap', placeholder: 'e.g. $52B' },
+    { key: 'Revenue_TTM', label: 'Revenue TTM', placeholder: 'e.g. $2.9B' },
+    { key: 'Profitable', label: 'Profitable?', type: 'select', options: ['Yes', 'No'] },
+    { key: 'Key_Thesis', label: 'Key Thesis', type: 'textarea', placeholder: 'Why is this interesting?' },
+    { key: 'Risk_Factors', label: 'Risk Factors', type: 'textarea', placeholder: 'What could go wrong?' },
+    { key: 'Notes', label: 'Notes', type: 'textarea', placeholder: 'Any additional notes...' },
+    { key: 'Reference_URL', label: 'Reference URL', placeholder: 'https://finance.yahoo.com/quote/PLTR/' },
+  ];
+
+  // ---- Add Ticker ----
+  function openAddTicker() {
+    showModal('➕ Add New Ticker', TICKER_FIELDS, async (data) => {
+      const ok = await writeToSheet('append', 'Tickers', data);
+      if (ok) {
+        showDBToast(`✓ ${data.Ticker} added to tracker!`);
+        setTimeout(() => loadTickersFromSheet(), 1500);
+      }
+    });
+  }
+
+  // ---- Edit Ticker ----
+  function openEditTicker(rowData) {
+    showModal(`✏️ Edit — ${rowData.Ticker}`, TICKER_FIELDS, async (data) => {
+      const ok = await writeToSheet('update', 'Tickers', { ...data, _id: rowData._id });
+      if (ok) {
+        showDBToast(`✓ ${data.Ticker} updated!`);
+        setTimeout(() => loadTickersFromSheet(), 1500);
+      }
+    }, rowData);
+  }
+
+  // ---- Delete Ticker ----
+  function deleteTicker(rowData) {
+    confirmDelete(`Delete <strong style="color:var(--accent)">${rowData.Ticker} — ${rowData.Company}</strong>?<br><span style="color:var(--text3);font-size:11px;">This will remove it from your Google Sheet permanently.</span>`, async () => {
+      const ok = await writeToSheet('delete', 'Tickers', { _id: rowData._id });
+      if (ok) {
+        showDBToast(`🗑️ ${rowData.Ticker} removed.`, 'warn');
+        setTimeout(() => loadTickersFromSheet(), 1500);
+      }
+    });
+  }
+
+  // ---- Render sheet row as table row ----
+  function renderTickerRow(row, idx) {
+    const profitable = (row.Profitable || '').toLowerCase() === 'yes';
+    const url = row.Reference_URL || `https://finance.yahoo.com/quote/${row.Ticker}/`;
+    return `<tr data-idx="${idx}">
+      <td><span class="ticker-badge"><a href="${url}" target="_blank">${row.Ticker}</a></span></td>
+      <td><strong>${row.Company}</strong></td>
+      <td>${(row.Sector||'').split('/').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</td>
+      <td class="text-muted">${row.Date_Researched||'—'}</td>
+      <td><strong>${row.Price_At_Research||'—'}</strong></td>
+      <td class="text-muted">${row.Market_Cap||'—'}</td>
+      <td class="text-muted">${row.Revenue_TTM||'—'}</td>
+      <td>${profitable ? '<span class="yes">✓ YES</span>' : '<span class="no">✗ NO</span>'}</td>
+      <td class="thesis-cell">${row.Key_Thesis||'—'}</td>
+      <td class="risk-cell">${row.Risk_Factors||'—'}</td>
+      <td class="notes-cell">${row.Notes||'—'}</td>
+      <td>
+        <div class="quick-links">
+          <a class="chart-link" href="${url}" target="_blank">↗ Yahoo</a>
+          <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=${row.Ticker}" target="_blank">↗ Chart</a>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick='openEditTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️</button>
+          <button onclick='deleteTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  // ---- Load Tickers from Sheet ----
+  async function loadTickersFromSheet() {
+    const statusEl = document.getElementById('db-ticker-status');
+    if (statusEl) statusEl.textContent = 'Loading from Google Sheets...';
+    const rows = await fetchSheet('Tickers');
+    if (!rows || rows.length === 0) {
+      if (statusEl) statusEl.textContent = 'No data in Tickers sheet yet — add your first ticker below!';
+      return;
+    }
+    rows.forEach((r, i) => r._id = i + 2); // row index for Apps Script (1-indexed, +1 for header)
+    const tbody = document.querySelector('#tracker-table-dynamic tbody');
+    if (tbody) {
+      tbody.innerHTML = rows.map((r, i) => renderTickerRow(r, i)).join('');
+    }
+    const countEl = document.getElementById('db-tracker-count');
+    if (countEl) countEl.textContent = rows.length;
+    if (statusEl) statusEl.textContent = `✓ ${rows.length} tickers loaded from Google Sheets`;
+    showDBToast(`✓ Loaded ${rows.length} tickers from Sheets`);
+  }
+
+  // ---- DB Settings panel ----
+  function openDBSettings() {
+    const modal = document.createElement('div');
+    modal.id = 'db-settings-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;width:100%;max-width:600px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-family:var(--sans);font-size:18px;font-weight:700;color:var(--text);">⚙️ Database Settings</div>
+        <button onclick="document.getElementById('db-settings-modal').remove()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+
+      <div style="margin-bottom:16px;padding:12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:3px;font-size:11px;color:var(--text2);line-height:1.8;">
+        <strong style="color:var(--accent);">SETUP INSTRUCTIONS</strong><br>
+        1. Open your Meridian Google Sheet<br>
+        2. Click <strong>Extensions → Apps Script</strong><br>
+        3. Delete any existing code and paste the script below<br>
+        4. Click <strong>Deploy → New Deployment → Web App</strong><br>
+        5. Set "Execute as" = <strong>Me</strong>, "Who has access" = <strong>Anyone</strong><br>
+        6. Click Deploy, copy the Web App URL and paste it below<br>
+        7. Click Save — you now have full read/write access!
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Apps Script Web App URL</label>
+        <input id="script-url-input" type="text" value="${APPS_SCRIPT_URL}" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:3px;outline:none;">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Apps Script Code — Copy & Paste into Apps Script Editor</label>
+        <textarea readonly style="width:100%;height:200px;background:var(--bg3);border:1px solid var(--border);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:10px;border-radius:3px;outline:none;resize:none;line-height:1.6;">${getAppsScriptCode()}</textarea>
+        <button onclick="navigator.clipboard.writeText(document.querySelector('#db-settings-modal textarea').value);showDBToast('✓ Script copied to clipboard!')" style="margin-top:6px;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:0.1em;">📋 COPY SCRIPT</button>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="document.getElementById('db-settings-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button onclick="saveScriptURL()" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE URL</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function saveScriptURL() {
+    const url = document.getElementById('script-url-input').value.trim();
+    APPS_SCRIPT_URL = url;
+    localStorage.setItem('meridian_script_url', url);
+    document.getElementById('db-settings-modal')?.remove();
+    showDBToast('✓ Apps Script URL saved!');
+  }
+
+  function getAppsScriptCode() {
+    return `function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var action = data.action;
+  var tab = data.tab;
+  var row = data.data;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(tab);
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  if (action === 'append') {
+    var newRow = headers.map(function(h) { return row[h] || ''; });
+    sheet.appendRow(newRow);
+  } else if (action === 'update') {
+    var rowIdx = parseInt(row._id);
+    headers.forEach(function(h, i) {
+      if (h !== '_id') sheet.getRange(rowIdx, i+1).setValue(row[h] || '');
+    });
+  } else if (action === 'delete') {
+    sheet.deleteRow(parseInt(row._id));
+  }
+
+  return ContentService.createTextOutput(
+    JSON.stringify({ status: 'ok' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}`;
+  }
+
+  // ---- Auto-load on tab open ----
+  const _origShowTab = window.showTab;
+  window.showTab = function(id) {
+    _origShowTab && _origShowTab(id);
+    if (id === 'tracker' && document.getElementById('tracker-table-dynamic')) {
+      loadTickersFromSheet();
+    }
+    if (id === 'news' && allArticles.length === 0) fetchAllNews();
+  };
+
+  // ---- Clock
   function updateClock() {
     const now = new Date();
     document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {hour12: false});
