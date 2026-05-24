@@ -449,7 +449,7 @@
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.1 &mdash; May 23 2026</span>
+    <span>v1.2 &mdash; May 23 2026</span>
   </div>
 </header>
 
@@ -461,7 +461,8 @@
   <div class="nav-tab" onclick="showTab('unicorns')">05 &mdash; Unicorn Watchlist</div>
   <div class="nav-tab" onclick="showTab('biotech')">06 &mdash; Biotech</div>
   <div class="nav-tab" onclick="showTab('notes')">07 &mdash; Research Notes</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">08 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('news')">08 &mdash; News Feed</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">09 &mdash; Roadmap</div>
 </nav>
 
 <main class="main">
@@ -1858,7 +1859,101 @@
     <div id="notes-list" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;"></div>
   </section>
 
-  <!-- TAB 08: ROADMAP -->
+  <!-- TAB 08: NEWS FEED -->
+  <section class="section" id="tab-news">
+    <div class="section-header">
+      <div>
+        <div class="section-title">News <span>Feed</span></div>
+        <div class="section-sub">Live headlines across all tracked tickers + macro topics — Yahoo Finance · SEC EDGAR · Google News · PRNewswire</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span id="news-last-updated" style="color:var(--text3); font-size:11px;">Not yet loaded</span>
+        <button onclick="fetchAllNews()" style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); color:var(--accent); font-family:var(--mono); font-size:11px; padding:7px 14px; cursor:pointer; border-radius:3px; letter-spacing:0.1em;">↺ REFRESH</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-label">Tickers Monitored</div><div class="stat-value accent" id="news-ticker-count">21</div></div>
+      <div class="stat-card"><div class="stat-label">Articles Loaded</div><div class="stat-value" id="news-article-count">—</div></div>
+      <div class="stat-card"><div class="stat-label">Auto-Refresh</div><div class="stat-value green">Every 15 min</div></div>
+      <div class="stat-card"><div class="stat-label">Macro Topics</div><div class="stat-value warn">Iran · CLARITY Act</div></div>
+      <div class="stat-card"><div class="stat-label">Sources</div><div class="stat-value" style="font-size:11px;">Yahoo · EDGAR · GNews · PRN</div></div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" style="flex-wrap:wrap; gap:8px;">
+      <span class="filter-label">FILTER:</span>
+      <input class="filter-input" type="text" id="news-search" placeholder="Search headlines..." oninput="filterNews()" style="width:220px;">
+      <span class="filter-label">TICKER:</span>
+      <select class="filter-input" id="news-ticker-filter" onchange="filterNews()" style="width:120px;">
+        <option value="">All Tickers</option>
+        <option value="HAWK">HAWK</option>
+        <option value="PL">PL</option>
+        <option value="SATL">SATL</option>
+        <option value="IONQ">IONQ</option>
+        <option value="KRMN">KRMN</option>
+        <option value="VOYG">VOYG</option>
+        <option value="FLY">FLY</option>
+        <option value="MDA">MDA</option>
+        <option value="XNDU">XNDU</option>
+        <option value="INFQ">INFQ</option>
+        <option value="HQ">HQ</option>
+        <option value="RXRX">RXRX</option>
+        <option value="TEM">TEM</option>
+        <option value="SDGR">SDGR</option>
+        <option value="CRSP">CRSP</option>
+        <option value="NTLA">NTLA</option>
+        <option value="BEAM">BEAM</option>
+        <option value="ILMN">ILMN</option>
+        <option value="GENB">GENB</option>
+        <option value="KLRA">KLRA</option>
+        <option value="CBRS">CBRS</option>
+        <optgroup label="── Macro Topics ──" style="color:var(--text3);"></optgroup>
+        <option value="🌍 IRAN">🌍 Iran / Middle East</option>
+        <option value="⚖️ CLARITY">⚖️ CLARITY Act</option>
+      </select>
+      <span class="filter-label">SOURCE:</span>
+      <select class="filter-input" id="news-source-filter" onchange="filterNews()" style="width:140px;">
+        <option value="">All Sources</option>
+        <option value="Yahoo Finance">Yahoo Finance</option>
+        <option value="SEC EDGAR">SEC EDGAR</option>
+        <option value="Google News">Google News</option>
+        <option value="PRNewswire">PRNewswire</option>
+      </select>
+      <span class="filter-label">FLAG:</span>
+      <select class="filter-input" id="news-flag-filter" onchange="filterNews()" style="width:130px;">
+        <option value="">All Headlines</option>
+        <option value="🔴">🔴 High Priority</option>
+        <option value="🟡">🟡 Watch</option>
+        <option value="⚪">⚪ General</option>
+      </select>
+    </div>
+
+    <!-- Loading state -->
+    <div id="news-loading" style="display:none; padding:40px; text-align:center; color:var(--text3); font-size:12px; border:1px solid var(--border); border-radius:4px;">
+      <div style="font-size:20px; margin-bottom:8px; animation: pulse 1.5s infinite;">⟳</div>
+      Fetching latest headlines...
+    </div>
+
+    <!-- Error state -->
+    <div id="news-error" style="display:none; padding:16px; background:rgba(255,71,87,0.06); border:1px solid rgba(255,71,87,0.2); border-radius:4px; color:var(--red); font-size:12px; margin-bottom:12px;"></div>
+
+    <!-- News feed container -->
+    <div id="news-feed" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+    <!-- Empty state -->
+    <div id="news-empty" style="display:none; padding:60px 0; text-align:center; color:var(--text3); border:1px dashed var(--border); border-radius:4px;">
+      <div style="font-size:24px; margin-bottom:8px;">📰</div>
+      <div style="font-size:12px;">No articles match your filters.</div>
+    </div>
+
+    <div style="margin-top:14px; padding:10px 14px; background:rgba(122,157,181,0.05); border:1px solid var(--border); border-radius:3px; font-size:10px; color:var(--text3); line-height:1.6;">
+      ℹ News is fetched via public RSS feeds using a CORS proxy (rss2json.com free tier). If articles fail to load, the proxy may be rate-limited — wait a moment and try refreshing. SEC EDGAR filings use the EDGAR full-text search RSS. Headlines open in a new tab.
+    </div>
+  </section>
+
+  <!-- TAB 09: ROADMAP -->
   <section class="section" id="tab-roadmap">
     <div class="section-header">
       <div>
@@ -1869,10 +1964,10 @@
     </div>
 
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">8</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">9</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">1</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">7</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.0 — Local</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">6</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.2 — Local</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -1882,6 +1977,7 @@
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         ${[
+          ['News Feed', 'Tab 08 — Live', 'Chronological RSS feed across all 21 tracked tickers. Sources: Yahoo Finance, SEC EDGAR, Google News, PRNewswire. Auto-refresh every 15 minutes when tab is active. Filter by ticker, source, and priority flag. 🔴 High Priority flags IPO/acquisition/FDA/contract keywords. 🟡 Watch flags funding/revenue/analyst keywords.'],
           ['Stock Tracker', 'Tab 01', '15 tickers across Space, Defense, Quantum, Biotech, and AI. Filter search, Yahoo Finance + TradingView + StockAnalysis links. Sector divider rows.'],
           ['IPO Calendar', 'Tab 02', '14 entries covering completed, upcoming, pipeline, and withdrawn IPOs. Status badges, filter bar, Wednesday/Thursday refresh cadence noted.'],
           ['Institutional Investors', 'Tab 03', 'Major stakeholders across HAWK, PL, SATL, IONQ with stake %, investor type, and notes.'],
@@ -1964,14 +2060,6 @@
 
         <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
           <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">News Feed</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New Tab — Intelligence</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">RSS or API-powered news feed filtered to your tracked tickers and watchlist companies. Flagged keywords: S-1, IPO, funding, acquisition, FDA, contract award, earnings. Sourced from Yahoo Finance RSS, SEC EDGAR filings, and Google News.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
             <div style="font-weight:700; color:var(--text); font-size:13px;">Custom Domain</div>
             <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Infrastructure</div>
           </div>
@@ -1989,7 +2077,7 @@
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.1 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.2 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
@@ -2002,6 +2090,241 @@
       row.style.display = row.textContent.includes(val) ? '' : 'none';
     });
   }
+
+  // ============================================================
+  // NEWS FEED
+  // ============================================================
+  const NEWS_TICKERS = [
+    { ticker: 'HAWK', name: 'HawkEye 360' },
+    { ticker: 'PL', name: 'Planet Labs' },
+    { ticker: 'SATL', name: 'Satellogic' },
+    { ticker: 'IONQ', name: 'IonQ' },
+    { ticker: 'KRMN', name: 'Karman Holdings' },
+    { ticker: 'VOYG', name: 'Voyager Technologies' },
+    { ticker: 'FLY', name: 'Firefly Aerospace' },
+    { ticker: 'MDA', name: 'MDA Space' },
+    { ticker: 'XNDU', name: 'Xanadu Quantum' },
+    { ticker: 'INFQ', name: 'Infleqtion' },
+    { ticker: 'RXRX', name: 'Recursion Pharmaceuticals' },
+    { ticker: 'TEM', name: 'Tempus AI' },
+    { ticker: 'SDGR', name: 'Schrodinger' },
+    { ticker: 'CRSP', name: 'CRISPR Therapeutics' },
+    { ticker: 'NTLA', name: 'Intellia Therapeutics' },
+    { ticker: 'BEAM', name: 'Beam Therapeutics' },
+    { ticker: 'ILMN', name: 'Illumina' },
+    { ticker: 'GENB', name: 'Generate Biomedicines' },
+    { ticker: 'KLRA', name: 'Kailera Therapeutics' },
+    { ticker: 'CBRS', name: 'Cerebras Systems' },
+  ];
+
+  const HIGH_PRIORITY_KEYWORDS = ['S-1', 'IPO', 'acquisition', 'merger', 'FDA approval', 'clinical hold', 'contract award', 'Golden Dome', 'earnings beat', 'earnings miss', 'guidance', 'bankruptcy', 'SEC investigation', 'insider buying', 'buyout', 'partnership', 'Iran strike', 'Iran nuclear', 'ceasefire', 'CLARITY Act', 'crypto bill', 'sanctions'];
+  const WATCH_KEYWORDS = ['funding', 'raises', 'valuation', 'phase', 'trial', 'revenue', 'analyst', 'upgrade', 'downgrade', 'price target', 'contract', 'launch', 'satellite', 'patent', 'collaboration', 'Iran', 'Middle East', 'CLARITY', 'crypto regulation', 'digital assets', 'SEC CFTC'];
+
+  let allArticles = [];
+  let newsRefreshTimer = null;
+
+  function flagArticle(title) {
+    const t = title.toLowerCase();
+    if (HIGH_PRIORITY_KEYWORDS.some(k => t.includes(k.toLowerCase()))) return '🔴';
+    if (WATCH_KEYWORDS.some(k => t.includes(k.toLowerCase()))) return '🟡';
+    return '⚪';
+  }
+
+  function timeAgo(dateStr) {
+    const now = new Date();
+    const then = new Date(dateStr);
+    const diff = Math.floor((now - then) / 1000);
+    if (isNaN(diff)) return dateStr;
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+
+  function sourceColor(source) {
+    if (source === 'Yahoo Finance') return 'var(--accent)';
+    if (source === 'SEC EDGAR') return 'var(--warn)';
+    if (source === 'Google News') return 'var(--accent2)';
+    if (source === 'PRNewswire') return '#c084fc';
+    return 'var(--text3)';
+  }
+
+  async function fetchRSS(url, source, ticker) {
+    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=8`;
+    try {
+      const res = await fetch(proxy);
+      const data = await res.json();
+      if (!data.items) return [];
+      return data.items.map(item => ({
+        ticker,
+        source,
+        title: item.title || 'No title',
+        link: item.link || '#',
+        date: item.pubDate || item.published || '',
+        description: item.description ? item.description.replace(/<[^>]+>/g, '').substring(0, 160) + '...' : '',
+        flag: flagArticle(item.title || '')
+      }));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function fetchAllNews() {
+    document.getElementById('news-loading').style.display = 'block';
+    document.getElementById('news-feed').innerHTML = '';
+    document.getElementById('news-empty').style.display = 'none';
+    document.getElementById('news-error').style.display = 'none';
+
+    const promises = [];
+
+    for (const { ticker, name } of NEWS_TICKERS) {
+      // Yahoo Finance RSS
+      promises.push(fetchRSS(
+        `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`,
+        'Yahoo Finance', ticker
+      ));
+      // Google News RSS
+      promises.push(fetchRSS(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(name + ' stock')}&hl=en-US&gl=US&ceid=US:en`,
+        'Google News', ticker
+      ));
+    }
+
+    // SEC EDGAR — key tickers
+    const edgarTickers = ['HAWK', 'PL', 'IONQ', 'CRSP', 'GENB', 'CBRS', 'KRMN'];
+    for (const ticker of edgarTickers) {
+      promises.push(fetchRSS(
+        `https://efts.sec.gov/LATEST/search-index?q=%22${ticker}%22&dateRange=custom&startdt=${new Date(Date.now()-7*86400000).toISOString().split('T')[0]}&enddt=${new Date().toISOString().split('T')[0]}&forms=8-K,S-1,13F`,
+        'SEC EDGAR', ticker
+      ));
+    }
+
+    // PRNewswire search RSS for key companies
+    const prnCompanies = ['HawkEye+360', 'Karman+Space', 'Firefly+Aerospace', 'Cerebras', 'Generate+Biomedicines', 'Kailera', 'IonQ', 'Xanadu+Quantum', 'Infleqtion'];
+    for (const company of prnCompanies) {
+      const ticker = NEWS_TICKERS.find(t => company.toLowerCase().includes(t.name.split(' ')[0].toLowerCase()))?.ticker || 'GENERAL';
+      promises.push(fetchRSS(
+        `https://www.prnewswire.com/rss/news-releases-list.rss`,
+        'PRNewswire', ticker
+      ));
+    }
+
+    // MACRO TOPICS — Iran War + CLARITY Act
+    const macroTopics = [
+      { query: 'Iran war military strike ceasefire 2026', ticker: '🌍 IRAN' },
+      { query: 'Iran nuclear deal sanctions defense', ticker: '🌍 IRAN' },
+      { query: 'Iran Israel Middle East conflict', ticker: '🌍 IRAN' },
+      { query: 'CLARITY Act crypto regulation Washington 2026', ticker: '⚖️ CLARITY' },
+      { query: 'CLARITY Act digital assets SEC CFTC Congress', ticker: '⚖️ CLARITY' },
+      { query: 'crypto legislation Senate House 2026', ticker: '⚖️ CLARITY' },
+    ];
+    for (const { query, ticker } of macroTopics) {
+      promises.push(fetchRSS(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`,
+        'Google News', ticker
+      ));
+    }
+
+    const results = await Promise.allSettled(promises);
+    let articles = [];
+    results.forEach(r => {
+      if (r.status === 'fulfilled') articles = articles.concat(r.value);
+    });
+
+    // Deduplicate by title
+    const seen = new Set();
+    articles = articles.filter(a => {
+      const key = a.title.toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by date descending
+    articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    allArticles = articles;
+    document.getElementById('news-loading').style.display = 'none';
+    document.getElementById('news-article-count').textContent = articles.length;
+    document.getElementById('news-last-updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+
+    if (articles.length === 0) {
+      document.getElementById('news-error').style.display = 'block';
+      document.getElementById('news-error').textContent = 'Could not load articles — RSS proxy may be rate limited. Try refreshing in a moment.';
+      return;
+    }
+
+    renderNews(articles);
+  }
+
+  function renderNews(articles) {
+    const feed = document.getElementById('news-feed');
+    feed.innerHTML = '';
+
+    if (articles.length === 0) {
+      document.getElementById('news-empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('news-empty').style.display = 'none';
+
+    articles.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.dataset.ticker = a.ticker;
+      div.dataset.source = a.source;
+      div.dataset.flag = a.flag;
+      div.dataset.title = a.title.toLowerCase();
+      div.innerHTML = `
+        <div style="display:flex; gap:10px; align-items:flex-start; padding:12px 14px; background:var(--panel); border:1px solid var(--border); border-radius:3px; transition:background 0.15s;" onmouseover="this.style.background='rgba(0,212,255,0.04)'" onmouseout="this.style.background='var(--panel)'">
+          <div style="font-size:14px; min-width:20px; text-align:center; margin-top:1px;">${a.flag}</div>
+          <div style="flex:1; min-width:0;">
+            <a href="${a.link}" target="_blank" style="color:var(--text); font-size:12px; font-weight:600; line-height:1.4; text-decoration:none; display:block;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'">${a.title}</a>
+            ${a.description ? `<div style="color:var(--text3); font-size:11px; margin-top:4px; line-height:1.5;">${a.description}</div>` : ''}
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; min-width:120px;">
+            <span style="display:inline-block; background:rgba(0,212,255,0.1); color:var(--accent); border:1px solid rgba(0,212,255,0.2); padding:1px 7px; border-radius:2px; font-size:10px; font-weight:700; letter-spacing:0.05em;">${a.ticker}</span>
+            <span style="font-size:10px; color:${sourceColor(a.source)}; letter-spacing:0.05em;">${a.source}</span>
+            <span style="font-size:10px; color:var(--text3);">${timeAgo(a.date)}</span>
+          </div>
+        </div>`;
+      feed.appendChild(div);
+    });
+  }
+
+  function filterNews() {
+    const search = document.getElementById('news-search').value.toLowerCase();
+    const ticker = document.getElementById('news-ticker-filter').value;
+    const source = document.getElementById('news-source-filter').value;
+    const flag = document.getElementById('news-flag-filter').value;
+
+    const filtered = allArticles.filter(a => {
+      if (ticker && a.ticker !== ticker) return false;
+      if (source && a.source !== source) return false;
+      if (flag && a.flag !== flag) return false;
+      if (search && !a.title.toLowerCase().includes(search) && !a.description.toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    document.getElementById('news-article-count').textContent = filtered.length;
+    renderNews(filtered);
+  }
+
+  function startNewsAutoRefresh() {
+    if (newsRefreshTimer) clearInterval(newsRefreshTimer);
+    newsRefreshTimer = setInterval(() => {
+      const newsTab = document.getElementById('tab-news');
+      if (newsTab && newsTab.classList.contains('active')) fetchAllNews();
+    }, 15 * 60 * 1000);
+  }
+
+  // Auto-load news when tab is clicked
+  const origShowTab = window.showTab;
+  window.showTab = function(id) {
+    origShowTab && origShowTab(id);
+    if (id === 'news' && allArticles.length === 0) fetchAllNews();
+  };
+
+  startNewsAutoRefresh();
 
   // Clock
   function updateClock() {
