@@ -1966,7 +1966,7 @@
     <div class="stats-row">
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">9</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">1</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">6</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">16</div></div>
       <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.2 — Local</div></div>
     </div>
 
@@ -2069,8 +2069,122 @@
       </div>
     </div>
 
+    <!-- TRADING INTEGRATION ROADMAP -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#c084fc; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        🤖 TRADING INTEGRATION — Phased Roadmap
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(192,132,252,0.06); border:1px solid rgba(192,132,252,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Goal: evolve Meridian from a research terminal into a semi-automated and eventually fully automated trading platform. Built in phases — paper trading before any real money. Broker: <strong style="color:#c084fc;">Alpaca</strong> (free API, commission-free, built-in paper trading environment).
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 1 — Live Prices</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Already on roadmap · Pre-requisite</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Auto-fetch current prices for all tickers via Polygon.io or Yahoo Finance API. Populate Current Price + % change from entry in Stock Tracker tab. Foundation everything else is built on.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 2 — Price Alerts</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New Tab — Alerts</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Set price targets and stop levels for any tracked ticker. Meridian checks prices on refresh and fires a browser notification when a level is hit. You still act manually — this is the notification layer before any automation. No broker connection needed at this stage.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 3 — Quick Order</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Stock Tracker integration</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add a "Trade" button next to each ticker. Clicking it generates a pre-filled order form — ticker, direction (buy/sell), quantity, order type (market/limit). You review all details, then one click opens your broker's trade ticket with parameters pre-populated. You confirm and submit manually. No API key needed — just a deep-link to your broker.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 4 — Paper Trading</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Alpaca API · Simulated only</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect Alpaca's paper trading API (free, no real money). Execute simulated trades directly from Meridian to test strategies. Track paper P&L alongside your research. Validate your AI-assisted research edge before risking real capital. Alpaca gives $100K simulated buying power by default. Requires Alpaca account + API key stored locally.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 5 — Agent Triggers</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude-powered · Semi-auto</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Claude monitors the news feed and price alerts, evaluates trigger conditions against your research thesis, and recommends trades with reasoning. You approve or reject each recommendation before execution. Claude is the analyst layer — you remain the decision maker. Connects news feed → analysis → suggested order → your approval → Alpaca execution.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 6 — Full Automation</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Long-term · Real money</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Fully autonomous agent executes trades against pre-defined rules: position sizing, stop losses, max exposure per sector, daily loss limits. Real money via Alpaca live API. Extensive paper trading validation required before activation. Kill switch always accessible. Regulatory note: automated trading must comply with pattern day trader rules (PDT) — $25K minimum account for unlimited day trades.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DATABASE INTEGRATION ROADMAP -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#34d399; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        🗄️ DATABASE INTEGRATION — Live Data Management
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(52,211,153,0.06); border:1px solid rgba(52,211,153,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Goal: replace hardcoded HTML data with a live database so you can add, edit, and remove tickers, unicorns, and watchlist entries directly from Meridian — no coding required. Recommended stack: <strong style="color:#34d399;">Google Sheets</strong> as the database (free, familiar, no setup) → <strong style="color:#34d399;">Supabase</strong> for the full production upgrade when ready.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 1 — Google Sheets DB</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Free · No setup required</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Your Google Sheet becomes the database. One sheet per data type: Tickers, Unicorns, IPO Calendar, Political Holdings. Meridian fetches all data on load via Google Sheets API and renders it dynamically. Adding a ticker = adding a row to the sheet. Instant, familiar, zero cost. Requires a Google account and a published Sheet (read-only public link).</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 2 — Inline Add/Edit</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Meridian UI forms</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add a "+ Add Ticker" button to the Stock Tracker tab. A modal form appears — fill in ticker, company, sector, thesis, risk factors. Hit Save and it writes to your Google Sheet via the Sheets API and updates the table in real time. Same for unicorns, IPO entries, and political holdings. No sheet-opening required — manage everything from Meridian directly.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 3 — Edit &amp; Delete</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Full CRUD operations</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Every row in every table gets ✏️ Edit and 🗑️ Delete buttons. Click Edit — a pre-filled modal opens with all the current data. Make changes, hit Save — updates Google Sheet and re-renders the row instantly. Click Delete — confirmation prompt, then removes the row from the Sheet and the table. Full create/read/update/delete (CRUD) without ever touching a spreadsheet or CSV.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 4 — Supabase Upgrade</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Production database · Free tier</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When Meridian moves to GitHub Pages and needs a proper backend, migrate from Google Sheets to Supabase — a free, open-source PostgreSQL database with a REST API. Faster queries, better security, supports user authentication (so only you can write data), real-time subscriptions (data updates across all open browser tabs instantly), and scales to millions of rows. Free tier: 500MB storage, unlimited API calls.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 5 — Claude Auto-Populate</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">AI-assisted data entry</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Type a ticker symbol into Meridian. Claude looks it up automatically — pulls current price, market cap, revenue, key investors, thesis summary — and pre-fills the Add Ticker form. You review, adjust if needed, and hit Save. Research that currently takes a full session gets compressed into seconds. The database becomes self-populating with AI assistance.</div>
+        </div>
+
+      </div>
+    </div>
+
     <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian evolves from a static research file into a live, AI-powered research terminal — auto-updating prices, embedded charts, news feed, bubble chart analytics, and eventually an agent that monitors your watchlist and alerts you to key events automatically.
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian evolves from a static research file into a live, AI-powered trading terminal — auto-updating prices, embedded charts, news feed, bubble chart analytics, a live database you manage entirely from the browser, and a Claude agent that monitors your watchlist, identifies opportunities based on your research thesis, and executes trades automatically within rules you define. The edge is the research foundation being built today.
     </div>
   </section>
 
