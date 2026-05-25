@@ -526,7 +526,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.6 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.7 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -739,7 +739,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v2.6 &mdash; May 25 2026</span>
+    <span>v2.7 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -2205,7 +2205,7 @@ document.addEventListener('keydown', e => {
     </div>
 
     <div style="margin-top:14px; padding:10px 14px; background:rgba(122,157,181,0.05); border:1px solid var(--border); border-radius:3px; font-size:10px; color:var(--text3); line-height:1.6;">
-      ℹ News is fetched via public RSS feeds using a CORS proxy (rss2json.com free tier). If articles fail to load, the proxy may be rate-limited — wait a moment and try refreshing. SEC EDGAR filings use the EDGAR full-text search RSS. Headlines open in a new tab.
+      ℹ News is fetched via public RSS feeds using dual proxy fallback (rss2json → allorigins). Batched in groups of 5 with 300ms delays to avoid rate limiting. Articles cached for 10 minutes — refreshing uses cached data if available. If all proxies fail, wait 2-3 minutes and try again. SEC EDGAR filings use the EDGAR full-text search RSS. Headlines open in a new tab.
     </div>
   </section>
 
@@ -2683,7 +2683,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.6 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.7 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3478,24 +3478,64 @@ document.addEventListener('keydown', e => {
     return 'var(--text3)';
   }
 
+  // ---- RSS fetch with multiple proxy fallbacks + cache ----
+  const RSS_CACHE = {};
+  const RSS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
   async function fetchRSS(url, source, ticker) {
-    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=8`;
-    try {
-      const res = await fetch(proxy);
-      const data = await res.json();
-      if (!data.items) return [];
-      return data.items.map(item => ({
-        ticker,
-        source,
-        title: item.title || 'No title',
-        link: item.link || '#',
-        date: item.pubDate || item.published || '',
-        description: item.description ? item.description.replace(/<[^>]+>/g, '').substring(0, 160) + '...' : '',
-        flag: flagArticle(item.title || '')
-      }));
-    } catch (e) {
-      return [];
+    // Check cache first
+    const cacheKey = url;
+    const cached = RSS_CACHE[cacheKey];
+    if (cached && Date.now() - cached.ts < RSS_CACHE_TTL) return cached.data;
+
+    // Try multiple proxies in order
+    const proxies = [
+      `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=8`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    ];
+
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const raw = await res.json();
+
+        let items = [];
+
+        // rss2json format
+        if (raw.items) {
+          items = raw.items.map(item => ({
+            ticker, source,
+            title: item.title || 'No title',
+            link: item.link || '#',
+            date: item.pubDate || item.published || '',
+            description: item.description ? item.description.replace(/<[^>]+>/g, '').substring(0, 160) + '...' : '',
+            flag: flagArticle(item.title || '')
+          }));
+        }
+        // allorigins format — parse XML manually
+        else if (raw.contents) {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(raw.contents, 'text/xml');
+          const xmlItems = [...xml.querySelectorAll('item')];
+          items = xmlItems.slice(0, 8).map(item => {
+            const title = item.querySelector('title')?.textContent || 'No title';
+            const link = item.querySelector('link')?.textContent || item.querySelector('guid')?.textContent || '#';
+            const date = item.querySelector('pubDate')?.textContent || '';
+            const desc = item.querySelector('description')?.textContent?.replace(/<[^>]+>/g, '').substring(0, 160) + '...' || '';
+            return { ticker, source, title, link, date, description: desc, flag: flagArticle(title) };
+          });
+        }
+
+        if (items.length > 0) {
+          RSS_CACHE[cacheKey] = { data: items, ts: Date.now() };
+          return items;
+        }
+      } catch(e) {
+        continue; // Try next proxy
+      }
     }
+    return [];
   }
 
   async function fetchAllNews() {
@@ -3504,86 +3544,82 @@ document.addEventListener('keydown', e => {
     document.getElementById('news-empty').style.display = 'none';
     document.getElementById('news-error').style.display = 'none';
 
-    const promises = [];
+    // Build fetch tasks — batched to avoid rate limiting
+    const tasks = [];
 
-    for (const { ticker, name } of NEWS_TICKERS) {
-      // Yahoo Finance RSS
-      promises.push(fetchRSS(
-        `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`,
-        'Yahoo Finance', ticker
-      ));
-      // Google News RSS
-      promises.push(fetchRSS(
-        `https://news.google.com/rss/search?q=${encodeURIComponent(name + ' stock')}&hl=en-US&gl=US&ceid=US:en`,
-        'Google News', ticker
-      ));
+    // Yahoo Finance RSS — most reliable, do all tickers
+    for (const { ticker } of NEWS_TICKERS) {
+      tasks.push({ url: `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`, source: 'Yahoo Finance', ticker });
     }
 
-    // SEC EDGAR — key tickers
-    const edgarTickers = ['HAWK', 'PL', 'IONQ', 'CRSP', 'GENB', 'CBRS', 'KRMN'];
-    for (const ticker of edgarTickers) {
-      promises.push(fetchRSS(
-        `https://efts.sec.gov/LATEST/search-index?q=%22${ticker}%22&dateRange=custom&startdt=${new Date(Date.now()-7*86400000).toISOString().split('T')[0]}&enddt=${new Date().toISOString().split('T')[0]}&forms=8-K,S-1,13F`,
-        'SEC EDGAR', ticker
-      ));
+    // Google News — only top 8 tickers to reduce load
+    const topTickers = NEWS_TICKERS.slice(0, 8);
+    for (const { ticker, name } of topTickers) {
+      tasks.push({ url: `https://news.google.com/rss/search?q=${encodeURIComponent(name + ' stock')}&hl=en-US&gl=US&ceid=US:en`, source: 'Google News', ticker });
     }
 
-    // PRNewswire search RSS for key companies
-    const prnCompanies = ['HawkEye+360', 'Karman+Space', 'Firefly+Aerospace', 'Cerebras', 'Generate+Biomedicines', 'Kailera', 'IonQ', 'Xanadu+Quantum', 'Infleqtion'];
-    for (const company of prnCompanies) {
-      const ticker = NEWS_TICKERS.find(t => company.toLowerCase().includes(t.name.split(' ')[0].toLowerCase()))?.ticker || 'GENERAL';
-      promises.push(fetchRSS(
-        `https://www.prnewswire.com/rss/news-releases-list.rss`,
-        'PRNewswire', ticker
-      ));
+    // SEC EDGAR — key tickers only
+    for (const ticker of ['HAWK','PL','IONQ','CRSP','GENB','CBRS','KRMN']) {
+      tasks.push({
+        url: `https://efts.sec.gov/LATEST/search-index?q=%22${ticker}%22&dateRange=custom&startdt=${new Date(Date.now()-7*86400000).toISOString().split('T')[0]}&enddt=${new Date().toISOString().split('T')[0]}&forms=8-K,S-1,13F`,
+        source: 'SEC EDGAR', ticker
+      });
     }
 
-    // MACRO TOPICS — Iran War + CLARITY Act
+    // Macro topics
     const macroTopics = [
       { query: 'Iran war military strike ceasefire 2026', ticker: '🌍 IRAN' },
       { query: 'Iran nuclear deal sanctions defense', ticker: '🌍 IRAN' },
-      { query: 'Iran Israel Middle East conflict', ticker: '🌍 IRAN' },
       { query: 'CLARITY Act crypto regulation Washington 2026', ticker: '⚖️ CLARITY' },
       { query: 'CLARITY Act digital assets SEC CFTC Congress', ticker: '⚖️ CLARITY' },
-      { query: 'crypto legislation Senate House 2026', ticker: '⚖️ CLARITY' },
     ];
     for (const { query, ticker } of macroTopics) {
-      promises.push(fetchRSS(
-        `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`,
-        'Google News', ticker
-      ));
+      tasks.push({ url: `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`, source: 'Google News', ticker });
     }
 
-    const results = await Promise.allSettled(promises);
-    let articles = [];
-    results.forEach(r => {
-      if (r.status === 'fulfilled') articles = articles.concat(r.value);
-    });
+    // Execute in batches of 5 with 400ms delay between batches
+    const BATCH_SIZE = 5;
+    let allArticles_local = [];
+    let fetched = 0;
+
+    for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
+      const batch = tasks.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(batch.map(t => fetchRSS(t.url, t.source, t.ticker)));
+      results.forEach(r => { if (r.status === 'fulfilled') allArticles_local = allArticles_local.concat(r.value); });
+      fetched += batch.length;
+
+      // Update progress
+      const statusEl = document.getElementById('news-last-updated');
+      if (statusEl) statusEl.textContent = `Loading... ${Math.round(fetched/tasks.length*100)}%`;
+
+      // Small delay between batches to avoid rate limiting
+      if (i + BATCH_SIZE < tasks.length) await new Promise(r => setTimeout(r, 300));
+    }
 
     // Deduplicate by title
     const seen = new Set();
-    articles = articles.filter(a => {
-      const key = a.title.toLowerCase().trim();
+    allArticles_local = allArticles_local.filter(a => {
+      const key = (a.title || '').toLowerCase().trim();
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
 
     // Sort by date descending
-    articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+    allArticles_local.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    allArticles = articles;
+    allArticles = allArticles_local;
     document.getElementById('news-loading').style.display = 'none';
-    document.getElementById('news-article-count').textContent = articles.length;
-    document.getElementById('news-last-updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    document.getElementById('news-article-count').textContent = allArticles.length;
+    document.getElementById('news-last-updated').textContent = `Updated ${new Date().toLocaleTimeString()} · ${allArticles.length} articles`;
 
-    if (articles.length === 0) {
+    if (allArticles.length === 0) {
       document.getElementById('news-error').style.display = 'block';
-      document.getElementById('news-error').textContent = 'Could not load articles — RSS proxy may be rate limited. Try refreshing in a moment.';
+      document.getElementById('news-error').textContent = 'No articles loaded. Both proxies may be rate-limited — try again in 2-3 minutes. Articles are cached for 10 minutes once loaded.';
       return;
     }
 
-    renderNews(articles);
+    renderNews(allArticles);
   }
 
   function renderNews(articles) {
