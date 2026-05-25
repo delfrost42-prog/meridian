@@ -2802,20 +2802,39 @@
   // ---- Load Tickers from Sheet ----
   async function loadTickersFromSheet() {
     const statusEl = document.getElementById('db-ticker-status');
+    const dynamicSection = document.getElementById('db-dynamic-section');
+    const setupBanner = document.getElementById('db-setup-banner');
+    const dbStatusBadge = document.getElementById('db-status-badge');
+
     if (statusEl) statusEl.textContent = 'Loading from Google Sheets...';
+
     const rows = await fetchSheet('Tickers');
+
     if (!rows || rows.length === 0) {
       if (statusEl) statusEl.textContent = 'No data in Tickers sheet yet — add your first ticker below!';
+      // Still show the dynamic section so the empty state is visible
+      if (dynamicSection) dynamicSection.style.display = 'block';
+      if (setupBanner) setupBanner.style.display = 'none';
+      if (dbStatusBadge) { dbStatusBadge.textContent = 'Connected ✓'; dbStatusBadge.style.color = 'var(--green)'; }
       return;
     }
-    rows.forEach((r, i) => r._id = i + 2); // row index for Apps Script (1-indexed, +1 for header)
+
+    rows.forEach((r, i) => r._id = i + 2);
+
     const tbody = document.querySelector('#tracker-table-dynamic tbody');
     if (tbody) {
       tbody.innerHTML = rows.map((r, i) => renderTickerRow(r, i)).join('');
     }
+
+    // Show dynamic section, hide setup banner
+    if (dynamicSection) dynamicSection.style.display = 'block';
+    if (setupBanner) setupBanner.style.display = 'none';
+
     const countEl = document.getElementById('db-tracker-count');
     if (countEl) countEl.textContent = rows.length;
-    if (statusEl) statusEl.textContent = `✓ ${rows.length} tickers loaded from Google Sheets`;
+    if (statusEl) statusEl.textContent = `✓ ${rows.length} tickers loaded from Google Sheets · last sync ${new Date().toLocaleTimeString()}`;
+    if (dbStatusBadge) { dbStatusBadge.textContent = `Connected ✓ — ${rows.length} rows`; dbStatusBadge.style.color = 'var(--green)'; }
+
     showDBToast(`✓ Loaded ${rows.length} tickers from Sheets`);
   }
 
