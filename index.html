@@ -4728,7 +4728,7 @@ document.addEventListener('keydown', e => {
     document.getElementById('admin-gate').style.display = 'none';
     document.getElementById('admin-chat').style.display = 'flex';
     document.getElementById('admin-chat').style.flexDirection = 'column';
-    document.getElementById('admin-model-badge').textContent = 'claude-sonnet-4-20250514 · Portfolio-aware';
+    document.getElementById('admin-model-badge').textContent = 'claude-sonnet-4-6 · Portfolio-aware';
 
     // Update context bar
     const trackerRows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
@@ -4833,7 +4833,7 @@ Respond naturally and conversationally. The user is building a sophisticated res
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 1024,
           system: buildSystemPrompt(),
           messages: adminChatHistory,
