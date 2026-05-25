@@ -2218,10 +2218,10 @@ document.addEventListener('keydown', e => {
     </div>
 
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">14</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">22</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.4 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">19</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.0 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -2231,20 +2231,28 @@ document.addEventListener('keydown', e => {
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         ${[
-          ['Splash Screen', 'v1.4 — Matrix Style', 'Matrix rain with ticker symbols, animated counters, scrolling ticker strip, ENTER TERMINAL button, keyboard shortcut, smooth fade transition into terminal. Auto-syncs Google Sheets on entry.'],
-          ['Google Sheets Database', 'v1.3 — Full CRUD', 'Google Sheets as live database. Add, Edit, Delete tickers directly from Meridian. Apps Script web app handles all writes. Auto-generated chart links (Yahoo, TradingView, StockAnalysis, Finviz, MacroTrends). Live link preview as you type.'],
-          ['News Feed', 'Tab 08 — Live', 'Chronological RSS feed across all 21 tracked tickers + Iran/Middle East + CLARITY Act macro topics. Sources: Yahoo Finance, SEC EDGAR, Google News, PRNewswire. Auto-refresh every 15 minutes. 🔴🟡⚪ priority flagging. Filter by ticker, source, flag.'],
-          ['GitHub Pages Hosting', 'Infrastructure — Live', 'Meridian deployed to GitHub Pages. Shareable URL, version controlled. Manual upload workflow established. Custom domain via GoDaddy planned next.'],
-          ['Stock Tracker', 'Tab 01 — Dynamic', '15 tickers across Space, Defense, Quantum, Biotech, and AI. Now fully database-driven via Google Sheets. Static hardcoded data removed.'],
-          ['IPO Calendar', 'Tab 02', '14 entries covering completed, upcoming, pipeline, and withdrawn IPOs. Status badges, filter bar. Refresh cadence: Wednesday/Thursday evenings.'],
-          ['Institutional Investors', 'Tab 03', 'Major stakeholders across HAWK, PL, SATL, IONQ with stake %, investor type, and notes.'],
-          ['Political Holdings', 'Tab 04', '60+ rows covering Trump Q1 2026 trades, cabinet members, and family. Filter by person/category. OGE disclosure sourced. Covers 3,642 Q1 trades.'],
-          ['Defense Tech Unicorn Watchlist', 'Tab 05', '10 private defense tech unicorns — Anduril, Shield AI, Saronic, Helsing, Skydio, True Anomaly, CHAOS, Epirus, Defense Unicorns, Onebrief. Full alert signals and Google Alerts links.'],
-          ['Biotech Tab', 'Tab 06', '7 public biotech tickers + 6 longevity unicorn cards. Alert signals and Set Alerts rows on every private company.'],
-          ['Research Notes', 'Tab 07', 'Fully functional notepad with localStorage persistence. Save, delete, and title notes across sessions.'],
-          ['Iran + CLARITY Act News', 'Tab 08 — News Feed', 'Dedicated macro topic feeds for Iran/Middle East conflict and CLARITY Act crypto regulation. Filter by 🌍 IRAN and ⚖️ CLARITY in the ticker dropdown.'],
-          ['Alert Signals', 'All unicorn sections', 'Every private company has ⚡ Alert Signals and 🔔 Set Alerts rows with pre-written Google Alerts queries and Crunchbase links.'],
-          ['Roadmap Tab', 'Tab 09', 'Full product roadmap with completed, in progress, and planned sections. Trading integration phases, database stages, and admin panel layers all documented.'],
+          ['Admin Panel + Embedded Claude', 'v2.0 — Password Protected', 'Full-screen password-protected admin panel with Claude Sonnet. Portfolio-aware system prompt injects tracked tickers, unicorns, IPO pipeline, and recent news. Markdown rendering, typing indicators, 6 quick-start prompts, clear session. API key stored in localStorage only.'],
+          ['Performance Chart vs S&P 500', 'v1.9 — Tab 03', '4 portfolio views: My Tracker, Trump Q1, BlackRock, ARK Invest. Equal and entry-price weighting. YTD/3M/6M/1Y timeframes. Hover crosshair with alpha calculation. Individual ticker sparkline cards. Best/worst performer stats.'],
+          ['Live Price Auto-Updates', 'v1.8 — Stock Tracker', 'Live Price, Day Change (▲▼), Return since entry columns. 💹 LIVE PRICES button. Auto-refresh every 5 minutes. 60-second cache. Chart stats row uses price cache — no more errors.'],
+          ['Live Indices + Crypto on Splash', 'v1.8 — Splash Screen', 'S&P 500, DOW, NASDAQ, Russell 2K, VIX, 10Y Yield, Gold, Oil. BTC, ETH, SOL, BNB, XRP, DOGE. All live with price and % change.'],
+          ['Hidden DB Settings Trigger', 'v1.8 — Security', 'DB Settings hidden. Triple-click version on splash or triple-click dot next to ADD TICKER to access.'],
+          ['External Ticker Search + Auto-fill', 'v1.7 — Global + Tracker', 'Global search bar in header. Preview card with live price/stats. Add to Tracker pre-fills form. Autocomplete dropdown for known tickers.'],
+          ['Candlestick Charts', 'v1.5 — Tab 02', 'TradingView Advanced Chart. 7 timeframes. 50MA/200MA/Volume toggles. Live stats row. Click any ticker badge to load chart.'],
+          ['Bubble Charts', 'v1.6 — Tab 04', '3 views: Valuation vs Revenue, Unicorn Map, Smart Money. Hover tooltips. Click to chart. Sector color legend.'],
+          ['Splash Screen', 'v1.4 — Matrix Style', 'Matrix rain with ticker symbols. Animated counters. Live market strips. ENTER TERMINAL button. Triple-click hidden DB trigger.'],
+          ['Google Sheets Database', 'v1.3 — Full CRUD', 'Google Sheets as live database. Add/Edit/Delete from Meridian. Apps Script handles writes. 5 auto-generated chart links per ticker.'],
+          ['News Feed', 'Tab 11 — Live', 'RSS across 21 tickers + Iran + CLARITY Act. Yahoo, EDGAR, Google News, PRNewswire. Auto-refresh 15min. Priority flagging.'],
+          ['GitHub Pages Hosting', 'Infrastructure — Live', 'Deployed to GitHub Pages. Shareable URL, version controlled.'],
+          ['Stock Tracker', 'Tab 01 — Live DB', '15+ tickers. Google Sheets powered. Live price/change/return. Full CRUD buttons.'],
+          ['IPO Calendar', 'Tab 05', '14 entries: completed, upcoming, pipeline, withdrawn. Status badges, filter.'],
+          ['Institutional Investors', 'Tab 06', 'Major stakeholders across HAWK, PL, SATL, IONQ.'],
+          ['Political Holdings', 'Tab 07', '60+ rows. Trump Q1 2026, cabinet, family. 3,642 disclosed trades.'],
+          ['Unicorn Watchlist', 'Tab 08', '16 unicorns. Alert signals, Google Alerts links, IPO likelihood badges.'],
+          ['Biotech Tab', 'Tab 09', '7 public tickers + 6 longevity unicorns. Alert signals on all.'],
+          ['Research Notes', 'Tab 10', 'Notepad with localStorage persistence.'],
+          ['Iran + CLARITY Act Feeds', 'Tab 11', 'Dedicated macro feeds with filter options.'],
+          ['Alert Signals', 'All unicorn sections', 'Every private company: alert signals + Google Alerts + Crunchbase links.'],
+          ['Roadmap Tab', 'Tab 12', 'Full roadmap: trading phases, DB stages, admin layers, app deployment.'],
         ].map(([title, tag, desc]) => `
         <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--green); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
           <div style="min-width:200px;">
@@ -2493,6 +2501,38 @@ document.addEventListener('keydown', e => {
         </div>
 
       </div>
+    </div>
+
+    <!-- APP DEPLOYMENT ROADMAP -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#fb923c; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        📱 APP DEPLOYMENT — Desktop, Mobile &amp; PWA
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(251,146,60,0.06); border:1px solid rgba(251,146,60,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Goal: package Meridian as a native desktop app, mobile app, and Progressive Web App — a professional installable research terminal on every device you own.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">PWA — Progressive Web App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Fastest path · Free · Any device</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add manifest.json and service worker to GitHub Pages. Users visit URL on any device and tap "Add to Home Screen" — installs like a native app. Full screen, works offline, push notifications. Zero App Store approval needed. One session to build. Recommended first step.</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Electron — Desktop App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Windows · Mac · Linux</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Wraps Meridian into a standalone .exe (Windows) or .app (Mac). System tray icon, desktop notifications, auto-launch on startup. API key stored in OS secure keychain. Existing HTML/JS works as-is. One session to build and package.</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Capacitor — Mobile App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">iOS · Android · App Stores</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Wraps Meridian HTML into native iOS/Android apps. Same codebase. App Store + Google Play. Face ID/fingerprint instead of password. Secure keychain for API key. Haptic feedback. One to two sessions to build and submit.</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Custom Domain</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">GoDaddy → GitHub Pages</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect GoDaddy domain to GitHub Pages. Meridian lives at a custom URL (e.g. meridianresearch.com). One-time DNS setup. Required before App Store submissions.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v3.0 — a fully autonomous AI-powered investment research and trading terminal on every device. Real-time data via Alpaca, natural language trading through the Claude admin panel, live performance tracking, and PWA/desktop/mobile presence. Built from a single HTML file into a production-grade financial application. The edge was built one session at a time.
     </div>
   </section>
 
