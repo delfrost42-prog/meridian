@@ -526,7 +526,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.7 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.8 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -739,7 +739,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v2.7 &mdash; May 25 2026</span>
+    <span>v2.8 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -757,7 +757,8 @@ document.addEventListener('keydown', e => {
   <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
   <div class="nav-tab" onclick="showTab('options')">12 &mdash; Options Education</div>
   <div class="nav-tab" onclick="showTab('optionschain')">13 &mdash; Options Chain</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">14 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('trading')">14 &mdash; 📈 Trading</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">15 &mdash; Roadmap</div>
   <div class="nav-tab" id="admin-nav-tab" onclick="showAdminPanel()" style="color:var(--text3);border-left:1px solid var(--border);margin-left:8px;padding-left:16px;">🔐 Admin</div>
 </nav>
 
@@ -2669,7 +2670,202 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
-  <!-- TAB 14: ROADMAP -->
+  <!-- TAB 14: TRADING -->
+  <section class="section" id="tab-trading">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Paper <span>Trading</span></div>
+        <div class="section-sub">Alpaca paper trading — simulate trades with $100K virtual buying power · No real money</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="alp-mode-badge" style="background:rgba(255,184,48,0.15);color:var(--warn);border:1px solid rgba(255,184,48,0.3);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:0.1em;">📋 PAPER MODE</span>
+        <button onclick="openAlpacaSettings()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">⚙ API SETUP</button>
+        <button onclick="refreshAlpacaData()" id="alp-refresh-btn" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">↺ REFRESH</button>
+      </div>
+    </div>
+
+    <!-- Account stats -->
+    <div class="stats-row" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-label">Portfolio Value</div><div class="stat-value accent" id="alp-portfolio-value">—</div></div>
+      <div class="stat-card"><div class="stat-label">Buying Power</div><div class="stat-value green" id="alp-buying-power">—</div></div>
+      <div class="stat-card"><div class="stat-label">Today's P&L</div><div class="stat-value" id="alp-today-pl">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value" id="alp-total-return">—</div></div>
+      <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value" id="alp-position-count">—</div></div>
+      <div class="stat-card"><div class="stat-label">Open Orders</div><div class="stat-value warn" id="alp-order-count">—</div></div>
+    </div>
+
+    <!-- Setup prompt (shown when no API key) -->
+    <div id="alp-setup-prompt" style="padding:40px;text-align:center;border:1px dashed var(--border);border-radius:4px;margin-bottom:20px;">
+      <div style="font-size:32px;margin-bottom:12px;">📋</div>
+      <div style="font-family:var(--sans);font-size:18px;font-weight:700;color:var(--warn);margin-bottom:8px;">Connect Alpaca Paper Trading</div>
+      <div style="font-size:12px;color:var(--text2);max-width:400px;margin:0 auto 20px;line-height:1.8;">
+        Get your free paper trading API keys at <a href="https://alpaca.markets" target="_blank" style="color:var(--accent);">alpaca.markets</a><br>
+        Go to Paper Trading → Your API Keys → Generate New Key<br>
+        Then click API SETUP above to enter your credentials.
+      </div>
+      <button onclick="openAlpacaSettings()" style="background:rgba(255,184,48,0.1);border:1px solid rgba(255,184,48,0.3);color:var(--warn);font-family:var(--mono);font-size:12px;padding:10px 24px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">⚙ CONNECT ALPACA</button>
+    </div>
+
+    <!-- Main trading layout (shown when connected) -->
+    <div id="alp-main" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+
+        <!-- Left: Positions + Orders + History -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Open Positions -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📂 OPEN POSITIONS</div>
+            <div id="alp-positions-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No open positions</div>
+            <div class="table-wrap" id="alp-positions-wrap" style="display:none;">
+              <table id="alp-positions-table" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th>Symbol</th><th>Qty</th><th>Avg Cost</th><th>Current</th><th>Market Val</th><th>Unrealized P&L</th><th>P&L %</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="alp-positions-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Open Orders -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">⏳ OPEN ORDERS</div>
+            <div id="alp-orders-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No open orders</div>
+            <div class="table-wrap" id="alp-orders-wrap" style="display:none;">
+              <table id="alp-orders-table" style="width:100%;">
+                <thead>
+                  <tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Limit</th><th>Stop</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="alp-orders-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Trade History -->
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📜 RECENT ACTIVITY</div>
+            <div id="alp-history-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No recent activity</div>
+            <div class="table-wrap" id="alp-history-wrap" style="display:none;">
+              <table style="width:100%;">
+                <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Value</th></tr></thead>
+                <tbody id="alp-history-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Order entry panel -->
+        <div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:16px;position:sticky;top:20px;">
+            <div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;">Place Order</div>
+
+            <!-- Symbol -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Symbol</label>
+              <div style="display:flex;gap:6px;">
+                <input id="alp-order-symbol" type="text" placeholder="HAWK" autocomplete="off"
+                  style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:14px;font-weight:700;padding:8px 10px;border-radius:3px;outline:none;text-transform:uppercase;letter-spacing:0.1em;"
+                  oninput="this.value=this.value.toUpperCase()" onchange="fetchOrderQuote(this.value)">
+                <button onclick="fetchOrderQuote(document.getElementById('alp-order-symbol').value)"
+                  style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 10px;cursor:pointer;border-radius:3px;">QUOTE</button>
+              </div>
+              <div id="alp-order-quote" style="margin-top:6px;font-size:11px;color:var(--text3);min-height:16px;"></div>
+            </div>
+
+            <!-- Side -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Side</label>
+              <div style="display:flex;gap:6px;">
+                <button onclick="setOrderSide('buy')" id="alp-side-buy"
+                  style="flex:1;background:rgba(46,213,115,0.15);border:1px solid rgba(46,213,115,0.4);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;padding:8px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;transition:all 0.2s;">
+                  ▲ BUY
+                </button>
+                <button onclick="setOrderSide('sell')" id="alp-side-sell"
+                  style="flex:1;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:12px;font-weight:700;padding:8px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;transition:all 0.2s;">
+                  ▼ SELL
+                </button>
+              </div>
+            </div>
+
+            <!-- Order Type -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Order Type</label>
+              <select id="alp-order-type" onchange="updateOrderTypeFields()"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">
+                <option value="market">Market</option>
+                <option value="limit">Limit</option>
+                <option value="stop">Stop</option>
+                <option value="stop_limit">Stop Limit</option>
+                <option value="trailing_stop">Trailing Stop</option>
+              </select>
+            </div>
+
+            <!-- Qty -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Quantity (shares)</label>
+              <input id="alp-order-qty" type="number" min="1" placeholder="10"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;"
+                oninput="updateOrderTotal()">
+            </div>
+
+            <!-- Limit price (conditional) -->
+            <div id="alp-limit-field" style="margin-bottom:12px;display:none;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Limit Price</label>
+              <input id="alp-order-limit" type="number" step="0.01" placeholder="0.00"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
+            </div>
+
+            <!-- Stop price (conditional) -->
+            <div id="alp-stop-field" style="margin-bottom:12px;display:none;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Stop Price</label>
+              <input id="alp-order-stop" type="number" step="0.01" placeholder="0.00"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
+            </div>
+
+            <!-- Trail % (conditional) -->
+            <div id="alp-trail-field" style="margin-bottom:12px;display:none;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Trail % (e.g. 5 = 5%)</label>
+              <input id="alp-order-trail" type="number" step="0.1" min="0.1" placeholder="5"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
+            </div>
+
+            <!-- Time in force -->
+            <div style="margin-bottom:14px;">
+              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Time in Force</label>
+              <select id="alp-order-tif"
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">
+                <option value="day">Day (expires EOD)</option>
+                <option value="gtc">GTC (Good Till Cancelled)</option>
+                <option value="ioc">IOC (Immediate or Cancel)</option>
+                <option value="fok">FOK (Fill or Kill)</option>
+              </select>
+            </div>
+
+            <!-- Order total estimate -->
+            <div id="alp-order-total" style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--text2);margin-bottom:14px;min-height:36px;line-height:1.6;">
+              Enter symbol and quantity to see estimate
+            </div>
+
+            <!-- Submit button -->
+            <button onclick="confirmAndPlaceOrder()" id="alp-submit-btn"
+              style="width:100%;background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.35);color:var(--green);font-family:var(--mono);font-size:13px;font-weight:700;padding:12px;cursor:pointer;border-radius:4px;letter-spacing:0.1em;transition:all 0.2s;"
+              onmouseover="this.style.background='rgba(46,213,115,0.2)'" onmouseout="this.style.background='rgba(46,213,115,0.12)'">
+              PLACE PAPER ORDER
+            </button>
+
+            <div style="margin-top:8px;font-size:10px;color:var(--text3);text-align:center;">
+              📋 Paper trading only — no real money
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 15: ROADMAP -->
   <section class="section" id="tab-roadmap">
     <div class="section-header">
       <div>
@@ -2683,7 +2879,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.7 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.8 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3962,8 +4158,10 @@ document.addEventListener('keydown', e => {
         <div style="display:flex;gap:4px;margin-top:6px;">
           <button onclick="loadChartTicker('${row.Ticker}')" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;" title="View Chart">📈</button>
           <button onclick="loadOptionsFromTracker('${row.Ticker}')" style="background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);color:var(--warn);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;" title="View Options Chain">⛓️</button>
-          <button onclick='openEditTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️ Edit</button>
-          <button onclick='deleteTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️ Delete</button>
+          <button onclick="quickTrade('${row.Ticker}','buy')" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;" title="Paper Buy">▲</button>
+          <button onclick="quickTrade('${row.Ticker}','sell')" style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;" title="Paper Sell">▼</button>
+          <button onclick='openEditTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️</button>
+          <button onclick='deleteTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️</button>
         </div>
       </td>
     </tr>`;
@@ -4103,6 +4301,7 @@ document.addEventListener('keydown', e => {
     if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'optionschain') { buildQuickTickers(); }
+    if (id === 'trading') refreshAlpacaData();
     if (id === 'news' && allArticles.length === 0) fetchAllNews();
   };
 
@@ -6642,6 +6841,429 @@ Be direct and specific. Search the web for current data on each.`;
 
   // Initial render
   renderWatchlist();
+
+  // ============================================================
+  // ALPACA PAPER TRADING
+  // ============================================================
+  const ALPACA_PAPER_URL = 'https://paper-api.alpaca.markets';
+  const ALPACA_DATA_URL = 'https://data.alpaca.markets';
+
+  let alpacaKeyId = localStorage.getItem('meridian_alpaca_key') || '';
+  let alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
+  let alpacaOrderSide = 'buy';
+  let alpacaCurrentQuote = null;
+
+  // ---- Alpaca API helper ----
+  async function alpacaFetch(endpoint, method = 'GET', body = null, isData = false) {
+    const base = isData ? ALPACA_DATA_URL : ALPACA_PAPER_URL;
+    const opts = {
+      method,
+      headers: {
+        'APCA-API-KEY-ID': alpacaKeyId,
+        'APCA-API-SECRET-KEY': alpacaSecret,
+        'Content-Type': 'application/json',
+      },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(base + endpoint, opts);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    return res.status === 204 ? null : res.json();
+  }
+
+  // ---- Settings modal ----
+  function openAlpacaSettings() {
+    const modal = document.createElement('div');
+    modal.id = 'alp-settings-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:500px;">
+      <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:var(--warn);margin-bottom:6px;">📋 Alpaca Paper Trading Setup</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:20px;line-height:1.7;">
+        1. Create a free account at <a href="https://alpaca.markets" target="_blank" style="color:var(--accent);">alpaca.markets</a><br>
+        2. Go to <strong>Paper Trading → Your API Keys → Generate New Key</strong><br>
+        3. Paste both keys below — stored in localStorage only, never in the HTML file.
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">API Key ID</label>
+        <input id="alp-key-input" type="text" value="${alpacaKeyId}" placeholder="PKTEST..." autocomplete="off"
+          style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 12px;border-radius:3px;outline:none;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Secret Key</label>
+        <input id="alp-secret-input" type="password" value="${alpacaSecret}" placeholder="Your secret key..." autocomplete="off"
+          style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 12px;border-radius:3px;outline:none;">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="document.getElementById('alp-settings-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button onclick="saveAlpacaKeys()" style="background:rgba(255,184,48,0.1);border:1px solid rgba(255,184,48,0.3);color:var(--warn);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE & CONNECT</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  }
+
+  async function saveAlpacaKeys() {
+    const key = document.getElementById('alp-key-input')?.value.trim();
+    const secret = document.getElementById('alp-secret-input')?.value.trim();
+    if (!key || !secret) { showDBToast('Both fields required', 'warn'); return; }
+    alpacaKeyId = key;
+    alpacaSecret = secret;
+    localStorage.setItem('meridian_alpaca_key', key);
+    localStorage.setItem('meridian_alpaca_secret', secret);
+    document.getElementById('alp-settings-modal')?.remove();
+    showDBToast('✓ Alpaca keys saved — connecting...');
+    await refreshAlpacaData();
+  }
+
+  // ---- Refresh all Alpaca data ----
+  async function refreshAlpacaData() {
+    if (!alpacaKeyId || !alpacaSecret) {
+      document.getElementById('alp-setup-prompt').style.display = 'block';
+      document.getElementById('alp-main').style.display = 'none';
+      return;
+    }
+
+    const btn = document.getElementById('alp-refresh-btn');
+    if (btn) { btn.textContent = '⟳'; btn.style.opacity = '0.6'; }
+
+    try {
+      const [account, positions, orders, activities] = await Promise.all([
+        alpacaFetch('/v2/account'),
+        alpacaFetch('/v2/positions'),
+        alpacaFetch('/v2/orders?status=open&limit=20'),
+        alpacaFetch('/v2/account/activities/FILL?page_size=20'),
+      ]);
+
+      document.getElementById('alp-setup-prompt').style.display = 'none';
+      document.getElementById('alp-main').style.display = 'block';
+
+      renderAlpacaAccount(account);
+      renderAlpacaPositions(positions);
+      renderAlpacaOrders(orders);
+      renderAlpacaHistory(activities);
+
+      showDBToast('✓ Alpaca data refreshed');
+    } catch(e) {
+      showDBToast(`Alpaca error: ${e.message}`, 'error');
+      if (e.message.includes('forbidden') || e.message.includes('unauthorized')) {
+        document.getElementById('alp-setup-prompt').style.display = 'block';
+        document.getElementById('alp-main').style.display = 'none';
+      }
+    }
+
+    if (btn) { btn.textContent = '↺ REFRESH'; btn.style.opacity = '1'; }
+  }
+
+  function renderAlpacaAccount(a) {
+    const fmt = n => n != null ? `$${parseFloat(n).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}` : '—';
+    const portfolioVal = parseFloat(a.portfolio_value || 0);
+    const equity = parseFloat(a.equity || 0);
+    const lastEquity = parseFloat(a.last_equity || 100000);
+    const todayPL = equity - lastEquity;
+    const totalReturn = ((equity - 100000) / 100000 * 100);
+
+    document.getElementById('alp-portfolio-value').textContent = fmt(portfolioVal);
+    document.getElementById('alp-buying-power').textContent = fmt(a.buying_power);
+
+    const todayEl = document.getElementById('alp-today-pl');
+    todayEl.textContent = `${todayPL >= 0 ? '+' : ''}${fmt(todayPL)}`;
+    todayEl.style.color = todayPL >= 0 ? 'var(--green)' : 'var(--red)';
+
+    const retEl = document.getElementById('alp-total-return');
+    retEl.textContent = `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`;
+    retEl.style.color = totalReturn >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  function renderAlpacaPositions(positions) {
+    const countEl = document.getElementById('alp-position-count');
+    if (countEl) countEl.textContent = positions.length;
+
+    const empty = document.getElementById('alp-positions-empty');
+    const wrap = document.getElementById('alp-positions-wrap');
+    const tbody = document.getElementById('alp-positions-body');
+
+    if (!positions.length) {
+      if (empty) empty.style.display = 'block';
+      if (wrap) wrap.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+
+    const fmt = n => `$${parseFloat(n).toFixed(2)}`;
+    tbody.innerHTML = positions.map(p => {
+      const unreal = parseFloat(p.unrealized_pl || 0);
+      const unrealPct = parseFloat(p.unrealized_plpc || 0) * 100;
+      const c = unreal >= 0 ? 'var(--green)' : 'var(--red)';
+      return `<tr>
+        <td><span class="ticker-badge" style="cursor:pointer;" onclick="loadChartTicker('${p.symbol}')">${p.symbol}</span></td>
+        <td>${p.qty}</td>
+        <td class="text-muted">${fmt(p.avg_entry_price)}</td>
+        <td>${fmt(p.current_price)}</td>
+        <td class="text-muted">${fmt(p.market_value)}</td>
+        <td style="color:${c};font-weight:700;">${unreal >= 0 ? '+' : ''}${fmt(unreal)}</td>
+        <td style="color:${c};">${unrealPct >= 0 ? '+' : ''}${unrealPct.toFixed(2)}%</td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <button onclick="quickTrade('${p.symbol}','buy')" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">+ BUY</button>
+            <button onclick="quickTrade('${p.symbol}','sell')" style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">- SELL</button>
+            <button onclick="closePosition('${p.symbol}')" style="background:rgba(122,157,181,0.08);border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">CLOSE</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderAlpacaOrders(orders) {
+    const countEl = document.getElementById('alp-order-count');
+    if (countEl) countEl.textContent = orders.length;
+
+    const empty = document.getElementById('alp-orders-empty');
+    const wrap = document.getElementById('alp-orders-wrap');
+    const tbody = document.getElementById('alp-orders-body');
+
+    if (!orders.length) {
+      if (empty) empty.style.display = 'block';
+      if (wrap) wrap.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+
+    tbody.innerHTML = orders.map(o => {
+      const sideColor = o.side === 'buy' ? 'var(--green)' : 'var(--red)';
+      return `<tr>
+        <td><span class="ticker-badge">${o.symbol}</span></td>
+        <td style="color:${sideColor};font-weight:700;">${o.side.toUpperCase()}</td>
+        <td class="text-muted">${o.type}</td>
+        <td>${o.qty}</td>
+        <td class="text-muted">${o.limit_price ? '$'+parseFloat(o.limit_price).toFixed(2) : '—'}</td>
+        <td class="text-muted">${o.stop_price ? '$'+parseFloat(o.stop_price).toFixed(2) : '—'}</td>
+        <td><span style="background:rgba(255,184,48,0.1);color:var(--warn);padding:1px 6px;border-radius:2px;font-size:10px;">${o.status}</span></td>
+        <td><button onclick="cancelOrder('${o.id}')" style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">CANCEL</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderAlpacaHistory(activities) {
+    const empty = document.getElementById('alp-history-empty');
+    const wrap = document.getElementById('alp-history-wrap');
+    const tbody = document.getElementById('alp-history-body');
+    if (!activities?.length) {
+      if (empty) empty.style.display = 'block';
+      if (wrap) wrap.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (wrap) wrap.style.display = 'block';
+
+    tbody.innerHTML = activities.slice(0, 15).map(a => {
+      const sideColor = a.side === 'buy' ? 'var(--green)' : 'var(--red)';
+      const val = parseFloat(a.price || 0) * parseFloat(a.qty || 0);
+      const time = a.transaction_time ? new Date(a.transaction_time).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      return `<tr>
+        <td class="text-muted text-small">${time}</td>
+        <td><span class="ticker-badge">${a.symbol}</span></td>
+        <td style="color:${sideColor};font-weight:700;">${(a.side||'').toUpperCase()}</td>
+        <td>${a.qty}</td>
+        <td class="text-muted">$${parseFloat(a.price||0).toFixed(2)}</td>
+        <td class="text-muted">$${val.toFixed(2)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ---- Order form ----
+  function setOrderSide(side) {
+    alpacaOrderSide = side;
+    const buyBtn = document.getElementById('alp-side-buy');
+    const sellBtn = document.getElementById('alp-side-sell');
+    if (side === 'buy') {
+      if (buyBtn) { buyBtn.style.background='rgba(46,213,115,0.15)'; buyBtn.style.borderColor='rgba(46,213,115,0.4)'; buyBtn.style.color='var(--green)'; }
+      if (sellBtn) { sellBtn.style.background='transparent'; sellBtn.style.borderColor='var(--border)'; sellBtn.style.color='var(--text3)'; }
+      const btn = document.getElementById('alp-submit-btn');
+      if (btn) { btn.textContent='PLACE PAPER ORDER'; btn.style.color='var(--green)'; btn.style.borderColor='rgba(46,213,115,0.35)'; btn.style.background='rgba(46,213,115,0.12)'; }
+    } else {
+      if (sellBtn) { sellBtn.style.background='rgba(255,71,87,0.15)'; sellBtn.style.borderColor='rgba(255,71,87,0.4)'; sellBtn.style.color='var(--red)'; }
+      if (buyBtn) { buyBtn.style.background='transparent'; buyBtn.style.borderColor='var(--border)'; buyBtn.style.color='var(--text3)'; }
+      const btn = document.getElementById('alp-submit-btn');
+      if (btn) { btn.textContent='PLACE PAPER ORDER'; btn.style.color='var(--red)'; btn.style.borderColor='rgba(255,71,87,0.35)'; btn.style.background='rgba(255,71,87,0.12)'; }
+    }
+    updateOrderTotal();
+  }
+
+  function updateOrderTypeFields() {
+    const type = document.getElementById('alp-order-type')?.value;
+    document.getElementById('alp-limit-field').style.display = (type === 'limit' || type === 'stop_limit') ? 'block' : 'none';
+    document.getElementById('alp-stop-field').style.display = (type === 'stop' || type === 'stop_limit') ? 'block' : 'none';
+    document.getElementById('alp-trail-field').style.display = type === 'trailing_stop' ? 'block' : 'none';
+  }
+
+  async function fetchOrderQuote(symbol) {
+    if (!symbol || symbol.length < 1) return;
+    const quoteEl = document.getElementById('alp-order-quote');
+    if (quoteEl) quoteEl.textContent = 'Fetching...';
+    try {
+      // Use cached live price if available
+      const cached = livePriceCache[symbol];
+      if (cached?.data) {
+        alpacaCurrentQuote = cached.data.price;
+        if (quoteEl) quoteEl.innerHTML = `<span style="color:var(--accent);font-weight:700;">$${cached.data.price.toFixed(2)}</span> <span style="color:${cached.data.change>=0?'var(--green)':'var(--red)'};">${cached.data.change>=0?'+':''}${cached.data.changePct.toFixed(2)}%</span>`;
+        updateOrderTotal();
+        return;
+      }
+      // Try Alpaca real-time quote
+      if (alpacaKeyId && alpacaSecret) {
+        try {
+          const q = await alpacaFetch(`/v2/stocks/${symbol}/quotes/latest`, 'GET', null, true);
+          const price = q?.quote?.ap || q?.quote?.bp;
+          if (price) {
+            alpacaCurrentQuote = price;
+            if (quoteEl) quoteEl.innerHTML = `<span style="color:var(--accent);font-weight:700;">$${price.toFixed(2)}</span> <span style="color:var(--text3);font-size:10px;">real-time</span>`;
+            updateOrderTotal();
+            return;
+          }
+        } catch(e) {}
+      }
+      // Fallback to live price fetch
+      const data = await fetchLivePrice(symbol);
+      if (data) {
+        alpacaCurrentQuote = data.price;
+        if (quoteEl) quoteEl.innerHTML = `<span style="color:var(--accent);font-weight:700;">$${data.price.toFixed(2)}</span> <span style="color:${data.change>=0?'var(--green)':'var(--red)'};">${data.change>=0?'+':''}${data.changePct.toFixed(2)}%</span>`;
+        updateOrderTotal();
+      } else {
+        if (quoteEl) quoteEl.textContent = 'Could not fetch quote';
+      }
+    } catch(e) {
+      if (quoteEl) quoteEl.textContent = 'Quote error';
+    }
+  }
+
+  function updateOrderTotal() {
+    const qty = parseFloat(document.getElementById('alp-order-qty')?.value || 0);
+    const totalEl = document.getElementById('alp-order-total');
+    if (!totalEl) return;
+    if (alpacaCurrentQuote && qty > 0) {
+      const est = alpacaCurrentQuote * qty;
+      totalEl.innerHTML = `<strong>Estimated ${alpacaOrderSide === 'buy' ? 'Cost' : 'Proceeds'}:</strong> <span style="color:var(--accent);font-size:13px;font-weight:700;">$${est.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span><br><span style="color:var(--text3);font-size:10px;">${qty} shares × $${alpacaCurrentQuote.toFixed(2)}</span>`;
+    } else {
+      totalEl.textContent = 'Enter symbol and quantity to see estimate';
+    }
+  }
+
+  function confirmAndPlaceOrder() {
+    const symbol = document.getElementById('alp-order-symbol')?.value?.trim()?.toUpperCase();
+    const qty = document.getElementById('alp-order-qty')?.value;
+    const type = document.getElementById('alp-order-type')?.value;
+    const tif = document.getElementById('alp-order-tif')?.value;
+    const limit = document.getElementById('alp-order-limit')?.value;
+    const stop = document.getElementById('alp-order-stop')?.value;
+    const trail = document.getElementById('alp-order-trail')?.value;
+
+    if (!symbol || !qty) { showDBToast('Enter symbol and quantity', 'warn'); return; }
+
+    // Build order object
+    const order = { symbol, qty: parseInt(qty), side: alpacaOrderSide, type, time_in_force: tif };
+    if (limit && (type === 'limit' || type === 'stop_limit')) order.limit_price = parseFloat(limit);
+    if (stop && (type === 'stop' || type === 'stop_limit')) order.stop_price = parseFloat(stop);
+    if (trail && type === 'trailing_stop') order.trail_percent = parseFloat(trail);
+
+    const est = alpacaCurrentQuote ? ` (~$${(alpacaCurrentQuote * parseInt(qty)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})})` : '';
+
+    // Confirmation modal
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    const sideColor = alpacaOrderSide === 'buy' ? 'var(--green)' : 'var(--red)';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:28px;max-width:380px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">📋</div>
+      <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:${sideColor};margin-bottom:16px;">${alpacaOrderSide.toUpperCase()} ${qty} ${symbol}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:2;margin-bottom:20px;background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:12px;">
+        <div>Type: <strong>${type.replace('_',' ').toUpperCase()}</strong></div>
+        <div>Side: <strong style="color:${sideColor};">${alpacaOrderSide.toUpperCase()}</strong></div>
+        <div>Qty: <strong>${qty} shares</strong></div>
+        ${limit ? `<div>Limit: <strong>$${limit}</strong></div>` : ''}
+        ${stop ? `<div>Stop: <strong>$${stop}</strong></div>` : ''}
+        ${trail ? `<div>Trail: <strong>${trail}%</strong></div>` : ''}
+        <div>TIF: <strong>${tif.toUpperCase()}</strong></div>
+        <div style="color:var(--accent);margin-top:4px;">Est. value: <strong>${est || 'Market price'}</strong></div>
+      </div>
+      <div style="background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);border-radius:3px;padding:8px;font-size:11px;color:var(--warn);margin-bottom:16px;">📋 PAPER TRADE — No real money will be used</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button onclick="this.closest('[style]').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button onclick="placeAlpacaOrder(${JSON.stringify(order).replace(/"/g,'&quot;')});this.closest('[style]').remove()" style="background:rgba(${alpacaOrderSide==='buy'?'46,213,115':'255,71,87'},0.15);border:1px solid rgba(${alpacaOrderSide==='buy'?'46,213,115':'255,71,87'},0.4);color:${sideColor};font-family:var(--mono);font-size:12px;font-weight:700;padding:8px 24px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">CONFIRM ORDER</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  }
+
+  async function placeAlpacaOrder(order) {
+    try {
+      const result = await alpacaFetch('/v2/orders', 'POST', order);
+      showDBToast(`✓ Order placed: ${order.side.toUpperCase()} ${order.qty} ${order.symbol}`);
+      // Clear form
+      document.getElementById('alp-order-qty').value = '';
+      document.getElementById('alp-order-quote').textContent = '';
+      alpacaCurrentQuote = null;
+      document.getElementById('alp-order-total').textContent = 'Enter symbol and quantity to see estimate';
+      // Refresh data
+      setTimeout(() => refreshAlpacaData(), 1000);
+    } catch(e) {
+      showDBToast(`Order failed: ${e.message}`, 'error');
+    }
+  }
+
+  async function cancelOrder(orderId) {
+    try {
+      await alpacaFetch(`/v2/orders/${orderId}`, 'DELETE');
+      showDBToast('✓ Order cancelled');
+      setTimeout(() => refreshAlpacaData(), 800);
+    } catch(e) {
+      showDBToast(`Cancel failed: ${e.message}`, 'error');
+    }
+  }
+
+  async function closePosition(symbol) {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;max-width:340px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:10px;">⚠️</div>
+      <div style="color:var(--text);font-size:13px;margin-bottom:18px;line-height:1.6;">Close entire <strong style="color:var(--red);">${symbol}</strong> position at market price?</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button onclick="this.closest('[style]').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button onclick="executeClosePosition('${symbol}');this.closest('[style]').remove()" style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--red);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;font-weight:700;">CLOSE POSITION</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+
+  async function executeClosePosition(symbol) {
+    try {
+      await alpacaFetch(`/v2/positions/${symbol}`, 'DELETE');
+      showDBToast(`✓ ${symbol} position closed`);
+      setTimeout(() => refreshAlpacaData(), 800);
+    } catch(e) {
+      showDBToast(`Close failed: ${e.message}`, 'error');
+    }
+  }
+
+  // Quick trade from tracker
+  function quickTrade(symbol, side) {
+    // Switch to trading tab
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-trading')?.classList.add('active');
+    document.querySelector('.nav-tab[onclick*="trading"]')?.classList.add('active');
+    // Pre-fill form
+    const symbolInput = document.getElementById('alp-order-symbol');
+    if (symbolInput) { symbolInput.value = symbol; fetchOrderQuote(symbol); }
+    setOrderSide(side);
+    document.getElementById('alp-order-qty')?.focus();
+  }
+
+  // Auto-init when tab opens
+  // (wired in showTab below)
 
   // ---- Clock
   function updateClock() {
