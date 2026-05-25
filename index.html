@@ -526,7 +526,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v1.9 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.0 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -739,7 +739,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.9 &mdash; May 25 2026</span>
+    <span>v2.0 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -756,6 +756,7 @@ document.addEventListener('keydown', e => {
   <div class="nav-tab" onclick="showTab('notes')">10 &mdash; Research Notes</div>
   <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
   <div class="nav-tab" onclick="showTab('roadmap')">12 &mdash; Roadmap</div>
+  <div class="nav-tab" id="admin-nav-tab" onclick="showAdminPanel()" style="color:var(--text3);border-left:1px solid var(--border);margin-left:8px;padding-left:16px;">🔐 Admin</div>
 </nav>
 
 <main class="main">
@@ -2496,6 +2497,117 @@ document.addEventListener('keydown', e => {
   </section>
 
 </main>
+
+<!-- ============================================================ -->
+<!-- ADMIN PANEL OVERLAY -->
+<!-- ============================================================ -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;background:#050a0e;z-index:9000;flex-direction:column;">
+
+  <!-- Admin header -->
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span style="font-family:var(--sans);font-size:16px;font-weight:800;color:#f472b6;letter-spacing:0.1em;">🔐 MERIDIAN ADMIN</span>
+      <span style="font-size:10px;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;">Claude-Powered Research Assistant</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span id="admin-model-badge" style="font-size:10px;color:var(--text3);letter-spacing:0.1em;"></span>
+      <button onclick="clearAdminSession()" style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:11px;padding:5px 12px;cursor:pointer;border-radius:3px;">CLEAR SESSION</button>
+      <button onclick="closeAdminPanel()" style="background:rgba(122,157,181,0.08);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:5px 12px;cursor:pointer;border-radius:3px;">✕ CLOSE</button>
+    </div>
+  </div>
+
+  <!-- PASSWORD GATE -->
+  <div id="admin-gate" style="display:flex;flex:1;align-items:center;justify-content:center;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:40px;width:100%;max-width:440px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+      <div style="font-family:var(--sans);font-size:22px;font-weight:800;color:#f472b6;margin-bottom:8px;">Admin Access</div>
+      <div style="color:var(--text3);font-size:12px;margin-bottom:28px;line-height:1.6;">Enter your password to access the<br>Claude-powered research assistant</div>
+      <input id="admin-password-input" type="password" placeholder="Enter password..." autocomplete="off"
+        style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:14px;padding:12px 16px;border-radius:4px;outline:none;text-align:center;letter-spacing:0.2em;margin-bottom:12px;"
+        onkeydown="if(event.key==='Enter')checkAdminPassword()">
+      <button onclick="checkAdminPassword()"
+        style="width:100%;background:rgba(244,114,182,0.1);border:1px solid rgba(244,114,182,0.3);color:#f472b6;font-family:var(--mono);font-size:12px;padding:12px;cursor:pointer;border-radius:4px;letter-spacing:0.2em;margin-bottom:16px;transition:all 0.2s;"
+        onmouseover="this.style.background='rgba(244,114,182,0.2)'"
+        onmouseout="this.style.background='rgba(244,114,182,0.1)'">
+        UNLOCK
+      </button>
+      <div id="admin-gate-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:12px;">Incorrect password. Try again.</div>
+
+      <!-- API Key setup (shown after unlock if no key set) -->
+      <div id="admin-api-setup" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);text-align:left;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.7;">
+          <strong style="color:var(--accent);">One-time setup:</strong> Enter your Anthropic API key below.<br>
+          It saves to your browser only — never stored in the HTML file.
+        </div>
+        <input id="admin-api-key-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off"
+          style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:9px 12px;border-radius:3px;outline:none;margin-bottom:8px;"
+          onkeydown="if(event.key==='Enter')saveAPIKey()">
+        <button onclick="saveAPIKey()"
+          style="width:100%;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:9px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">
+          SAVE API KEY & ENTER
+        </button>
+        <div style="color:var(--text3);font-size:10px;margin-top:8px;text-align:center;">
+          Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT INTERFACE (shown after auth) -->
+  <div id="admin-chat" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+
+    <!-- Context bar -->
+    <div style="background:rgba(244,114,182,0.05);border-bottom:1px solid rgba(244,114,182,0.15);padding:8px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;flex-wrap:wrap;">
+      <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#f472b6;">Context Injected:</span>
+      <span id="admin-context-tickers" style="font-size:11px;color:var(--text2);">—</span>
+      <span style="color:var(--text3);">·</span>
+      <span id="admin-context-unicorns" style="font-size:11px;color:var(--text2);">—</span>
+      <span style="color:var(--text3);">·</span>
+      <span id="admin-context-news" style="font-size:11px;color:var(--text2);">—</span>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button onclick="clearAdminChat()" style="background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:3px 10px;cursor:pointer;border-radius:2px;">CLEAR CHAT</button>
+        <button onclick="showAdminAPISettings()" style="background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:3px 10px;cursor:pointer;border-radius:2px;">⚙ API KEY</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="admin-messages" style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+      <!-- Welcome message injected by JS -->
+    </div>
+
+    <!-- Suggested prompts -->
+    <div id="admin-suggestions" style="padding:0 24px 10px;display:flex;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:10px;color:var(--text3);letter-spacing:0.1em;align-self:center;margin-right:4px;">QUICK:</span>
+      ${[
+        'Research PLTR and add to tracker',
+        'What\'s the latest news on my holdings?',
+        'Compare CRSP vs NTLA',
+        'Which of my tickers has the best analyst PT upside?',
+        'Summarize the defense unicorn landscape',
+        'What should I watch this week?',
+      ].map(p => `<button onclick="sendAdminMessage('${p.replace(/'/g,"\\'")}');document.getElementById('admin-suggestions').style.display='none';"
+        style="background:rgba(244,114,182,0.06);border:1px solid rgba(244,114,182,0.15);color:var(--text2);font-family:var(--mono);font-size:10px;padding:5px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;"
+        onmouseover="this.style.borderColor='rgba(244,114,182,0.4)';this.style.color='#f472b6'"
+        onmouseout="this.style.borderColor='rgba(244,114,182,0.15)';this.style.color='var(--text2)'">${p}</button>`).join('')}
+    </div>
+
+    <!-- Input row -->
+    <div style="padding:12px 24px;border-top:1px solid var(--border);background:var(--bg2);display:flex;gap:10px;align-items:flex-end;flex-shrink:0;">
+      <textarea id="admin-input" placeholder="Ask Claude anything about your portfolio, research a ticker, analyze news..." rows="2"
+        style="flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 14px;border-radius:4px;outline:none;resize:none;line-height:1.6;transition:border-color 0.2s;"
+        onfocus="this.style.borderColor='rgba(244,114,182,0.5)'"
+        onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminMessage();}"></textarea>
+      <button onclick="sendAdminMessage()" id="admin-send-btn"
+        style="background:rgba(244,114,182,0.1);border:1px solid rgba(244,114,182,0.3);color:#f472b6;font-family:var(--mono);font-size:12px;padding:10px 20px;cursor:pointer;border-radius:4px;letter-spacing:0.1em;transition:all 0.2s;white-space:nowrap;"
+        onmouseover="this.style.background='rgba(244,114,182,0.2)'"
+        onmouseout="this.style.background='rgba(244,114,182,0.1)'">
+        SEND ↵
+      </button>
+    </div>
+  </div>
+
+</div>
 
 <footer class="footer">
   <span>MERIDIAN Research Terminal &mdash; v1.7 &mdash; Local Build</span>
@@ -4445,6 +4557,294 @@ document.addEventListener('keydown', e => {
     }
     container.innerHTML = cards.join('');
   }
+
+  // ============================================================
+  // ADMIN PANEL — Claude-Powered Research Assistant
+  // ============================================================
+
+  const ADMIN_PASSWORD = 'meridian2026'; // Change this to your preferred password
+  let adminUnlocked = false;
+  let adminChatHistory = [];
+  let adminAPIKey = localStorage.getItem('meridian_api_key') || '';
+
+  // Show admin panel
+  function showAdminPanel() {
+    const overlay = document.getElementById('admin-overlay');
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    // Reset gate
+    document.getElementById('admin-gate-error').style.display = 'none';
+    document.getElementById('admin-password-input').value = '';
+    if (adminUnlocked) {
+      showAdminChat();
+    } else {
+      document.getElementById('admin-gate').style.display = 'flex';
+      document.getElementById('admin-chat').style.display = 'none';
+      setTimeout(() => document.getElementById('admin-password-input').focus(), 100);
+    }
+  }
+
+  function closeAdminPanel() {
+    document.getElementById('admin-overlay').style.display = 'none';
+  }
+
+  function checkAdminPassword() {
+    const input = document.getElementById('admin-password-input').value;
+    if (input === ADMIN_PASSWORD) {
+      adminUnlocked = true;
+      document.getElementById('admin-gate-error').style.display = 'none';
+      if (!adminAPIKey) {
+        // Show API key setup
+        document.getElementById('admin-api-setup').style.display = 'block';
+      } else {
+        showAdminChat();
+      }
+    } else {
+      document.getElementById('admin-gate-error').style.display = 'block';
+      document.getElementById('admin-password-input').value = '';
+      document.getElementById('admin-password-input').focus();
+      // Shake animation
+      const input = document.getElementById('admin-password-input');
+      input.style.borderColor = 'var(--red)';
+      setTimeout(() => input.style.borderColor = 'var(--border)', 1000);
+    }
+  }
+
+  function saveAPIKey() {
+    const key = document.getElementById('admin-api-key-input').value.trim();
+    if (!key.startsWith('sk-ant-')) {
+      showDBToast('Invalid API key format — should start with sk-ant-', 'error');
+      return;
+    }
+    adminAPIKey = key;
+    localStorage.setItem('meridian_api_key', key);
+    showAdminChat();
+  }
+
+  function showAdminAPISettings() {
+    const current = adminAPIKey ? adminAPIKey.substring(0, 12) + '...' : 'Not set';
+    const newKey = prompt(`Current API key: ${current}\n\nEnter new Anthropic API key (or cancel to keep current):`);
+    if (newKey && newKey.startsWith('sk-ant-')) {
+      adminAPIKey = newKey;
+      localStorage.setItem('meridian_api_key', newKey);
+      showDBToast('✓ API key updated!');
+    } else if (newKey) {
+      showDBToast('Invalid key format — should start with sk-ant-', 'error');
+    }
+  }
+
+  function showAdminChat() {
+    document.getElementById('admin-gate').style.display = 'none';
+    document.getElementById('admin-chat').style.display = 'flex';
+    document.getElementById('admin-chat').style.flexDirection = 'column';
+    document.getElementById('admin-model-badge').textContent = 'claude-sonnet-4-20250514 · Portfolio-aware';
+
+    // Update context bar
+    const trackerRows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
+    const tickers = [...trackerRows].map(r => r.dataset.ticker).filter(Boolean);
+    document.getElementById('admin-context-tickers').textContent = `${tickers.length || 15} tracked tickers`;
+    document.getElementById('admin-context-unicorns').textContent = '16 unicorns';
+    document.getElementById('admin-context-news').textContent = `${allArticles?.length || 0} news articles`;
+
+    // Show welcome if no history
+    if (adminChatHistory.length === 0) {
+      renderAdminWelcome();
+    }
+
+    setTimeout(() => document.getElementById('admin-input').focus(), 100);
+  }
+
+  function renderAdminWelcome() {
+    const msgs = document.getElementById('admin-messages');
+    msgs.innerHTML = `
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">🤖</div>
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#f472b6;letter-spacing:0.1em;margin-bottom:6px;">CLAUDE · MERIDIAN ADMIN</div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.8;">
+            Good to see you. I have full context of your Meridian terminal — your tracked tickers, unicorn watchlist, IPO calendar, and recent news feed.<br><br>
+            I can help you:<br>
+            <span style="color:var(--accent);">↗ Research</span> any ticker and add it to your tracker<br>
+            <span style="color:var(--accent);">↗ Analyze</span> your portfolio performance and holdings<br>
+            <span style="color:var(--accent);">↗ Monitor</span> news and flag anything relevant to your positions<br>
+            <span style="color:var(--accent);">↗ Compare</span> tickers, sectors, or institutional portfolios<br>
+            <span style="color:var(--accent);">↗ Hunt</span> unicorns and new IPO candidates<br><br>
+            What would you like to work on?
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function buildSystemPrompt() {
+    // Gather tracker data
+    const trackerRows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
+    const tickers = [...trackerRows].map(r => {
+      const cells = r.querySelectorAll('td');
+      return cells[0] ? cells[0].textContent.trim() : '';
+    }).filter(Boolean);
+
+    // Gather recent news headlines
+    const recentNews = (allArticles || []).slice(0, 20).map(a => `- ${a.ticker}: ${a.title}`).join('\n');
+
+    return `You are Claude, an AI research analyst embedded inside Meridian — a private investment research terminal.
+
+MERIDIAN CONTEXT:
+- Version: v2.0
+- Tracked Public Tickers (${tickers.length}): ${tickers.join(', ')}
+- Defense Tech Unicorns: Anduril ($61B), Shield AI ($12.7B), Saronic ($9.25B), Helsing ($18B), Skydio ($4.4B), True Anomaly ($2.2B), CHAOS Industries ($4.5B), Epirus ($1.35B), Defense Unicorns ($1B), Onebrief ($1B)
+- Longevity Unicorns: Altos Labs ($3B raised/Bezos), Retro Biosciences (Altman), NewLimit (Armstrong), Cambrian Bio, Function Health, Insilico Medicine
+- IPO Calendar 2026: HAWK (listed), CBRS (listed), Lime, Jersey Mike's, Quantinuum, Kraken, OpenAI, SpaceX, Anthropic in pipeline
+- Political Holdings: Trump Q1 2026 (3,642 trades, $220M-$750M), Cabinet crypto holdings, Family crypto/DeFi exposure
+- Macro Watchlist: Iran/Middle East conflict, CLARITY Act crypto regulation
+
+RECENT NEWS (last 20 articles):
+${recentNews || 'No news loaded — user can refresh the news feed tab.'}
+
+YOUR ROLE:
+- Be a sharp, direct research analyst — not a generic chatbot
+- When asked to research a ticker, provide: current price context, key thesis, risks, institutional holders, analyst consensus
+- When discussing unicorns, focus on IPO signals: S-1 filings, CFO hires, investment bank engagement, revenue milestones
+- Keep responses concise and actionable — bullet points for analysis, prose for explanations
+- Always note when data may be outdated (your training cutoff is August 2025, today is ${new Date().toLocaleDateString()})
+- Flag high-conviction ideas clearly
+- Never give financial advice — frame everything as research and analysis
+
+Respond naturally and conversationally. The user is building a sophisticated research operation.`;
+  }
+
+  async function sendAdminMessage(prefilled) {
+    const input = document.getElementById('admin-input');
+    const message = prefilled || input.value.trim();
+    if (!message) return;
+    if (!adminAPIKey) { showDBToast('No API key set — click ⚙ API KEY to add one', 'warn'); return; }
+
+    input.value = '';
+    document.getElementById('admin-suggestions').style.display = 'none';
+
+    // Add user message to UI
+    appendAdminMessage('user', message);
+    adminChatHistory.push({ role: 'user', content: message });
+
+    // Show typing indicator
+    const typingId = 'typing-' + Date.now();
+    appendAdminTyping(typingId);
+
+    const sendBtn = document.getElementById('admin-send-btn');
+    if (sendBtn) { sendBtn.textContent = '⟳'; sendBtn.style.opacity = '0.6'; }
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': adminAPIKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: buildSystemPrompt(),
+          messages: adminChatHistory,
+        })
+      });
+
+      const data = await response.json();
+
+      // Remove typing indicator
+      document.getElementById(typingId)?.remove();
+
+      if (data.error) {
+        appendAdminMessage('error', `API Error: ${data.error.message || JSON.stringify(data.error)}`);
+        adminChatHistory.pop(); // Remove failed user message
+      } else {
+        const reply = data.content?.[0]?.text || 'No response received.';
+        adminChatHistory.push({ role: 'assistant', content: reply });
+        appendAdminMessage('assistant', reply);
+      }
+
+    } catch(e) {
+      document.getElementById(typingId)?.remove();
+      appendAdminMessage('error', `Connection error: ${e.message}. Check your API key and internet connection.`);
+      adminChatHistory.pop();
+    }
+
+    if (sendBtn) { sendBtn.textContent = 'SEND ↵'; sendBtn.style.opacity = '1'; }
+    input.focus();
+  }
+
+  function appendAdminMessage(role, content) {
+    const msgs = document.getElementById('admin-messages');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
+
+    const isUser = role === 'user';
+    const isError = role === 'error';
+
+    const avatar = document.createElement('div');
+    avatar.style.cssText = `width:32px;height:32px;border-radius:50%;background:${isUser ? 'rgba(0,212,255,0.15)' : isError ? 'rgba(255,71,87,0.15)' : 'rgba(244,114,182,0.15)'};border:1px solid ${isUser ? 'rgba(0,212,255,0.3)' : isError ? 'rgba(255,71,87,0.3)' : 'rgba(244,114,182,0.3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;`;
+    avatar.textContent = isUser ? '👤' : isError ? '⚠️' : '🤖';
+
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'flex:1;';
+
+    const label = document.createElement('div');
+    label.style.cssText = `font-size:10px;color:${isUser ? 'var(--accent)' : isError ? 'var(--red)' : '#f472b6'};letter-spacing:0.1em;margin-bottom:5px;`;
+    label.textContent = isUser ? 'YOU' : isError ? 'ERROR' : 'CLAUDE · MERIDIAN ADMIN';
+
+    const msgDiv = document.createElement('div');
+    msgDiv.style.cssText = `background:var(--panel);border:1px solid ${isError ? 'rgba(255,71,87,0.2)' : 'var(--border)'};border-radius:4px;padding:12px 16px;font-size:12px;color:${isError ? 'var(--red)' : 'var(--text2)'};line-height:1.8;white-space:pre-wrap;`;
+
+    // Basic markdown rendering
+    msgDiv.innerHTML = content
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text);">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:11px;color:var(--accent2);">$1</code>')
+      .replace(/^### (.*$)/gm, '<div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);margin:10px 0 4px;">$1</div>')
+      .replace(/^## (.*$)/gm, '<div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--text);margin:12px 0 6px;">$1</div>')
+      .replace(/^- (.*$)/gm, '<div style="padding-left:14px;margin:2px 0;">· $1</div>')
+      .replace(/↗/g, '<span style="color:var(--accent);">↗</span>');
+
+    bubble.appendChild(label);
+    bubble.appendChild(msgDiv);
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function appendAdminTyping(id) {
+    const msgs = document.getElementById('admin-messages');
+    const div = document.createElement('div');
+    div.id = id;
+    div.style.cssText = 'display:flex;gap:12px;align-items:flex-start;';
+    div.innerHTML = `
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">🤖</div>
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;font-size:12px;color:var(--text3);">
+        <span style="animation:pulse 1s infinite;display:inline-block;">⟳</span> Claude is thinking...
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function clearAdminChat() {
+    adminChatHistory = [];
+    renderAdminWelcome();
+    document.getElementById('admin-suggestions').style.display = 'flex';
+  }
+
+  function clearAdminSession() {
+    adminUnlocked = false;
+    adminChatHistory = [];
+    closeAdminPanel();
+  }
+
+  // ESC key closes admin panel
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('admin-overlay').style.display !== 'none') {
+      closeAdminPanel();
+    }
+  });
 
   // ---- Clock
   function updateClock() {
