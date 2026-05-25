@@ -468,28 +468,25 @@
       AI-POWERED RESEARCH TERMINAL
     </div>
 
-    <!-- Animated ticker strip -->
-    <div style="margin:32px auto;width:100%;max-width:600px;overflow:hidden;opacity:0;animation:splashFadeIn 0.8s ease 1.6s forwards;">
-      <div id="splash-ticker-strip" style="display:flex;gap:24px;white-space:nowrap;animation:tickerScroll 20s linear infinite;font-family:'Space Mono',monospace;font-size:11px;color:#1e3448;">
-        <span style="color:#00d4ff;">HAWK</span> <span>+18.6%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">PL</span> <span>+26.1%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">IONQ</span> <span>+755%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">CBRS</span> <span>+68.1%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">KRMN</span> <span>+359%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">CRSP</span> <span>-36%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">GENB</span> <span>+72% PT</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">SATL</span> <span>+80% Rev</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">RXRX</span> <span>+2x PT</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">HAWK</span> <span>+18.6%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">PL</span> <span>+26.1%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">IONQ</span> <span>+755%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">CBRS</span> <span>+68.1%</span> &nbsp;·&nbsp;
-        <span style="color:#00d4ff;">KRMN</span> <span>+359%</span>
+    <!-- Live index ticker strip -->
+    <div style="margin:28px auto 0;width:100%;max-width:800px;overflow:hidden;opacity:0;animation:splashFadeIn 0.8s ease 1.6s forwards;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:#1e3448;text-transform:uppercase;margin-bottom:6px;text-align:left;padding-left:2px;">LIVE MARKETS</div>
+      <div id="splash-index-strip" style="display:flex;gap:0;flex-wrap:wrap;border:1px solid #0f1923;border-radius:3px;overflow:hidden;">
+        <!-- Populated by JS -->
+        <div style="padding:8px 16px;color:#3d6478;font-size:11px;font-family:'Space Mono',monospace;">⟳ Fetching live data...</div>
+      </div>
+    </div>
+
+    <!-- Live crypto strip -->
+    <div style="margin:8px auto 0;width:100%;max-width:800px;overflow:hidden;opacity:0;animation:splashFadeIn 0.8s ease 1.8s forwards;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:#1e3448;text-transform:uppercase;margin-bottom:6px;text-align:left;padding-left:2px;">CRYPTO</div>
+      <div id="splash-crypto-strip" style="display:flex;gap:0;flex-wrap:wrap;border:1px solid #0f1923;border-radius:3px;overflow:hidden;">
+        <div style="padding:8px 16px;color:#3d6478;font-size:11px;font-family:'Space Mono',monospace;">⟳ Fetching live data...</div>
       </div>
     </div>
 
     <!-- Stats row -->
-    <div style="display:flex;gap:32px;justify-content:center;margin-bottom:40px;opacity:0;animation:splashFadeIn 0.8s ease 2s forwards;">
+    <div style="display:flex;gap:32px;justify-content:center;margin-top:28px;margin-bottom:32px;opacity:0;animation:splashFadeIn 0.8s ease 2s forwards;">
       <div style="text-align:center;">
         <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#00d4ff;" id="splash-count-tickers">0</div>
         <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-top:4px;">Tickers</div>
@@ -521,8 +518,6 @@
         padding:14px 48px;
         cursor:pointer;
         border-radius:2px;
-        position:relative;
-        overflow:hidden;
         transition:all 0.3s;
       "
       onmouseover="this.style.background='rgba(0,212,255,0.08)';this.style.boxShadow='0 0 30px rgba(0,212,255,0.2)'"
@@ -530,7 +525,8 @@
         ENTER TERMINAL
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
-        MERIDIAN v1.8 &mdash; <span id="splash-date"></span>
+        <!-- Hidden DB settings trigger — click the version number -->
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v1.9 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -553,6 +549,96 @@
 </style>
 
 <script>
+// Hidden DB settings trigger — click version number 3 times rapidly
+let splashClickCount = 0;
+let splashClickTimer = null;
+function splashDBTrigger() {
+  splashClickCount++;
+  clearTimeout(splashClickTimer);
+  splashClickTimer = setTimeout(() => { splashClickCount = 0; }, 1000);
+  if (splashClickCount >= 3) {
+    splashClickCount = 0;
+    enterTerminal();
+    setTimeout(() => openDBSettings(), 700);
+  }
+}
+
+// Live market data for splash screen
+const SPLASH_INDICES = [
+  { symbol: '^GSPC', label: 'S&P 500' },
+  { symbol: '^DJI', label: 'DOW' },
+  { symbol: '^IXIC', label: 'NASDAQ' },
+  { symbol: '^RUT', label: 'RUSSELL 2K' },
+  { symbol: '^VIX', label: 'VIX' },
+  { symbol: '^TNX', label: '10Y YIELD' },
+  { symbol: 'GC=F', label: 'GOLD' },
+  { symbol: 'CL=F', label: 'OIL (WTI)' },
+];
+
+const SPLASH_CRYPTO = [
+  { symbol: 'BTC-USD', label: 'BTC' },
+  { symbol: 'ETH-USD', label: 'ETH' },
+  { symbol: 'SOL-USD', label: 'SOL' },
+  { symbol: 'BNB-USD', label: 'BNB' },
+  { symbol: 'XRP-USD', label: 'XRP' },
+  { symbol: 'DOGE-USD', label: 'DOGE' },
+];
+
+async function fetchSplashQuote(symbol) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`;
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+    const raw = await res.json();
+    const parsed = JSON.parse(raw.contents);
+    const meta = parsed?.chart?.result?.[0]?.meta;
+    if (!meta) return null;
+    const price = meta.regularMarketPrice;
+    const prev = meta.chartPreviousClose || meta.regularMarketPreviousClose;
+    const changePct = prev ? ((price - prev) / prev * 100) : 0;
+    return { price, changePct };
+  } catch(e) { return null; }
+}
+
+function renderSplashTile(label, data, isIndex) {
+  if (!data) return `<div style="padding:8px 14px;border-right:1px solid #0f1923;font-family:'Space Mono',monospace;font-size:11px;"><span style="color:#1e3448;">${label}</span> <span style="color:#1e3448;">—</span></div>`;
+  const up = data.changePct >= 0;
+  const color = up ? '#00ff9d' : '#ff4757';
+  const arrow = up ? '▲' : '▼';
+  const fmtPrice = isIndex
+    ? data.price >= 1000 ? data.price.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})
+    : data.price.toFixed(2)
+    : data.price >= 1000 ? `$${data.price.toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0})}`
+    : data.price >= 1 ? `$${data.price.toFixed(2)}`
+    : `$${data.price.toFixed(4)}`;
+  return `<div style="padding:8px 14px;border-right:1px solid #0f1923;font-family:'Space Mono',monospace;font-size:11px;white-space:nowrap;">
+    <span style="color:#7a9db5;margin-right:6px;">${label}</span>
+    <span style="color:#e8f4f8;">${fmtPrice}</span>
+    <span style="color:${color};margin-left:5px;font-size:10px;">${arrow}${Math.abs(data.changePct).toFixed(2)}%</span>
+  </div>`;
+}
+
+async function loadSplashMarketData() {
+  // Fetch indices and crypto in parallel
+  const [indexResults, cryptoResults] = await Promise.all([
+    Promise.all(SPLASH_INDICES.map(i => fetchSplashQuote(i.symbol).then(d => ({ ...i, data: d })))),
+    Promise.all(SPLASH_CRYPTO.map(c => fetchSplashQuote(c.symbol).then(d => ({ ...c, data: d })))),
+  ]);
+
+  const indexStrip = document.getElementById('splash-index-strip');
+  const cryptoStrip = document.getElementById('splash-crypto-strip');
+
+  if (indexStrip) {
+    indexStrip.innerHTML = indexResults.map(r => renderSplashTile(r.label, r.data, true)).join('');
+  }
+  if (cryptoStrip) {
+    cryptoStrip.innerHTML = cryptoResults.map(r => renderSplashTile(r.label, r.data, false)).join('');
+  }
+}
+
+// Start loading market data
+loadSplashMarketData();
+
 // Matrix rain
 (function() {
   const canvas = document.getElementById('matrix-canvas');
@@ -653,22 +739,23 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.8 &mdash; May 25 2026</span>
+    <span>v1.9 &mdash; May 25 2026</span>
   </div>
 </header>
 
 <nav class="nav">
   <div class="nav-tab active" onclick="showTab('tracker')">01 &mdash; Stock Tracker</div>
   <div class="nav-tab" onclick="showTab('charts')">02 &mdash; Charts</div>
-  <div class="nav-tab" onclick="showTab('bubbles')">03 &mdash; Bubble Charts</div>
-  <div class="nav-tab" onclick="showTab('ipo')">04 &mdash; IPO Calendar</div>
-  <div class="nav-tab" onclick="showTab('institutional')">05 &mdash; Institutional Investors</div>
-  <div class="nav-tab" onclick="showTab('political')">06 &mdash; Political Holdings</div>
-  <div class="nav-tab" onclick="showTab('unicorns')">07 &mdash; Unicorn Watchlist</div>
-  <div class="nav-tab" onclick="showTab('biotech')">08 &mdash; Biotech</div>
-  <div class="nav-tab" onclick="showTab('notes')">09 &mdash; Research Notes</div>
-  <div class="nav-tab" onclick="showTab('news')">10 &mdash; News Feed</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">11 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('performance')">03 &mdash; Performance</div>
+  <div class="nav-tab" onclick="showTab('bubbles')">04 &mdash; Bubble Charts</div>
+  <div class="nav-tab" onclick="showTab('ipo')">05 &mdash; IPO Calendar</div>
+  <div class="nav-tab" onclick="showTab('institutional')">06 &mdash; Institutional Investors</div>
+  <div class="nav-tab" onclick="showTab('political')">07 &mdash; Political Holdings</div>
+  <div class="nav-tab" onclick="showTab('unicorns')">08 &mdash; Unicorn Watchlist</div>
+  <div class="nav-tab" onclick="showTab('biotech')">09 &mdash; Biotech</div>
+  <div class="nav-tab" onclick="showTab('notes')">10 &mdash; Research Notes</div>
+  <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">12 &mdash; Roadmap</div>
 </nav>
 
 <main class="main">
@@ -681,10 +768,11 @@ document.addEventListener('keydown', e => {
         <div class="section-sub">Active research positions — <span id="db-ticker-status" style="color:var(--text3);">Static data loaded · Connect Google Sheets to enable live sync</span></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button onclick="openDBSettings()" style="background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">⚙️ DB SETTINGS</button>
         <button onclick="loadTickersFromSheet()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">↺ SYNC</button>
         <button onclick="refreshAllPrices()" id="live-price-btn" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">💹 LIVE PRICES</button>
         <button onclick="openAddTicker()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 14px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;font-weight:700;">➕ ADD TICKER</button>
+        <!-- Hidden DB settings — triple-click the status dot -->
+        <span id="hidden-db-trigger" onclick="handleHiddenDBClick()" title="" style="cursor:default;display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(0,212,255,0.15);margin-left:4px;vertical-align:middle;"></span>
       </div>
     </div>
 
@@ -735,7 +823,7 @@ document.addEventListener('keydown', e => {
 
     <!-- GOOGLE SHEETS DYNAMIC TABLE -->
     <div style="margin-bottom:16px; padding:12px 14px; background:rgba(0,255,157,0.04); border:1px solid rgba(0,255,157,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;" id="db-setup-banner">
-      <strong style="color:var(--accent2);">🗄️ GOOGLE SHEETS DATABASE</strong> — Click <strong>⚙️ DB SETTINGS</strong> to connect your sheet and enable live sync, Add, Edit, and Delete. Once connected, your data loads from Google Sheets automatically and the table below replaces the static data.
+      <strong style="color:var(--accent2);">🗄️ GOOGLE SHEETS DATABASE</strong> — Triple-click the small dot next to ADD TICKER to open DB Settings and connect your sheet. Once connected, your data loads from Google Sheets automatically.
     </div>
 
     <div id="db-dynamic-section" style="display:none; margin-bottom:20px;">
@@ -850,7 +938,79 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
-  <!-- TAB 03: BUBBLE CHARTS -->
+  <!-- TAB 03: PERFORMANCE CHART -->
+  <section class="section" id="tab-performance">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Performance <span>Chart</span></div>
+        <div class="section-sub">Portfolio returns vs S&P 500 benchmark — normalized to 100 at start date</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="perf-last-updated" style="color:var(--text3);font-size:11px;">—</span>
+        <button onclick="loadPerformanceData()" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 14px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">↺ REFRESH</button>
+      </div>
+    </div>
+
+    <!-- Controls row -->
+    <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+      <!-- Portfolio view switcher -->
+      <div style="display:flex;gap:4px;">
+        <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;align-self:center;margin-right:4px;">Portfolio:</span>
+        <button onclick="setPerfView('myportfolio')" id="pv-myportfolio" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">My Tracker</button>
+        <button onclick="setPerfView('trump')" id="pv-trump" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">Trump Q1</button>
+        <button onclick="setPerfView('blackrock')" id="pv-blackrock" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">BlackRock</button>
+        <button onclick="setPerfView('ark')" id="pv-ark" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">ARK Invest</button>
+      </div>
+
+      <!-- Weighting switcher -->
+      <div style="display:flex;gap:4px;">
+        <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;align-self:center;margin-right:4px;">Weight:</span>
+        <button onclick="setPerfWeight('equal')" id="pw-equal" style="background:rgba(0,255,157,0.1);border:1px solid rgba(0,255,157,0.3);color:var(--accent2);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">Equal</button>
+        <button onclick="setPerfWeight('price')" id="pw-price" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">Entry Price</button>
+      </div>
+
+      <!-- Timeframe -->
+      <div style="display:flex;gap:4px;margin-left:auto;">
+        <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;align-self:center;margin-right:4px;">Period:</span>
+        ${['YTD','3M','6M','1Y'].map((tf,i) => `<button onclick="setPerfTF('${tf}')" id="ptf-${tf}" style="background:${i===1?'rgba(0,212,255,0.15)':'transparent'};border:1px solid ${i===1?'rgba(0,212,255,0.4)':'var(--border)'};color:${i===1?'var(--accent)':'var(--text3)'};font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;transition:all 0.2s;">${tf}</button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="stats-row" style="margin-bottom:14px;">
+      <div class="stat-card"><div class="stat-label">Portfolio Return</div><div class="stat-value" id="perf-stat-portfolio">—</div></div>
+      <div class="stat-card"><div class="stat-label">S&P 500 Return</div><div class="stat-value" id="perf-stat-sp500">—</div></div>
+      <div class="stat-card"><div class="stat-label">Alpha vs S&P</div><div class="stat-value" id="perf-stat-alpha">—</div></div>
+      <div class="stat-card"><div class="stat-label">Best Performer</div><div class="stat-value accent" id="perf-stat-best" style="font-size:12px;">—</div></div>
+      <div class="stat-card"><div class="stat-label">Worst Performer</div><div class="stat-value" style="color:var(--red);font-size:12px;" id="perf-stat-worst">—</div></div>
+    </div>
+
+    <!-- Chart loading/error states -->
+    <div id="perf-loading" style="display:none;padding:60px;text-align:center;color:var(--text3);font-size:12px;border:1px solid var(--border);border-radius:4px;">
+      <div style="font-size:24px;margin-bottom:8px;animation:pulse 1.5s infinite;">⟳</div>
+      Fetching historical data...
+    </div>
+    <div id="perf-error" style="display:none;padding:14px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:4px;color:var(--red);font-size:12px;margin-bottom:12px;"></div>
+
+    <!-- Canvas chart -->
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:16px;position:relative;">
+      <canvas id="perf-canvas" style="width:100%;height:420px;display:block;"></canvas>
+      <!-- Hover crosshair tooltip -->
+      <div id="perf-tooltip" style="display:none;position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:10px 14px;font-size:11px;pointer-events:none;z-index:100;min-width:180px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+    </div>
+
+    <!-- Individual ticker returns table -->
+    <div style="margin-top:16px;">
+      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Individual Ticker Returns</div>
+      <div id="perf-ticker-table" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;"></div>
+    </div>
+
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
+      ℹ Returns are normalized to 100 at the start of the selected period. Portfolio line = equal or entry-price weighted average. Data via Yahoo Finance (15-min delayed). Trump portfolio uses Q1 2026 OGE disclosed positions — approximate due to filing value ranges. Missing data points are interpolated.
+    </div>
+  </section>
+
+  <!-- TAB 04: BUBBLE CHARTS -->
   <section class="section" id="tab-bubbles">
     <div class="section-header">
       <div>
@@ -2991,6 +3151,7 @@ document.addEventListener('keydown', e => {
       setTimeout(makeTickersBadgesClickable, 2000);
     }
     if (id === 'charts') buildQuickTickers();
+    if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'news' && allArticles.length === 0) fetchAllNews();
   };
@@ -3864,6 +4025,426 @@ document.addEventListener('keydown', e => {
   }
 
   startLivePriceTimer();
+
+  // ---- Hidden DB Settings trigger (triple-click the dot) ----
+  let hiddenDBClickCount = 0;
+  let hiddenDBTimer = null;
+  function handleHiddenDBClick() {
+    hiddenDBClickCount++;
+    clearTimeout(hiddenDBTimer);
+    hiddenDBTimer = setTimeout(() => { hiddenDBClickCount = 0; }, 1000);
+    if (hiddenDBClickCount >= 3) {
+      hiddenDBClickCount = 0;
+      const dot = document.getElementById('hidden-db-trigger');
+      if (dot) { dot.style.background = 'rgba(0,255,157,0.6)'; setTimeout(() => dot.style.background = 'rgba(0,212,255,0.15)', 500); }
+      openDBSettings();
+    }
+  }
+
+  // ============================================================
+  // PERFORMANCE CHART
+  // ============================================================
+
+  // Portfolio definitions
+  const PERF_PORTFOLIOS = {
+    myportfolio: {
+      label: 'My Tracker',
+      color: '#00d4ff',
+      tickers: ['HAWK','PL','SATL','IONQ','KRMN','VOYG','FLY','MDA','RXRX','CRSP','GENB','KLRA','CBRS','XNDU','INFQ'],
+      entryPrices: { HAWK:30.44, PL:42.48, SATL:7.55, IONQ:47.68, KRMN:22, VOYG:31, FLY:45, MDA:20, RXRX:3.37, CRSP:50.36, GENB:16, KLRA:16, CBRS:185, XNDU:10, INFQ:12 }
+    },
+    trump: {
+      label: 'Trump Q1 Portfolio',
+      color: '#f59e0b',
+      tickers: ['NVDA','MSFT','AMZN','ORCL','AVGO','AAPL','AMD','GOOGL','GS','JPM','COIN','HOOD','SOFI','DELL','INTC'],
+      entryPrices: { NVDA:110, MSFT:380, AMZN:195, ORCL:165, AVGO:185, AAPL:222, AMD:110, GOOGL:175, GS:520, JPM:235, COIN:265, HOOD:38, SOFI:13, DELL:110, INTC:22 }
+    },
+    blackrock: {
+      label: 'BlackRock Holdings',
+      color: '#a78bfa',
+      tickers: ['AAPL','MSFT','AMZN','NVDA','GOOGL','META','TSLA','BRK-B','JPM','JNJ'],
+      entryPrices: {}
+    },
+    ark: {
+      label: 'ARK Invest',
+      color: '#f472b6',
+      tickers: ['TSLA','CRSP','BEAM','NTLA','COIN','HOOD','IONQ','RXRX','SDGR','RKLB'],
+      entryPrices: {}
+    }
+  };
+
+  let currentPerfView = 'myportfolio';
+  let currentPerfWeight = 'equal';
+  let currentPerfTF = '3M';
+  let perfChartData = {};
+  let perfCanvas = null;
+  let perfCtx = null;
+  let perfAnimFrame = null;
+
+  // Timeframe to Yahoo Finance range/interval
+  const PERF_TF_MAP = {
+    'YTD': { range: 'ytd', interval: '1d' },
+    '3M':  { range: '3mo', interval: '1d' },
+    '6M':  { range: '6mo', interval: '1wk' },
+    '1Y':  { range: '1y',  interval: '1wk' },
+  };
+
+  function setPerfView(view) {
+    currentPerfView = view;
+    Object.keys(PERF_PORTFOLIOS).forEach(v => {
+      const btn = document.getElementById(`pv-${v}`);
+      const active = v === view;
+      if (btn) { btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'transparent'; btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)'; btn.style.color = active ? 'var(--accent)' : 'var(--text3)'; }
+    });
+    loadPerformanceData();
+  }
+
+  function setPerfWeight(weight) {
+    currentPerfWeight = weight;
+    ['equal','price'].forEach(w => {
+      const btn = document.getElementById(`pw-${w}`);
+      const active = w === weight;
+      if (btn) { btn.style.background = active ? 'rgba(0,255,157,0.1)' : 'transparent'; btn.style.borderColor = active ? 'rgba(0,255,157,0.3)' : 'var(--border)'; btn.style.color = active ? 'var(--accent2)' : 'var(--text3)'; }
+    });
+    if (Object.keys(perfChartData).length > 0) renderPerformanceChart();
+  }
+
+  function setPerfTF(tf) {
+    currentPerfTF = tf;
+    ['YTD','3M','6M','1Y'].forEach(t => {
+      const btn = document.getElementById(`ptf-${t}`);
+      const active = t === tf;
+      if (btn) { btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'transparent'; btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)'; btn.style.color = active ? 'var(--accent)' : 'var(--text3)'; }
+    });
+    loadPerformanceData();
+  }
+
+  async function fetchHistoricalData(ticker, range, interval) {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${range}&interval=${interval}&includePrePost=false`;
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      const raw = await res.json();
+      const parsed = JSON.parse(raw.contents);
+      const result = parsed?.chart?.result?.[0];
+      if (!result) return null;
+      const timestamps = result.timestamp || [];
+      const closes = result.indicators?.quote?.[0]?.close || [];
+      const points = timestamps.map((ts, i) => ({ date: new Date(ts * 1000), price: closes[i] })).filter(p => p.price != null);
+      return points;
+    } catch(e) { return null; }
+  }
+
+  function normalizeToBase100(points) {
+    if (!points || points.length === 0) return [];
+    const base = points[0].price;
+    return points.map(p => ({ date: p.date, value: (p.price / base) * 100 }));
+  }
+
+  async function loadPerformanceData() {
+    const portfolio = PERF_PORTFOLIOS[currentPerfView];
+    const tfConfig = PERF_TF_MAP[currentPerfTF];
+
+    document.getElementById('perf-loading').style.display = 'block';
+    document.getElementById('perf-error').style.display = 'none';
+    const canvas = document.getElementById('perf-canvas');
+    if (canvas) canvas.style.display = 'none';
+
+    // Fetch S&P 500 + all portfolio tickers in parallel
+    const allTickers = ['^GSPC', ...portfolio.tickers];
+    const results = await Promise.all(
+      allTickers.map(t => fetchHistoricalData(t, tfConfig.range, tfConfig.interval).then(d => ({ ticker: t, data: d })))
+    );
+
+    document.getElementById('perf-loading').style.display = 'none';
+
+    const dataMap = {};
+    results.forEach(r => { if (r.data && r.data.length > 0) dataMap[r.ticker] = normalizeToBase100(r.data); });
+
+    if (!dataMap['^GSPC']) {
+      document.getElementById('perf-error').style.display = 'block';
+      document.getElementById('perf-error').textContent = 'Could not fetch S&P 500 data. The proxy may be rate-limited — try again in a moment.';
+      return;
+    }
+
+    perfChartData = dataMap;
+    if (canvas) canvas.style.display = 'block';
+
+    document.getElementById('perf-last-updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    renderPerformanceChart();
+    buildTickerCards(portfolio, dataMap);
+  }
+
+  function buildPortfolioLine(portfolio, dataMap, weight) {
+    const sp500Dates = dataMap['^GSPC'].map(p => p.date.getTime());
+    const portfolioTickers = portfolio.tickers.filter(t => dataMap[t]);
+    if (portfolioTickers.length === 0) return [];
+
+    return sp500Dates.map((ts, i) => {
+      let totalWeight = 0;
+      let weightedSum = 0;
+      portfolioTickers.forEach(ticker => {
+        const series = dataMap[ticker];
+        // Find nearest point
+        let closest = series.reduce((a, b) => Math.abs(b.date.getTime() - ts) < Math.abs(a.date.getTime() - ts) ? b : a);
+        const w = weight === 'price' ? (portfolio.entryPrices[ticker] || 1) : 1;
+        weightedSum += closest.value * w;
+        totalWeight += w;
+      });
+      return { date: new Date(ts), value: totalWeight > 0 ? weightedSum / totalWeight : 100 };
+    });
+  }
+
+  function renderPerformanceChart() {
+    const canvas = document.getElementById('perf-canvas');
+    if (!canvas || Object.keys(perfChartData).length === 0) return;
+
+    const portfolio = PERF_PORTFOLIOS[currentPerfView];
+    const sp500 = perfChartData['^GSPC'];
+    const portfolioLine = buildPortfolioLine(portfolio, perfChartData, currentPerfWeight);
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 420 * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = '420px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const W = rect.width;
+    const H = 420;
+    const margin = { top: 20, right: 20, bottom: 40, left: 55 };
+    const iW = W - margin.left - margin.right;
+    const iH = H - margin.top - margin.bottom;
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // All values for scale
+    const allVals = [...sp500.map(p => p.value), ...portfolioLine.map(p => p.value)];
+    const minV = Math.min(...allVals) * 0.98;
+    const maxV = Math.max(...allVals) * 1.02;
+    const minD = sp500[0].date.getTime();
+    const maxD = sp500[sp500.length-1].date.getTime();
+
+    const xScale = d => margin.left + (d - minD) / (maxD - minD) * iW;
+    const yScale = v => margin.top + (1 - (v - minV) / (maxV - minV)) * iH;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(30,52,72,0.5)';
+    ctx.setLineDash([3, 3]);
+    for (let i = 0; i <= 5; i++) {
+      const y = margin.top + iH * i / 5;
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + iW, y); ctx.stroke();
+      const val = maxV - (maxV - minV) * i / 5;
+      ctx.fillStyle = '#3d6478'; ctx.font = '10px Space Mono, monospace';
+      ctx.textAlign = 'right'; ctx.fillText(val.toFixed(1), margin.left - 6, y + 4);
+    }
+    ctx.setLineDash([]);
+
+    // Baseline 100
+    const y100 = yScale(100);
+    ctx.strokeStyle = 'rgba(122,157,181,0.3)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(margin.left, y100); ctx.lineTo(margin.left + iW, y100); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#3d6478'; ctx.font = '9px Space Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillText('BASE 100', margin.left + 4, y100 - 4);
+
+    // X axis dates
+    const dateStep = Math.max(1, Math.floor(sp500.length / 6));
+    ctx.fillStyle = '#3d6478'; ctx.font = '10px Space Mono, monospace'; ctx.textAlign = 'center';
+    sp500.forEach((p, i) => {
+      if (i % dateStep === 0 || i === sp500.length - 1) {
+        const x = xScale(p.date.getTime());
+        ctx.fillText(p.date.toLocaleDateString('en-US', { month:'short', day:'numeric' }), x, H - margin.bottom + 15);
+      }
+    });
+
+    // Draw S&P 500 line
+    function drawLine(series, color, dash = []) {
+      if (!series || series.length === 0) return;
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash);
+      ctx.beginPath();
+      series.forEach((p, i) => {
+        const x = xScale(p.date.getTime()); const y = yScale(p.value);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // Fill under portfolio line
+    function fillUnder(series, color) {
+      if (!series || series.length === 0) return;
+      const grad = ctx.createLinearGradient(0, margin.top, 0, margin.top + iH);
+      grad.addColorStop(0, color.replace(')', ',0.15)').replace('rgb', 'rgba'));
+      grad.addColorStop(1, color.replace(')', ',0)').replace('rgb', 'rgba'));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(xScale(series[0].date.getTime()), yScale(series[0].value));
+      series.forEach(p => ctx.lineTo(xScale(p.date.getTime()), yScale(p.value)));
+      ctx.lineTo(xScale(series[series.length-1].date.getTime()), margin.top + iH);
+      ctx.lineTo(xScale(series[0].date.getTime()), margin.top + iH);
+      ctx.closePath(); ctx.fill();
+    }
+
+    fillUnder(sp500, 'rgb(122,157,181)');
+    fillUnder(portfolioLine, 'rgb(0,212,255)');
+    drawLine(sp500, 'rgba(122,157,181,0.7)', [5,3]);
+    drawLine(portfolioLine, portfolio.color);
+
+    // Individual ticker lines (faint)
+    const tickerColors = ['#00ff9d','#f472b6','#fbbf24','#a78bfa','#fb923c','#34d399','#60a5fa','#f87171','#c084fc','#4ade80'];
+    portfolio.tickers.filter(t => perfChartData[t]).forEach((ticker, idx) => {
+      drawLine(perfChartData[ticker], tickerColors[idx % tickerColors.length].replace('#','').length === 6 ? tickerColors[idx % tickerColors.length] + '55' : tickerColors[idx % tickerColors.length], [2,2]);
+    });
+
+    // Redraw main lines on top
+    drawLine(sp500, 'rgba(122,157,181,0.9)', [5,3]);
+    drawLine(portfolioLine, portfolio.color);
+
+    // End point labels
+    function labelEnd(series, color, label) {
+      if (!series || series.length === 0) return;
+      const last = series[series.length - 1];
+      const x = xScale(last.date.getTime());
+      const y = yScale(last.value);
+      ctx.fillStyle = color; ctx.font = 'bold 11px Space Mono, monospace'; ctx.textAlign = 'left';
+      ctx.fillText(`${label} ${last.value.toFixed(1)}`, x + 4, y + 4);
+    }
+    labelEnd(sp500, 'rgba(122,157,181,0.9)', 'S&P');
+    labelEnd(portfolioLine, portfolio.color, portfolio.label.split(' ')[0]);
+
+    // Legend
+    ctx.font = '11px Space Mono, monospace'; ctx.textAlign = 'left';
+    [[portfolio.color, portfolio.label + ` (${currentPerfWeight === 'equal' ? 'Equal-Wt' : 'Price-Wt'})`],
+     ['rgba(122,157,181,0.9)', 'S&P 500 Benchmark']].forEach(([c, l], i) => {
+      const lx = margin.left + 10 + i * 200; const ly = margin.top + 14;
+      ctx.fillStyle = c; ctx.fillRect(lx, ly - 8, 20, 3);
+      ctx.fillStyle = '#7a9db5'; ctx.fillText(l, lx + 26, ly);
+    });
+
+    // Update stats
+    const portfolioReturn = portfolioLine.length > 0 ? portfolioLine[portfolioLine.length-1].value - 100 : 0;
+    const sp500Return = sp500[sp500.length-1].value - 100;
+    const alpha = portfolioReturn - sp500Return;
+
+    const pRetEl = document.getElementById('perf-stat-portfolio');
+    if (pRetEl) { pRetEl.textContent = `${portfolioReturn >= 0 ? '+' : ''}${portfolioReturn.toFixed(2)}%`; pRetEl.style.color = portfolioReturn >= 0 ? 'var(--green)' : 'var(--red)'; }
+    const sRetEl = document.getElementById('perf-stat-sp500');
+    if (sRetEl) { sRetEl.textContent = `${sp500Return >= 0 ? '+' : ''}${sp500Return.toFixed(2)}%`; sRetEl.style.color = sp500Return >= 0 ? 'var(--green)' : 'var(--red)'; }
+    const alphaEl = document.getElementById('perf-stat-alpha');
+    if (alphaEl) { alphaEl.textContent = `${alpha >= 0 ? '+' : ''}${alpha.toFixed(2)}%`; alphaEl.style.color = alpha >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+    // Hover interaction
+    canvas.onmousemove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left);
+      const ts = minD + (mx - margin.left) / iW * (maxD - minD);
+      const closest = sp500.reduce((a, b) => Math.abs(b.date.getTime() - ts) < Math.abs(a.date.getTime() - ts) ? b : a);
+      const portClosest = portfolioLine.reduce((a, b) => Math.abs(b.date.getTime() - ts) < Math.abs(a.date.getTime() - ts) ? b : a);
+      const tooltip = document.getElementById('perf-tooltip');
+      if (!tooltip) return;
+      const portRet = portClosest.value - 100;
+      const spRet = closest.value - 100;
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `<div style="color:var(--text3);font-size:10px;margin-bottom:6px;">${closest.date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+        <div style="color:${portfolio.color};margin-bottom:3px;">${portfolio.label}: <strong>${portRet >= 0 ? '+' : ''}${portRet.toFixed(2)}%</strong></div>
+        <div style="color:rgba(122,157,181,0.9);">S&P 500: <strong>${spRet >= 0 ? '+' : ''}${spRet.toFixed(2)}%</strong></div>
+        <div style="color:${portRet-spRet >= 0 ? 'var(--green)' : 'var(--red)'};font-size:10px;margin-top:4px;">Alpha: ${portRet-spRet >= 0 ? '+' : ''}${(portRet-spRet).toFixed(2)}%</div>`;
+      let tx = e.clientX - canvas.getBoundingClientRect().left + 15;
+      let ty = e.clientY - canvas.getBoundingClientRect().top - 10;
+      if (tx + 200 > W) tx -= 210;
+      tooltip.style.left = tx + 'px';
+      tooltip.style.top = ty + 'px';
+
+      // Draw crosshair
+      const cx = xScale(closest.date.getTime());
+      ctx.clearRect(0, 0, W * dpr, H * dpr);
+      ctx.scale(dpr, dpr);
+      // Redraw everything then crosshair
+      renderPerformanceChartStatic(ctx, sp500, portfolioLine, portfolio, xScale, yScale, iW, iH, margin, W, H, minV, maxV, dateStep, tickerColors, dpr, currentPerfWeight);
+      ctx.strokeStyle = 'rgba(0,212,255,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(cx, margin.top); ctx.lineTo(cx, margin.top + iH); ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    canvas.onmouseleave = () => {
+      const tooltip = document.getElementById('perf-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+    };
+
+    // Store static render fn
+    window._perfLastRender = { sp500, portfolioLine, portfolio, xScale, yScale, iW, iH, margin, W, H, minV, maxV, dateStep, tickerColors, dpr };
+  }
+
+  // Static render function (used for crosshair redraw)
+  function renderPerformanceChartStatic(ctx, sp500, portfolioLine, portfolio, xScale, yScale, iW, iH, margin, W, H, minV, maxV, dateStep, tickerColors, dpr, weight) {
+    ctx.clearRect(0, 0, W, H);
+    // Grid
+    ctx.strokeStyle = 'rgba(30,52,72,0.5)'; ctx.setLineDash([3,3]);
+    for (let i = 0; i <= 5; i++) {
+      const y = margin.top + iH * i / 5;
+      ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + iW, y); ctx.stroke();
+      const val = maxV - (maxV - minV) * i / 5;
+      ctx.fillStyle = '#3d6478'; ctx.font = '10px Space Mono, monospace'; ctx.textAlign = 'right';
+      ctx.fillText(val.toFixed(1), margin.left - 6, y + 4);
+    }
+    ctx.setLineDash([]);
+    // Baseline
+    const y100 = yScale(100);
+    ctx.strokeStyle = 'rgba(122,157,181,0.3)'; ctx.setLineDash([5,5]);
+    ctx.beginPath(); ctx.moveTo(margin.left, y100); ctx.lineTo(margin.left + iW, y100); ctx.stroke();
+    ctx.setLineDash([]);
+    // Dates
+    ctx.fillStyle = '#3d6478'; ctx.font = '10px Space Mono, monospace'; ctx.textAlign = 'center';
+    sp500.forEach((p, i) => {
+      if (i % dateStep === 0 || i === sp500.length - 1) {
+        ctx.fillText(p.date.toLocaleDateString('en-US',{month:'short',day:'numeric'}), xScale(p.date.getTime()), H - margin.bottom + 15);
+      }
+    });
+    function dl(series, color, dash=[]) {
+      if (!series?.length) return;
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash);
+      ctx.beginPath();
+      series.forEach((p,i) => { const x=xScale(p.date.getTime()),y=yScale(p.value); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    portfolio.tickers.filter(t => perfChartData[t]).forEach((ticker, idx) => { dl(perfChartData[ticker], tickerColors[idx%tickerColors.length]+'55', [2,2]); });
+    dl(sp500, 'rgba(122,157,181,0.9)', [5,3]);
+    dl(portfolioLine, portfolio.color);
+  }
+
+  function buildTickerCards(portfolio, dataMap) {
+    const container = document.getElementById('perf-ticker-table');
+    if (!container) return;
+    const cards = portfolio.tickers.filter(t => dataMap[t]).map(ticker => {
+      const series = dataMap[ticker];
+      const ret = series[series.length-1].value - 100;
+      const color = ret >= 0 ? 'var(--green)' : 'var(--red)';
+      const arrow = ret >= 0 ? '▲' : '▼';
+      return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:10px 12px;cursor:pointer;" onclick="loadChartTicker('${ticker}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);">${ticker}</span>
+          <span style="color:${color};font-size:12px;font-weight:700;">${arrow} ${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%</span>
+        </div>
+        <div style="height:30px;margin-top:6px;">
+          <svg viewBox="0 0 100 30" style="width:100%;height:100%;" preserveAspectRatio="none">
+            <polyline points="${series.map((p,i)=>`${i/(series.length-1)*100},${30-(p.value-series[0].value+30)/60*30}`).join(' ')}" fill="none" stroke="${ret >= 0 ? '#2ed573' : '#ff4757'}" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>`;
+    });
+    // Best/worst
+    const sorted = portfolio.tickers.filter(t => dataMap[t]).map(t => ({ t, ret: dataMap[t][dataMap[t].length-1].value - 100 })).sort((a,b) => b.ret - a.ret);
+    if (sorted.length > 0) {
+      const bestEl = document.getElementById('perf-stat-best');
+      const worstEl = document.getElementById('perf-stat-worst');
+      if (bestEl) bestEl.textContent = `${sorted[0].t} +${sorted[0].ret.toFixed(1)}%`;
+      if (worstEl) worstEl.textContent = `${sorted[sorted.length-1].t} ${sorted[sorted.length-1].ret.toFixed(1)}%`;
+    }
+    container.innerHTML = cards.join('');
+  }
 
   // ---- Clock
   function updateClock() {
