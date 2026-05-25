@@ -530,7 +530,7 @@
         ENTER TERMINAL
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
-        MERIDIAN v1.5 &mdash; <span id="splash-date"></span>
+        MERIDIAN v1.7 &mdash; <span id="splash-date"></span>
       </div>
     </div>
 
@@ -633,24 +633,42 @@ document.addEventListener('keydown', e => {
 
 <header class="header">
   <div class="logo">MERIDIAN <span>// Research Terminal</span></div>
+  <!-- Global Ticker Search -->
+  <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:340px;margin:0 24px;">
+    <div style="position:relative;width:100%;">
+      <input id="global-ticker-search" type="text" placeholder="🔍  Search any ticker or company..." autocomplete="off"
+        style="width:100%;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 12px;border-radius:3px;outline:none;transition:border-color 0.2s;"
+        onfocus="this.style.borderColor='rgba(0,212,255,0.5)'"
+        onblur="setTimeout(()=>document.getElementById('global-search-dropdown')&&(document.getElementById('global-search-dropdown').style.display='none'),200)"
+        oninput="handleGlobalSearch(this.value)"
+        onkeydown="if(event.key==='Enter')runTickerLookup(this.value.toUpperCase().trim())">
+      <!-- Dropdown suggestions -->
+      <div id="global-search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:3px;z-index:500;margin-top:2px;max-height:200px;overflow-y:auto;"></div>
+    </div>
+    <button onclick="runTickerLookup(document.getElementById('global-ticker-search').value.toUpperCase().trim())"
+      style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;white-space:nowrap;flex-shrink:0;">
+      LOOKUP
+    </button>
+  </div>
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.5 &mdash; May 23 2026</span>
+    <span>v1.7 &mdash; May 23 2026</span>
   </div>
 </header>
 
 <nav class="nav">
   <div class="nav-tab active" onclick="showTab('tracker')">01 &mdash; Stock Tracker</div>
   <div class="nav-tab" onclick="showTab('charts')">02 &mdash; Charts</div>
-  <div class="nav-tab" onclick="showTab('ipo')">03 &mdash; IPO Calendar</div>
-  <div class="nav-tab" onclick="showTab('institutional')">04 &mdash; Institutional Investors</div>
-  <div class="nav-tab" onclick="showTab('political')">05 &mdash; Political Holdings</div>
-  <div class="nav-tab" onclick="showTab('unicorns')">06 &mdash; Unicorn Watchlist</div>
-  <div class="nav-tab" onclick="showTab('biotech')">07 &mdash; Biotech</div>
-  <div class="nav-tab" onclick="showTab('notes')">08 &mdash; Research Notes</div>
-  <div class="nav-tab" onclick="showTab('news')">09 &mdash; News Feed</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">10 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('bubbles')">03 &mdash; Bubble Charts</div>
+  <div class="nav-tab" onclick="showTab('ipo')">04 &mdash; IPO Calendar</div>
+  <div class="nav-tab" onclick="showTab('institutional')">05 &mdash; Institutional Investors</div>
+  <div class="nav-tab" onclick="showTab('political')">06 &mdash; Political Holdings</div>
+  <div class="nav-tab" onclick="showTab('unicorns')">07 &mdash; Unicorn Watchlist</div>
+  <div class="nav-tab" onclick="showTab('biotech')">08 &mdash; Biotech</div>
+  <div class="nav-tab" onclick="showTab('notes')">09 &mdash; Research Notes</div>
+  <div class="nav-tab" onclick="showTab('news')">10 &mdash; News Feed</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">11 &mdash; Roadmap</div>
 </nav>
 
 <main class="main">
@@ -690,6 +708,28 @@ document.addEventListener('keydown', e => {
         <div class="stat-label">DB Status</div>
         <div class="stat-value" id="db-status-badge" style="font-size:11px;color:var(--text3);">Not connected</div>
       </div>
+    </div>
+
+    <!-- TICKER SEARCH IN TRACKER -->
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔍 EXTERNAL TICKER LOOKUP — Search any public stock and add to tracker</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="tracker-ticker-search" type="text" placeholder="Enter ticker or company name (e.g. PLTR or Palantir)..." autocomplete="off"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 12px;border-radius:3px;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='rgba(0,212,255,0.5)'"
+          onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')runTickerLookup(this.value.toUpperCase().trim())">
+        <button onclick="runTickerLookup(document.getElementById('tracker-ticker-search').value.toUpperCase().trim())"
+          style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">
+          LOOKUP
+        </button>
+        <button onclick="document.getElementById('ticker-preview-card').style.display='none'"
+          style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:11px;padding:8px 12px;cursor:pointer;border-radius:3px;">
+          CLEAR
+        </button>
+      </div>
+      <!-- Preview card -->
+      <div id="ticker-preview-card" style="display:none;margin-top:14px;"></div>
     </div>
 
     <!-- GOOGLE SHEETS DYNAMIC TABLE -->
@@ -805,7 +845,51 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
-  <!-- TAB 03: IPO CALENDAR -->
+  <!-- TAB 03: BUBBLE CHARTS -->
+  <section class="section" id="tab-bubbles">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Bubble <span>Charts</span></div>
+        <div class="section-sub">Interactive multi-dimensional analysis — hover for details, click to chart</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);">Powered by D3.js</div>
+    </div>
+
+    <!-- View switcher -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">
+      <button onclick="switchBubbleView('valuation')" id="bv-valuation" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;transition:all 0.2s;">📊 Valuation vs Revenue</button>
+      <button onclick="switchBubbleView('unicorn')" id="bv-unicorn" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;transition:all 0.2s;">🦄 Unicorn Map</button>
+      <button onclick="switchBubbleView('smartmoney')" id="bv-smartmoney" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;transition:all 0.2s;">💰 Smart Money</button>
+      <div style="margin-left:auto;font-size:11px;color:var(--text3);align-self:center;" id="bubble-view-desc">Bubble size = Analyst PT upside % · Color = Sector · Click bubble to open chart</div>
+    </div>
+
+    <!-- Chart area -->
+    <div style="display:flex;gap:16px;">
+      <div style="flex:1;background:var(--panel);border:1px solid var(--border);border-radius:4px;overflow:hidden;position:relative;">
+        <svg id="bubble-svg" style="width:100%;height:520px;"></svg>
+        <div id="bubble-tooltip" style="display:none;position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px 14px;font-size:11px;pointer-events:none;z-index:100;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+      </div>
+      <div style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">SECTORS</div>
+          <div id="bubble-legend" style="display:flex;flex-direction:column;gap:6px;font-size:11px;"></div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">BUBBLE SIZE</div>
+          <div id="bubble-size-legend" style="font-size:11px;color:var(--text2);line-height:1.7;"></div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">SELECTED</div>
+          <div id="bubble-selected" style="font-size:11px;color:var(--text3);line-height:1.6;">Hover a bubble</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
+      ℹ Hover any bubble to see full details. Click a bubble to load its candlestick chart. Data is based on your research entries — keep your tracker updated for accurate charts.
+    </div>
+  </section>
+
+  <!-- TAB 04: IPO CALENDAR -->
   <section class="section" id="tab-ipo">
     <div class="section-header">
       <div>
@@ -2249,7 +2333,7 @@ document.addEventListener('keydown', e => {
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.5 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.7 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
@@ -2893,6 +2977,7 @@ document.addEventListener('keydown', e => {
       setTimeout(makeTickersBadgesClickable, 2000);
     }
     if (id === 'charts') buildQuickTickers();
+    if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'news' && allArticles.length === 0) fetchAllNews();
   };
 
@@ -3095,6 +3180,555 @@ document.addEventListener('keydown', e => {
 
   // Init
   buildQuickTickers();
+
+  // ============================================================
+  // BUBBLE CHARTS — D3.js
+  // ============================================================
+
+  // Static data for bubble charts (synced with tracker)
+  const BUBBLE_DATA = {
+    valuation: [
+      { ticker:'HAWK', name:'HawkEye 360', sector:'Defense/SIGINT', marketCap:2.85, revenue:0.118, ptUpside:40, profitable:true, exchange:'NYSE' },
+      { ticker:'PL', name:'Planet Labs', sector:'Space/EO', marketCap:14.7, revenue:0.308, ptUpside:18, profitable:false, exchange:'NYSE' },
+      { ticker:'SATL', name:'Satellogic', sector:'Space/EO', marketCap:0.907, revenue:0.0177, ptUpside:25, profitable:false, exchange:'NASDAQ' },
+      { ticker:'IONQ', name:'IonQ', sector:'Quantum', marketCap:20.79, revenue:0.130, ptUpside:42, profitable:false, exchange:'NYSE' },
+      { ticker:'KRMN', name:'Karman Holdings', sector:'Defense/Space HW', marketCap:13.5, revenue:0.471, ptUpside:64, profitable:true, exchange:'NYSE' },
+      { ticker:'VOYG', name:'Voyager Technologies', sector:'Space/Commercial', marketCap:3.8, revenue:0.138, ptUpside:30, profitable:false, exchange:'NYSE' },
+      { ticker:'FLY', name:'Firefly Aerospace', sector:'Space/Launch', marketCap:4.2, revenue:0.160, ptUpside:45, profitable:false, exchange:'NASDAQ' },
+      { ticker:'MDA', name:'MDA Space', sector:'Space/Robotics', marketCap:3.1, revenue:0.335, ptUpside:20, profitable:true, exchange:'NYSE' },
+      { ticker:'RXRX', name:'Recursion Pharma', sector:'Biotech/AI', marketCap:1.2, revenue:0.0355, ptUpside:99, profitable:false, exchange:'NASDAQ' },
+      { ticker:'CRSP', name:'CRISPR Therapeutics', sector:'Gene Therapy', marketCap:4.85, revenue:0.100, ptUpside:64, profitable:false, exchange:'NASDAQ' },
+      { ticker:'GENB', name:'Generate Biomedicines', sector:'Biotech/AI', marketCap:1.65, revenue:0.020, ptUpside:72, profitable:false, exchange:'NASDAQ' },
+      { ticker:'KLRA', name:'Kailera Therapeutics', sector:'Biotech/GLP-1', marketCap:2.1, revenue:0.005, ptUpside:50, profitable:false, exchange:'NASDAQ' },
+      { ticker:'CBRS', name:'Cerebras Systems', sector:'AI Chips', marketCap:39.82, revenue:0.510, ptUpside:35, profitable:false, exchange:'NASDAQ' },
+      { ticker:'XNDU', name:'Xanadu Quantum', sector:'Quantum', marketCap:0.8, revenue:0.0046, ptUpside:80, profitable:false, exchange:'NASDAQ' },
+      { ticker:'INFQ', name:'Infleqtion', sector:'Quantum', marketCap:1.8, revenue:0.015, ptUpside:60, profitable:false, exchange:'NYSE' },
+    ],
+    unicorn: [
+      { name:'Anduril', sector:'Defense/Autonomous', valuation:61, funding:11.96, ipoScore:90, founded:2017 },
+      { name:'Shield AI', sector:'Defense/Aviation', valuation:12.7, funding:2.0, ipoScore:80, founded:2015 },
+      { name:'Saronic', sector:'Defense/Naval', valuation:9.25, funding:2.35, ipoScore:75, founded:2022 },
+      { name:'Helsing', sector:'Defense/AI', valuation:18, funding:2.0, ipoScore:55, founded:2021 },
+      { name:'Skydio', sector:'Defense/Drones', valuation:4.4, funding:0.966, ipoScore:65, founded:2014 },
+      { name:'True Anomaly', sector:'Space Defense', valuation:2.2, funding:1.0, ipoScore:45, founded:2022 },
+      { name:'CHAOS Industries', sector:'Defense/EW', valuation:4.5, funding:0.93, ipoScore:35, founded:2022 },
+      { name:'Epirus', sector:'Directed Energy', valuation:1.35, funding:0.55, ipoScore:40, founded:2018 },
+      { name:'Defense Unicorns', sector:'Defense/Software', valuation:1.0, funding:0.187, ipoScore:30, founded:2021 },
+      { name:'Altos Labs', sector:'Longevity', valuation:4.0, funding:3.0, ipoScore:35, founded:2022 },
+      { name:'Retro Biosciences', sector:'Longevity', valuation:5.0, funding:1.2, ipoScore:40, founded:2022 },
+      { name:'NewLimit', sector:'Longevity', valuation:0.95, funding:0.28, ipoScore:20, founded:2021 },
+      { name:'Cambrian Bio', sector:'Longevity', valuation:1.79, funding:0.08, ipoScore:35, founded:2019 },
+      { name:'Insilico Medicine', sector:'Biotech/AI', valuation:1.0, funding:0.45, ipoScore:60, founded:2014 },
+      { name:'Kraken', sector:'Crypto Exchange', valuation:20, funding:0.8, ipoScore:85, founded:2011 },
+      { name:'OpenAI', sector:'AI/LLM', valuation:1000, funding:65, ipoScore:80, founded:2015 },
+      { name:'SpaceX', sector:'Aerospace', valuation:1750, funding:10, ipoScore:75, founded:2002 },
+      { name:'Anthropic', sector:'AI/LLM', valuation:300, funding:12, ipoScore:55, founded:2021 },
+    ],
+    smartmoney: [
+      { investor:'BlackRock', type:'Asset Manager', holdings:4, estValue:3.5, conviction:90 },
+      { investor:'Google Ventures', type:'Corporate VC', holdings:2, estValue:2.1, conviction:85 },
+      { investor:'Vanguard', type:'Index Fund', holdings:3, estValue:1.8, conviction:70 },
+      { investor:'ARK Invest', type:'Active ETF', holdings:2, estValue:0.9, conviction:75 },
+      { investor:'Insight Partners', type:'VC/PE', holdings:1, estValue:0.43, conviction:80 },
+      { investor:'NightDragon', type:'PE Defense', holdings:1, estValue:0.28, conviction:75 },
+      { investor:'Morgan Stanley', type:'Asset Manager', holdings:2, estValue:1.2, conviction:65 },
+      { investor:'Tiger Global', type:'Hedge Fund', holdings:1, estValue:1.0, conviction:70 },
+      { investor:'Andreessen Horowitz', type:'VC', holdings:3, estValue:2.4, conviction:88 },
+      { investor:'Thrive Capital', type:'VC', holdings:1, estValue:3.05, conviction:92 },
+      { investor:'General Catalyst', type:'VC', holdings:4, estValue:1.8, conviction:82 },
+      { investor:'Kleiner Perkins', type:'VC', holdings:1, estValue:1.75, conviction:78 },
+      { investor:'Flagship Pioneering', type:'Biotech VC', holdings:1, estValue:0.4, conviction:85 },
+      { investor:'Cantor Fitzgerald', type:'IB/Broker', holdings:1, estValue:0.16, conviction:72 },
+      { investor:'Liberty 77 Capital', type:'Private Investment', holdings:1, estValue:0.17, conviction:68 },
+    ]
+  };
+
+  const SECTOR_COLORS = {
+    'Defense/SIGINT': '#00d4ff',
+    'Space/EO': '#00ff9d',
+    'Space/Commercial': '#34d399',
+    'Space/Launch': '#6ee7b7',
+    'Space/Robotics': '#a7f3d0',
+    'Defense/Space HW': '#22d3ee',
+    'Quantum': '#a78bfa',
+    'Biotech/AI': '#f472b6',
+    'Gene Therapy': '#fb7185',
+    'Biotech/GLP-1': '#f9a8d4',
+    'AI Chips': '#fbbf24',
+    'Defense/Autonomous': '#00d4ff',
+    'Defense/Aviation': '#38bdf8',
+    'Defense/Naval': '#0ea5e9',
+    'Defense/AI': '#7dd3fc',
+    'Defense/Drones': '#93c5fd',
+    'Space Defense': '#c084fc',
+    'Defense/EW': '#e879f9',
+    'Directed Energy': '#f0abfc',
+    'Defense/Software': '#818cf8',
+    'Longevity': '#34d399',
+    'Crypto Exchange': '#fbbf24',
+    'AI/LLM': '#f472b6',
+    'Aerospace': '#60a5fa',
+    'Asset Manager': '#00d4ff',
+    'Corporate VC': '#a78bfa',
+    'Index Fund': '#22d3ee',
+    'Active ETF': '#f472b6',
+    'VC/PE': '#00ff9d',
+    'PE Defense': '#38bdf8',
+    'Hedge Fund': '#fbbf24',
+    'VC': '#fb923c',
+    'Biotech VC': '#f472b6',
+    'IB/Broker': '#94a3b8',
+    'Private Investment': '#64748b',
+  };
+
+  let currentBubbleView = 'valuation';
+  let bubbleSimulation = null;
+
+  function switchBubbleView(view) {
+    currentBubbleView = view;
+    ['valuation','unicorn','smartmoney'].forEach(v => {
+      const btn = document.getElementById(`bv-${v}`);
+      const active = v === view;
+      btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'transparent';
+      btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)';
+      btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+    });
+
+    const descs = {
+      valuation: 'Bubble size = Analyst PT upside % · Color = Sector · Click bubble to chart',
+      unicorn: 'Bubble size = IPO likelihood score · Color = Sector · X = Total funding · Y = Valuation',
+      smartmoney: 'Bubble size = Conviction score · Color = Investor type · X = # Holdings · Y = Est. position value ($B)'
+    };
+    document.getElementById('bubble-view-desc').textContent = descs[view];
+
+    const sizeLegends = {
+      valuation: 'Larger bubble =<br>Higher analyst<br>price target upside %',
+      unicorn: 'Larger bubble =<br>Higher IPO<br>likelihood score',
+      smartmoney: 'Larger bubble =<br>Higher conviction<br>score (0-100)'
+    };
+    document.getElementById('bubble-size-legend').innerHTML = sizeLegends[view];
+
+    renderBubbleChart(view);
+  }
+
+  function renderBubbleChart(view) {
+    const svg = document.getElementById('bubble-svg');
+    svg.innerHTML = '';
+    const tooltip = document.getElementById('bubble-tooltip');
+    const selectedEl = document.getElementById('bubble-selected');
+
+    const W = svg.clientWidth || svg.parentElement.clientWidth || 800;
+    const H = 520;
+    const margin = { top: 40, right: 20, bottom: 50, left: 70 };
+    const innerW = W - margin.left - margin.right;
+    const innerH = H - margin.top - margin.bottom;
+
+    const ns = 'http://www.w3.org/2000/svg';
+
+    // Create main group
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+    svg.appendChild(g);
+
+    let data, xKey, yKey, sizeKey, labelKey, xLabel, yLabel, colorKey;
+
+    if (view === 'valuation') {
+      data = BUBBLE_DATA.valuation;
+      xKey = 'revenue'; yKey = 'marketCap'; sizeKey = 'ptUpside';
+      labelKey = 'ticker'; colorKey = 'sector';
+      xLabel = 'Revenue TTM ($B)'; yLabel = 'Market Cap ($B)';
+    } else if (view === 'unicorn') {
+      data = BUBBLE_DATA.unicorn;
+      xKey = 'funding'; yKey = 'valuation'; sizeKey = 'ipoScore';
+      labelKey = 'name'; colorKey = 'sector';
+      xLabel = 'Total Funding ($B)'; yLabel = 'Valuation ($B)';
+    } else {
+      data = BUBBLE_DATA.smartmoney;
+      xKey = 'holdings'; yKey = 'estValue'; sizeKey = 'conviction';
+      labelKey = 'investor'; colorKey = 'type';
+      xLabel = 'Number of Holdings in Tracker'; yLabel = 'Est. Position Value ($B)';
+    }
+
+    // Scales
+    const xVals = data.map(d => d[xKey]);
+    const yVals = data.map(d => d[yKey]);
+    const sVals = data.map(d => d[sizeKey]);
+
+    const xMin = Math.min(...xVals) * 0.8;
+    const xMax = Math.max(...xVals) * 1.2;
+    const yMin = 0;
+    const yMax = Math.max(...yVals) * 1.15;
+    const sMin = Math.min(...sVals);
+    const sMax = Math.max(...sVals);
+
+    // Linear scales
+    function scaleLinear(domain, range) {
+      return v => range[0] + (v - domain[0]) / (domain[1] - domain[0]) * (range[1] - range[0]);
+    }
+    function scaleLog(domain, range) {
+      const logD0 = Math.log(Math.max(domain[0], 0.001));
+      const logD1 = Math.log(Math.max(domain[1], 0.001));
+      return v => range[0] + (Math.log(Math.max(v, 0.001)) - logD0) / (logD1 - logD0) * (range[1] - range[0]);
+    }
+
+    const xScale = xMax > 10 ? scaleLog([Math.max(xMin,0.001), xMax], [0, innerW]) : scaleLinear([xMin, xMax], [0, innerW]);
+    const yScale = yMax > 10 ? scaleLog([Math.max(yMin,0.001), yMax], [innerH, 0]) : scaleLinear([yMin, yMax], [innerH, 0]);
+    const rScale = scaleLinear([sMin, sMax], [8, 36]);
+
+    // Grid lines
+    const gridG = document.createElementNS(ns, 'g');
+    for (let i = 0; i <= 5; i++) {
+      const y = innerH * i / 5;
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', 0); line.setAttribute('x2', innerW);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(30,52,72,0.5)');
+      line.setAttribute('stroke-dasharray', '3,3');
+      gridG.appendChild(line);
+    }
+    for (let i = 0; i <= 5; i++) {
+      const x = innerW * i / 5;
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', 0); line.setAttribute('y2', innerH);
+      line.setAttribute('stroke', 'rgba(30,52,72,0.5)');
+      line.setAttribute('stroke-dasharray', '3,3');
+      gridG.appendChild(line);
+    }
+    g.appendChild(gridG);
+
+    // Axes
+    const xAxis = document.createElementNS(ns, 'g');
+    xAxis.setAttribute('transform', `translate(0,${innerH})`);
+    const xBaseLine = document.createElementNS(ns, 'line');
+    xBaseLine.setAttribute('x1', 0); xBaseLine.setAttribute('x2', innerW);
+    xBaseLine.setAttribute('stroke', 'var(--border)');
+    xAxis.appendChild(xBaseLine);
+    const xLabelEl = document.createElementNS(ns, 'text');
+    xLabelEl.setAttribute('x', innerW / 2); xLabelEl.setAttribute('y', 40);
+    xLabelEl.setAttribute('fill', '#7a9db5'); xLabelEl.setAttribute('font-size', '11');
+    xLabelEl.setAttribute('text-anchor', 'middle'); xLabelEl.setAttribute('font-family', 'Space Mono, monospace');
+    xLabelEl.textContent = xLabel;
+    xAxis.appendChild(xLabelEl);
+    g.appendChild(xAxis);
+
+    const yAxis = document.createElementNS(ns, 'g');
+    const yBaseLine = document.createElementNS(ns, 'line');
+    yBaseLine.setAttribute('y1', 0); yBaseLine.setAttribute('y2', innerH);
+    yBaseLine.setAttribute('stroke', 'var(--border)');
+    yAxis.appendChild(yBaseLine);
+    const yLabelEl = document.createElementNS(ns, 'text');
+    yLabelEl.setAttribute('x', -innerH / 2); yLabelEl.setAttribute('y', -52);
+    yLabelEl.setAttribute('fill', '#7a9db5'); yLabelEl.setAttribute('font-size', '11');
+    yLabelEl.setAttribute('text-anchor', 'middle'); yLabelEl.setAttribute('font-family', 'Space Mono, monospace');
+    yLabelEl.setAttribute('transform', 'rotate(-90)');
+    yLabelEl.textContent = yLabel;
+    yAxis.appendChild(yLabelEl);
+    g.appendChild(yAxis);
+
+    // Bubbles
+    data.forEach(d => {
+      const cx = xScale(d[xKey]);
+      const cy = yScale(d[yKey]);
+      const r = rScale(d[sizeKey]);
+      const color = SECTOR_COLORS[d[colorKey]] || '#7a9db5';
+
+      if (isNaN(cx) || isNaN(cy)) return;
+
+      const circGroup = document.createElementNS(ns, 'g');
+      circGroup.style.cursor = 'pointer';
+
+      const circle = document.createElementNS(ns, 'circle');
+      circle.setAttribute('cx', cx); circle.setAttribute('cy', cy); circle.setAttribute('r', r);
+      circle.setAttribute('fill', color); circle.setAttribute('fill-opacity', '0.25');
+      circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', '1.5');
+      circle.style.transition = 'all 0.2s';
+
+      const label = document.createElementNS(ns, 'text');
+      label.setAttribute('x', cx); label.setAttribute('y', cy + 4);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('fill', color); label.setAttribute('font-size', r > 20 ? '10' : '9');
+      label.setAttribute('font-family', 'Space Mono, monospace');
+      label.setAttribute('font-weight', '700');
+      const labelText = d[labelKey];
+      label.textContent = labelText.length > 8 ? labelText.substring(0,7)+'…' : labelText;
+
+      circGroup.appendChild(circle);
+      circGroup.appendChild(label);
+
+      // Hover
+      circGroup.addEventListener('mouseenter', (e) => {
+        circle.setAttribute('fill-opacity', '0.5');
+        circle.setAttribute('r', r + 4);
+
+        let tooltipHTML = `<div style="font-family:var(--sans);font-weight:700;font-size:14px;color:${color};margin-bottom:8px;">${d[labelKey]}</div>`;
+        if (view === 'valuation') {
+          tooltipHTML += `<div style="color:var(--text2);line-height:1.8;">
+            <span style="color:var(--text3);">Sector:</span> ${d.sector}<br>
+            <span style="color:var(--text3);">Market Cap:</span> $${d.marketCap}B<br>
+            <span style="color:var(--text3);">Revenue TTM:</span> $${(d.revenue*1000).toFixed(0)}M<br>
+            <span style="color:var(--text3);">P/S Ratio:</span> ${(d.marketCap/d.revenue).toFixed(1)}x<br>
+            <span style="color:var(--text3);">PT Upside:</span> <span style="color:var(--green);">+${d.ptUpside}%</span><br>
+            <span style="color:var(--text3);">Profitable:</span> ${d.profitable ? '<span style="color:var(--green)">Yes</span>' : '<span style="color:var(--red)">No</span>'}
+          </div>
+          <div style="margin-top:8px;color:var(--text3);font-size:10px;">Click to open candlestick chart</div>`;
+        } else if (view === 'unicorn') {
+          tooltipHTML += `<div style="color:var(--text2);line-height:1.8;">
+            <span style="color:var(--text3);">Sector:</span> ${d.sector}<br>
+            <span style="color:var(--text3);">Valuation:</span> $${d.valuation}B<br>
+            <span style="color:var(--text3);">Total Funding:</span> $${d.funding}B<br>
+            <span style="color:var(--text3);">Val/Funding:</span> ${(d.valuation/d.funding).toFixed(1)}x<br>
+            <span style="color:var(--text3);">IPO Score:</span> <span style="color:var(--warn);">${d.ipoScore}/100</span><br>
+            <span style="color:var(--text3);">Founded:</span> ${d.founded}
+          </div>`;
+        } else {
+          tooltipHTML += `<div style="color:var(--text2);line-height:1.8;">
+            <span style="color:var(--text3);">Type:</span> ${d.type}<br>
+            <span style="color:var(--text3);">Holdings in tracker:</span> ${d.holdings}<br>
+            <span style="color:var(--text3);">Est. position:</span> $${d.estValue}B<br>
+            <span style="color:var(--text3);">Conviction score:</span> <span style="color:var(--accent);">${d.conviction}/100</span>
+          </div>`;
+        }
+
+        tooltip.innerHTML = tooltipHTML;
+        tooltip.style.display = 'block';
+
+        selectedEl.innerHTML = `<strong style="color:${color};">${d[labelKey]}</strong><br>
+          <span style="color:var(--text3);">${d[colorKey]}</span><br>
+          ${view === 'valuation' ? `$${d.marketCap}B mktcap<br>PT upside: +${d.ptUpside}%` :
+            view === 'unicorn' ? `$${d.valuation}B val<br>IPO score: ${d.ipoScore}/100` :
+            `${d.holdings} holdings<br>Conviction: ${d.conviction}/100`}`;
+      });
+
+      circGroup.addEventListener('mousemove', (e) => {
+        const rect = svg.parentElement.getBoundingClientRect();
+        let tx = e.clientX - rect.left + 15;
+        let ty = e.clientY - rect.top - 10;
+        if (tx + 220 > rect.width) tx = e.clientX - rect.left - 225;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
+      });
+
+      circGroup.addEventListener('mouseleave', () => {
+        circle.setAttribute('fill-opacity', '0.25');
+        circle.setAttribute('r', r);
+        tooltip.style.display = 'none';
+      });
+
+      // Click to chart
+      circGroup.addEventListener('click', () => {
+        if (view === 'valuation' && d.ticker) loadChartTicker(d.ticker);
+      });
+
+      g.appendChild(circGroup);
+    });
+
+    // Build legend
+    const sectors = [...new Set(data.map(d => d[colorKey]))];
+    const legendEl = document.getElementById('bubble-legend');
+    legendEl.innerHTML = sectors.map(s => {
+      const c = SECTOR_COLORS[s] || '#7a9db5';
+      return `<div style="display:flex;align-items:center;gap:6px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:${c};flex-shrink:0;"></div>
+        <span style="color:var(--text2);font-size:10px;line-height:1.3;">${s}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Init bubble chart when tab opens
+  // Will be called from showTab
+
+  // ============================================================
+  // EXTERNAL TICKER SEARCH + AUTO-FILL
+  // ============================================================
+
+  // Known tickers for quick suggestions
+  const KNOWN_TICKERS = [
+    'AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','NFLX','AMD','INTC',
+    'PLTR','RKLB','SPCE','BA','LMT','RTX','NOC','GD','KTOS','BWXT',
+    'HAWK','PL','SATL','IONQ','KRMN','VOYG','FLY','MDA','XNDU','INFQ',
+    'RXRX','TEM','SDGR','CRSP','NTLA','BEAM','ILMN','GENB','KLRA','CBRS',
+    'JPM','GS','BAC','MS','V','MA','COIN','HOOD','SOFI','AFRM',
+    'DJT','TKO','UMAC','DMNR','LUNR','RCAT','JOBY','ACHR','LILM',
+  ];
+
+  let lookupDebounce = null;
+
+  function handleGlobalSearch(val) {
+    clearTimeout(lookupDebounce);
+    const dropdown = document.getElementById('global-search-dropdown');
+    if (!val || val.length < 1) { dropdown.style.display = 'none'; return; }
+    const matches = KNOWN_TICKERS.filter(t => t.startsWith(val.toUpperCase())).slice(0, 6);
+    if (matches.length === 0) { dropdown.style.display = 'none'; return; }
+    dropdown.innerHTML = matches.map(t => `
+      <div onclick="document.getElementById('global-ticker-search').value='${t}';document.getElementById('global-search-dropdown').style.display='none';runTickerLookup('${t}');"
+        style="padding:8px 12px;cursor:pointer;color:var(--accent);font-family:var(--mono);font-size:12px;border-bottom:1px solid rgba(30,52,72,0.5);transition:background 0.1s;"
+        onmouseover="this.style.background='rgba(0,212,255,0.08)'"
+        onmouseout="this.style.background='transparent'">${t}</div>`).join('');
+    dropdown.style.display = 'block';
+    lookupDebounce = setTimeout(() => { if (val.length >= 2) runTickerLookup(val.toUpperCase().trim()); }, 800);
+  }
+
+  async function runTickerLookup(ticker) {
+    if (!ticker || ticker.length < 1) return;
+    ticker = ticker.toUpperCase().replace(/[^A-Z0-9.]/g, '');
+
+    // Show loading in preview card
+    const card = document.getElementById('ticker-preview-card');
+    if (card) {
+      card.style.display = 'block';
+      card.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;"><span style="animation:pulse 1.5s infinite;display:inline-block;">⟳</span> Fetching data for <strong style="color:var(--accent);">${ticker}</strong>...</div>`;
+    }
+
+    // Also sync global search input
+    const globalInput = document.getElementById('global-ticker-search');
+    if (globalInput) globalInput.value = ticker;
+    const trackerInput = document.getElementById('tracker-ticker-search');
+    if (trackerInput) trackerInput.value = ticker;
+
+    // Switch to tracker tab to show preview
+    showTab('tracker');
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      if (t.getAttribute('onclick')?.includes('tracker')) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+
+    try {
+      // Fetch via allorigins proxy
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d&includePrePost=false`;
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(8000) });
+      const raw = await res.json();
+      const parsed = JSON.parse(raw.contents);
+      const result = parsed?.chart?.result?.[0];
+
+      if (!result) throw new Error('No data');
+
+      const meta = result.meta;
+      const price = meta.regularMarketPrice;
+      const prev = meta.chartPreviousClose || meta.regularMarketPreviousClose;
+      const change = price - prev;
+      const changePct = (change / prev * 100);
+      const high52 = meta.fiftyTwoWeekHigh;
+      const low52 = meta.fiftyTwoWeekLow;
+      const vol = meta.regularMarketVolume;
+      const mktcap = meta.marketCap;
+      const currency = meta.currency || 'USD';
+      const exchange = meta.exchangeName || meta.fullExchangeName || '';
+      const name = meta.longName || meta.shortName || ticker;
+      const sector = meta.sector || '';
+      const industry = meta.industry || '';
+
+      const fmt = n => n != null ? `$${Number(n).toFixed(2)}` : '—';
+      const fmtB = n => n ? (n >= 1e12 ? `$${(n/1e12).toFixed(2)}T` : n >= 1e9 ? `$${(n/1e9).toFixed(2)}B` : `$${(n/1e6).toFixed(0)}M`) : '—';
+      const fmtV = n => n ? (n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`) : '—';
+      const changeColor = change >= 0 ? 'var(--green)' : 'var(--red)';
+      const changeStr = `${change >= 0 ? '+' : ''}${fmt(change)} (${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+
+      // Build prefill data for form
+      const today = new Date().toISOString().split('T')[0];
+      const prefillData = {
+        Ticker: ticker,
+        Company: name,
+        Exchange: exchange.includes('NAS') ? 'NASDAQ' : exchange.includes('NYS') ? 'NYSE' : exchange || 'NASDAQ',
+        Sector: sector || industry || '',
+        Date_Researched: today,
+        Price_At_Research: fmt(price),
+        Market_Cap: fmtB(mktcap),
+        Revenue_TTM: '',
+        Profitable: '',
+        Key_Thesis: '',
+        Risk_Factors: '',
+        Notes: `52W range: ${fmt(low52)} — ${fmt(high52)} · Vol: ${fmtV(vol)}`,
+      };
+
+      // Render preview card
+      if (card) {
+        card.style.display = 'block';
+        card.innerHTML = `
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:16px;">
+            <!-- Header row -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-family:var(--sans);font-size:22px;font-weight:800;color:var(--accent);">${ticker}</span>
+                  <span style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--text2);font-size:10px;padding:2px 8px;border-radius:2px;letter-spacing:0.1em;">${exchange}</span>
+                </div>
+                <div style="color:var(--text2);font-size:13px;margin-top:3px;">${name}</div>
+                ${sector ? `<div style="color:var(--text3);font-size:11px;margin-top:2px;">${sector}${industry ? ' · ' + industry : ''}</div>` : ''}
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:var(--sans);font-size:26px;font-weight:800;color:var(--text);">${fmt(price)}</div>
+                <div style="font-size:13px;color:${changeColor};font-weight:600;">${changeStr}</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:2px;">${currency} · 15min delayed</div>
+              </div>
+            </div>
+
+            <!-- Stats grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px;">
+              ${[
+                ['Market Cap', fmtB(mktcap)],
+                ['52W High', fmt(high52)],
+                ['52W Low', fmt(low52)],
+                ['Volume', fmtV(vol)],
+              ].map(([l,v]) => `
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:8px 10px;">
+                  <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">${l}</div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text);">${v}</div>
+                </div>`).join('')}
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick='openAddTickerPrefilled(${JSON.stringify(prefillData).replace(/'/g,"&apos;")})'
+                style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;font-weight:700;">
+                ➕ ADD TO TRACKER
+              </button>
+              <button onclick="loadChartTicker('${ticker}')"
+                style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">
+                📈 VIEW CHART
+              </button>
+              <a href="https://finance.yahoo.com/quote/${ticker}/" target="_blank"
+                style="background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;text-decoration:none;display:inline-flex;align-items:center;">
+                ↗ YAHOO FINANCE
+              </a>
+              <a href="https://stockanalysis.com/stocks/${ticker.toLowerCase()}/" target="_blank"
+                style="background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;text-decoration:none;display:inline-flex;align-items:center;">
+                ↗ ANALYSIS
+              </a>
+            </div>
+          </div>`;
+      }
+
+    } catch(e) {
+      if (card) {
+        card.style.display = 'block';
+        card.innerHTML = `
+          <div style="padding:16px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:4px;color:var(--red);font-size:12px;">
+            ⚠ Could not fetch data for <strong>${ticker}</strong>. Check the ticker symbol or try again — the data proxy may be temporarily rate-limited.
+            <div style="margin-top:10px;display:flex;gap:8px;">
+              <a href="https://finance.yahoo.com/quote/${ticker}/" target="_blank" style="color:var(--accent);font-size:11px;">↗ Open in Yahoo Finance</a>
+              <a href="https://www.tradingview.com/chart/?symbol=${ticker}" target="_blank" style="color:var(--accent);font-size:11px;">↗ Open in TradingView</a>
+            </div>
+          </div>`;
+      }
+    }
+  }
+
+  // Open Add Ticker modal pre-filled with lookup data
+  function openAddTickerPrefilled(data) {
+    showModal('➕ Add to Tracker — ' + data.Ticker, TICKER_FIELDS, async (formData) => {
+      const ok = await writeToSheet('append', 'Tickers', formData);
+      if (ok) {
+        showDBToast(`✓ ${formData.Ticker} added to tracker!`);
+        document.getElementById('ticker-preview-card').style.display = 'none';
+        document.getElementById('tracker-ticker-search').value = '';
+        document.getElementById('global-ticker-search').value = '';
+        setTimeout(() => loadTickersFromSheet(), 1500);
+      }
+    }, data);
+    setTimeout(() => addLinkPreview(), 100);
+  }
 
   // ---- Clock
   function updateClock() {
