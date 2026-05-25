@@ -530,7 +530,7 @@
         ENTER TERMINAL
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
-        MERIDIAN v1.4 &mdash; <span id="splash-date"></span>
+        MERIDIAN v1.5 &mdash; <span id="splash-date"></span>
       </div>
     </div>
 
@@ -636,20 +636,21 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.4 &mdash; May 23 2026</span>
+    <span>v1.5 &mdash; May 23 2026</span>
   </div>
 </header>
 
 <nav class="nav">
   <div class="nav-tab active" onclick="showTab('tracker')">01 &mdash; Stock Tracker</div>
-  <div class="nav-tab" onclick="showTab('ipo')">02 &mdash; IPO Calendar</div>
-  <div class="nav-tab" onclick="showTab('institutional')">03 &mdash; Institutional Investors</div>
-  <div class="nav-tab" onclick="showTab('political')">04 &mdash; Political Holdings</div>
-  <div class="nav-tab" onclick="showTab('unicorns')">05 &mdash; Unicorn Watchlist</div>
-  <div class="nav-tab" onclick="showTab('biotech')">06 &mdash; Biotech</div>
-  <div class="nav-tab" onclick="showTab('notes')">07 &mdash; Research Notes</div>
-  <div class="nav-tab" onclick="showTab('news')">08 &mdash; News Feed</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">09 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('charts')">02 &mdash; Charts</div>
+  <div class="nav-tab" onclick="showTab('ipo')">03 &mdash; IPO Calendar</div>
+  <div class="nav-tab" onclick="showTab('institutional')">04 &mdash; Institutional Investors</div>
+  <div class="nav-tab" onclick="showTab('political')">05 &mdash; Political Holdings</div>
+  <div class="nav-tab" onclick="showTab('unicorns')">06 &mdash; Unicorn Watchlist</div>
+  <div class="nav-tab" onclick="showTab('biotech')">07 &mdash; Biotech</div>
+  <div class="nav-tab" onclick="showTab('notes')">08 &mdash; Research Notes</div>
+  <div class="nav-tab" onclick="showTab('news')">09 &mdash; News Feed</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">10 &mdash; Roadmap</div>
 </nav>
 
 <main class="main">
@@ -720,6 +721,91 @@ document.addEventListener('keydown', e => {
     </div>
 
   </section>
+  <!-- TAB 02: CHARTS -->
+  <section class="section" id="tab-charts">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Candlestick <span>Charts</span></div>
+        <div class="section-sub">Click any ticker in the Stock Tracker to load its chart here</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="chart-ticker-label" style="font-family:var(--sans);font-size:20px;font-weight:800;color:var(--accent);">—</span>
+        <span id="chart-company-label" style="color:var(--text2);font-size:12px;"></span>
+      </div>
+    </div>
+
+    <!-- Ticker quick-select -->
+    <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+      <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-right:4px;">Quick Load:</span>
+      <div id="chart-quick-tickers" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        <input id="chart-custom-ticker" type="text" placeholder="Any ticker..." style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:3px;outline:none;width:120px;" onkeydown="if(event.key==='Enter')loadChartTicker(this.value.toUpperCase())">
+        <button onclick="loadChartTicker(document.getElementById('chart-custom-ticker').value.toUpperCase())" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">LOAD</button>
+      </div>
+    </div>
+
+    <!-- Timeframe selector -->
+    <div style="display:flex;gap:4px;margin-bottom:14px;align-items:center;">
+      <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-right:6px;">Timeframe:</span>
+      <div id="tf-btns" style="display:flex;gap:4px;">
+        ${['1D','1W','1M','3M','6M','1Y','5Y'].map((tf,i) => `
+        <button onclick="setTimeframe('${tf}')" id="tf-${tf}" style="background:${i===3?'rgba(0,212,255,0.15)':'rgba(0,0,0,0)'};border:1px solid ${i===3?'rgba(0,212,255,0.4)':'var(--border)'};color:${i===3?'var(--accent)':'var(--text3)'};font-family:var(--mono);font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.2s;">${tf}</button>`).join('')}
+      </div>
+      <div style="margin-left:16px;display:flex;gap:10px;align-items:center;">
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" id="show-ma50" checked onchange="toggleMA()" style="cursor:pointer;"> <span style="color:#f59e0b;">50MA</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" id="show-ma200" checked onchange="toggleMA()" style="cursor:pointer;"> <span style="color:#a78bfa;">200MA</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" id="show-volume" checked onchange="toggleVolume()" style="cursor:pointer;"> <span style="color:var(--text2);">Volume</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Chart stats row -->
+    <div class="stats-row" style="margin-bottom:14px;">
+      <div class="stat-card"><div class="stat-label">Current Price</div><div class="stat-value accent" id="chart-stat-price">—</div></div>
+      <div class="stat-card"><div class="stat-label">Change</div><div class="stat-value" id="chart-stat-change">—</div></div>
+      <div class="stat-card"><div class="stat-label">52W High</div><div class="stat-value green" id="chart-stat-high">—</div></div>
+      <div class="stat-card"><div class="stat-label">52W Low</div><div class="stat-value" style="color:var(--red)" id="chart-stat-low">—</div></div>
+      <div class="stat-card"><div class="stat-label">Volume</div><div class="stat-value" id="chart-stat-vol">—</div></div>
+      <div class="stat-card"><div class="stat-label">Market Cap</div><div class="stat-value" id="chart-stat-mktcap">—</div></div>
+    </div>
+
+    <!-- Chart container -->
+    <div id="chart-loading" style="display:none;padding:60px;text-align:center;color:var(--text3);font-size:12px;border:1px solid var(--border);border-radius:4px;">
+      <div style="font-size:24px;margin-bottom:8px;animation:pulse 1.5s infinite;">⟳</div>
+      Loading chart data...
+    </div>
+    <div id="chart-error" style="display:none;padding:16px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);border-radius:4px;color:var(--red);font-size:12px;margin-bottom:12px;"></div>
+    <div id="chart-empty" style="padding:80px 0;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:4px;">
+      <div style="font-size:32px;margin-bottom:12px;">📈</div>
+      <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--border);margin-bottom:8px;">No Chart Loaded</div>
+      <div style="font-size:12px;max-width:360px;margin:0 auto;line-height:1.8;">Click any ticker badge in the Stock Tracker tab,<br>or use the quick-load buttons above.</div>
+    </div>
+
+    <!-- TradingView Widget Container -->
+    <div id="chart-widget-container" style="display:none;border:1px solid var(--border);border-radius:4px;overflow:hidden;"></div>
+
+    <!-- OHLC hover display -->
+    <div id="chart-ohlc" style="display:none;margin-top:10px;padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:3px;font-size:11px;display:flex;gap:20px;flex-wrap:wrap;">
+      <span>O: <strong id="ohlc-o" style="color:var(--text);">—</strong></span>
+      <span>H: <strong id="ohlc-h" style="color:var(--green);">—</strong></span>
+      <span>L: <strong id="ohlc-l" style="color:var(--red);">—</strong></span>
+      <span>C: <strong id="ohlc-c" style="color:var(--accent);">—</strong></span>
+      <span>Vol: <strong id="ohlc-vol" style="color:var(--text2);">—</strong></span>
+      <span>50MA: <strong id="ohlc-ma50" style="color:#f59e0b;">—</strong></span>
+      <span>200MA: <strong id="ohlc-ma200" style="color:#a78bfa;">—</strong></span>
+    </div>
+
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
+      ℹ Charts powered by TradingView Advanced Chart widget. Data is delayed 15 minutes for US equities. Click and drag to pan, scroll to zoom. Use the timeframe buttons above to switch intervals. Enter any ticker in the custom field to chart any public stock.
+    </div>
+  </section>
+
+  <!-- TAB 03: IPO CALENDAR -->
   <section class="section" id="tab-ipo">
     <div class="section-header">
       <div>
@@ -1882,10 +1968,10 @@ document.addEventListener('keydown', e => {
     </div>
 
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">9</div></div>
-      <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">1</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">21</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.2 — Local</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">14</div></div>
+      <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">22</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v1.4 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -1895,39 +1981,32 @@ document.addEventListener('keydown', e => {
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         ${[
-          ['News Feed', 'Tab 08 — Live', 'Chronological RSS feed across all 21 tracked tickers. Sources: Yahoo Finance, SEC EDGAR, Google News, PRNewswire. Auto-refresh every 15 minutes when tab is active. Filter by ticker, source, and priority flag. 🔴 High Priority flags IPO/acquisition/FDA/contract keywords. 🟡 Watch flags funding/revenue/analyst keywords.'],
-          ['Stock Tracker', 'Tab 01', '15 tickers across Space, Defense, Quantum, Biotech, and AI. Filter search, Yahoo Finance + TradingView + StockAnalysis links. Sector divider rows.'],
-          ['IPO Calendar', 'Tab 02', '14 entries covering completed, upcoming, pipeline, and withdrawn IPOs. Status badges, filter bar, Wednesday/Thursday refresh cadence noted.'],
+          ['Splash Screen', 'v1.4 — Matrix Style', 'Matrix rain with ticker symbols, animated counters, scrolling ticker strip, ENTER TERMINAL button, keyboard shortcut, smooth fade transition into terminal. Auto-syncs Google Sheets on entry.'],
+          ['Google Sheets Database', 'v1.3 — Full CRUD', 'Google Sheets as live database. Add, Edit, Delete tickers directly from Meridian. Apps Script web app handles all writes. Auto-generated chart links (Yahoo, TradingView, StockAnalysis, Finviz, MacroTrends). Live link preview as you type.'],
+          ['News Feed', 'Tab 08 — Live', 'Chronological RSS feed across all 21 tracked tickers + Iran/Middle East + CLARITY Act macro topics. Sources: Yahoo Finance, SEC EDGAR, Google News, PRNewswire. Auto-refresh every 15 minutes. 🔴🟡⚪ priority flagging. Filter by ticker, source, flag.'],
+          ['GitHub Pages Hosting', 'Infrastructure — Live', 'Meridian deployed to GitHub Pages. Shareable URL, version controlled. Manual upload workflow established. Custom domain via GoDaddy planned next.'],
+          ['Stock Tracker', 'Tab 01 — Dynamic', '15 tickers across Space, Defense, Quantum, Biotech, and AI. Now fully database-driven via Google Sheets. Static hardcoded data removed.'],
+          ['IPO Calendar', 'Tab 02', '14 entries covering completed, upcoming, pipeline, and withdrawn IPOs. Status badges, filter bar. Refresh cadence: Wednesday/Thursday evenings.'],
           ['Institutional Investors', 'Tab 03', 'Major stakeholders across HAWK, PL, SATL, IONQ with stake %, investor type, and notes.'],
-          ['Political Holdings', 'Tab 04', '60+ rows covering Trump Q1 2026 trades, cabinet members, and family. Filter by person category. OGE disclosure sourced.'],
-          ['Defense Tech Unicorn Watchlist', 'Tab 05', '10 private defense tech unicorns with valuation, funding, IPO outlook, alert signals, and Google Alerts links.'],
-          ['Biotech Tab', 'Tab 06', '7 public biotech tickers + 6 longevity unicorn cards with alert signals and Set Alerts links.'],
+          ['Political Holdings', 'Tab 04', '60+ rows covering Trump Q1 2026 trades, cabinet members, and family. Filter by person/category. OGE disclosure sourced. Covers 3,642 Q1 trades.'],
+          ['Defense Tech Unicorn Watchlist', 'Tab 05', '10 private defense tech unicorns — Anduril, Shield AI, Saronic, Helsing, Skydio, True Anomaly, CHAOS, Epirus, Defense Unicorns, Onebrief. Full alert signals and Google Alerts links.'],
+          ['Biotech Tab', 'Tab 06', '7 public biotech tickers + 6 longevity unicorn cards. Alert signals and Set Alerts rows on every private company.'],
           ['Research Notes', 'Tab 07', 'Fully functional notepad with localStorage persistence. Save, delete, and title notes across sessions.'],
-          ['Alert Signals', 'All unicorn sections', 'Every private company now has ⚡ Alert Signals and 🔔 Set Alerts rows with pre-written Google Alerts queries and Crunchbase links.'],
+          ['Iran + CLARITY Act News', 'Tab 08 — News Feed', 'Dedicated macro topic feeds for Iran/Middle East conflict and CLARITY Act crypto regulation. Filter by 🌍 IRAN and ⚖️ CLARITY in the ticker dropdown.'],
+          ['Alert Signals', 'All unicorn sections', 'Every private company has ⚡ Alert Signals and 🔔 Set Alerts rows with pre-written Google Alerts queries and Crunchbase links.'],
+          ['Roadmap Tab', 'Tab 09', 'Full product roadmap with completed, in progress, and planned sections. Trading integration phases, database stages, and admin panel layers all documented.'],
         ].map(([title, tag, desc]) => `
         <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--green); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">${title}</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">${tag}</div>
+          <div style="min-width:200px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">✓ ${title}</div>
+            <div style="color:var(--green); font-size:10px; margin-top:2px; letter-spacing:0.1em;">${tag}</div>
           </div>
           <div style="color:var(--text2); font-size:12px; line-height:1.6;">${desc}</div>
         </div>`).join('')}
       </div>
     </div>
 
-    <!-- IN PROGRESS -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--warn); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        ⟳ IN PROGRESS
-      </div>
-      <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--warn); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-        <div style="min-width:180px;">
-          <div style="font-weight:700; color:var(--text); font-size:13px;">GitHub Pages Hosting</div>
-          <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Infrastructure</div>
-        </div>
-        <div style="color:var(--text2); font-size:12px; line-height:1.6;">Moving Meridian from local file to live GitHub Pages URL. Will enable shareable link, version control, and eventual custom domain via GoDaddy. GitHub MCP connector not yet available — currently uploading manually.</div>
-      </div>
-    </div>
+    <!-- IN PROGRESS removed — nothing currently in progress -->
 
     <!-- PLANNED -->
     <div style="margin-bottom:20px;">
@@ -1935,6 +2014,14 @@ document.addEventListener('keydown', e => {
         ◎ PLANNED
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;">
+            <div style="font-weight:700; color:var(--text); font-size:13px;">External Ticker Search</div>
+            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 01 — Stock Tracker</div>
+          </div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Search any ticker or company name from inside Meridian. Pulls live data via Yahoo Finance API — current price, market cap, revenue, 52-week range, analyst rating and PT. Shows a preview card before adding. One click pre-fills the Add Ticker form with all financial data — you just add thesis and risk factors. Also triggers the news feed filtered to that ticker. No API key required.</div>
+        </div>
 
         <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
           <div style="min-width:180px;">
@@ -2162,7 +2249,7 @@ document.addEventListener('keydown', e => {
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.4 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.5 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
@@ -2803,9 +2890,211 @@ document.addEventListener('keydown', e => {
     _origShowTab && _origShowTab(id);
     if (id === 'tracker' && document.getElementById('tracker-table-dynamic')) {
       loadTickersFromSheet();
+      setTimeout(makeTickersBadgesClickable, 2000);
     }
+    if (id === 'charts') buildQuickTickers();
     if (id === 'news' && allArticles.length === 0) fetchAllNews();
   };
+
+  // ============================================================
+  // CHARTS — TradingView Advanced Widget
+  // ============================================================
+  const CHART_TICKERS = ['HAWK','PL','SATL','IONQ','KRMN','VOYG','FLY','MDA','XNDU','INFQ','RXRX','TEM','SDGR','CRSP','NTLA','BEAM','ILMN','GENB','KLRA','CBRS'];
+  const CHART_EXCHANGES = { HAWK:'NYSE',PL:'NYSE',SATL:'NASDAQ',IONQ:'NYSE',KRMN:'NYSE',VOYG:'NYSE',FLY:'NASDAQ',MDA:'NYSE',XNDU:'NASDAQ',INFQ:'NYSE',RXRX:'NASDAQ',TEM:'NASDAQ',SDGR:'NASDAQ',CRSP:'NASDAQ',NTLA:'NASDAQ',BEAM:'NASDAQ',ILMN:'NASDAQ',GENB:'NASDAQ',KLRA:'NASDAQ',CBRS:'NASDAQ' };
+
+  let currentChartTicker = null;
+  let currentTimeframe = '3M';
+
+  const TF_INTERVAL_MAP = {
+    '1D': { interval: '5', range: '1D' },
+    '1W': { interval: '60', range: '5D' },
+    '1M': { interval: 'D', range: '1M' },
+    '3M': { interval: 'D', range: '3M' },
+    '6M': { interval: 'D', range: '6M' },
+    '1Y': { interval: 'W', range: '12M' },
+    '5Y': { interval: 'W', range: '60M' },
+  };
+
+  // Build quick-ticker buttons
+  function buildQuickTickers() {
+    const container = document.getElementById('chart-quick-tickers');
+    if (!container) return;
+    container.innerHTML = CHART_TICKERS.map(t => `
+      <button onclick="loadChartTicker('${t}')" style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);color:var(--text2);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.15s;"
+      onmouseover="this.style.color='var(--accent)';this.style.borderColor='rgba(0,212,255,0.4)'"
+      onmouseout="this.style.color='var(--text2)';this.style.borderColor='rgba(0,212,255,0.15)'">${t}</button>`).join('');
+  }
+
+  // Load TradingView widget
+  function loadChartTicker(ticker) {
+    if (!ticker || ticker.length < 1) return;
+    ticker = ticker.toUpperCase().trim();
+    currentChartTicker = ticker;
+
+    // Show charts tab
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-charts')?.classList.add('active');
+    document.querySelector('.nav-tab[onclick*="charts"]')?.classList.add('active');
+
+    // Update labels
+    const exchange = CHART_EXCHANGES[ticker] || 'NASDAQ';
+    document.getElementById('chart-ticker-label').textContent = ticker;
+    document.getElementById('chart-company-label').textContent = exchange;
+
+    // Hide empty, show widget
+    document.getElementById('chart-empty').style.display = 'none';
+    document.getElementById('chart-error').style.display = 'none';
+    document.getElementById('chart-loading').style.display = 'block';
+
+    const tf = TF_INTERVAL_MAP[currentTimeframe] || TF_INTERVAL_MAP['3M'];
+    const show50MA = document.getElementById('show-ma50')?.checked;
+    const show200MA = document.getElementById('show-ma200')?.checked;
+    const showVol = document.getElementById('show-volume')?.checked;
+
+    const studies = [];
+    if (show50MA) studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 50 }, styles: { 'Plot.color': '#f59e0b' } });
+    if (show200MA) studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 200 }, styles: { 'Plot.color': '#a78bfa' } });
+
+    const container = document.getElementById('chart-widget-container');
+    container.innerHTML = '';
+    container.style.display = 'block';
+
+    const widgetDiv = document.createElement('div');
+    widgetDiv.className = 'tradingview-widget-container';
+    widgetDiv.style.cssText = 'height:520px;width:100%;';
+    const innerDiv = document.createElement('div');
+    innerDiv.id = 'tradingview_chart';
+    innerDiv.style.cssText = 'height:100%;width:100%;';
+    widgetDiv.appendChild(innerDiv);
+    container.appendChild(widgetDiv);
+
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.onload = () => {
+      document.getElementById('chart-loading').style.display = 'none';
+      new TradingView.widget({
+        autosize: true,
+        symbol: `${exchange}:${ticker}`,
+        interval: tf.interval,
+        range: tf.range,
+        timezone: 'America/New_York',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#0a1118',
+        enable_publishing: false,
+        hide_side_toolbar: false,
+        allow_symbol_change: true,
+        container_id: 'tradingview_chart',
+        backgroundColor: '#050a0e',
+        gridColor: 'rgba(30,52,72,0.4)',
+        studies: studies.map(s => s.id),
+        show_popup_button: true,
+        popup_width: '1000',
+        popup_height: '650',
+        withdateranges: true,
+        details: true,
+        hotlist: false,
+        calendar: false,
+        hide_volume: !showVol,
+      });
+
+      // Fetch quote stats
+      fetchQuoteStats(ticker);
+    };
+    script.onerror = () => {
+      document.getElementById('chart-loading').style.display = 'none';
+      document.getElementById('chart-error').style.display = 'block';
+      document.getElementById('chart-error').textContent = `Could not load TradingView chart for ${ticker}. Check your internet connection.`;
+    };
+    document.head.appendChild(script);
+
+    // Highlight active quick ticker
+    document.querySelectorAll('#chart-quick-tickers button').forEach(btn => {
+      const isActive = btn.textContent === ticker;
+      btn.style.background = isActive ? 'rgba(0,212,255,0.15)' : 'rgba(0,212,255,0.06)';
+      btn.style.color = isActive ? 'var(--accent)' : 'var(--text2)';
+      btn.style.borderColor = isActive ? 'rgba(0,212,255,0.4)' : 'rgba(0,212,255,0.15)';
+    });
+  }
+
+  // Fetch quote stats from Yahoo Finance via allorigins proxy
+  async function fetchQuoteStats(ticker) {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxy);
+      const data = await res.json();
+      const parsed = JSON.parse(data.contents);
+      const meta = parsed?.chart?.result?.[0]?.meta;
+      if (!meta) return;
+
+      const price = meta.regularMarketPrice;
+      const prev = meta.chartPreviousClose || meta.previousClose;
+      const change = price - prev;
+      const changePct = (change / prev * 100);
+      const high52 = meta.fiftyTwoWeekHigh;
+      const low52 = meta.fiftyTwoWeekLow;
+      const vol = meta.regularMarketVolume;
+      const mktcap = meta.marketCap;
+
+      const fmt = n => n ? `$${n.toFixed(2)}` : '—';
+      const fmtB = n => n ? (n >= 1e12 ? `$${(n/1e12).toFixed(2)}T` : n >= 1e9 ? `$${(n/1e9).toFixed(2)}B` : `$${(n/1e6).toFixed(0)}M`) : '—';
+      const fmtV = n => n ? (n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`) : '—';
+
+      document.getElementById('chart-stat-price').textContent = fmt(price);
+      const changeEl = document.getElementById('chart-stat-change');
+      changeEl.textContent = `${change >= 0 ? '+' : ''}${fmt(change)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
+      changeEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
+      document.getElementById('chart-stat-high').textContent = fmt(high52);
+      document.getElementById('chart-stat-low').textContent = fmt(low52);
+      document.getElementById('chart-stat-vol').textContent = fmtV(vol);
+      document.getElementById('chart-stat-mktcap').textContent = fmtB(mktcap);
+    } catch(e) {
+      // Stats fetch failed silently — chart still works
+    }
+  }
+
+  // Set timeframe
+  function setTimeframe(tf) {
+    currentTimeframe = tf;
+    document.querySelectorAll('#tf-btns button').forEach(btn => {
+      const active = btn.textContent === tf;
+      btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'rgba(0,0,0,0)';
+      btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)';
+      btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+    });
+    if (currentChartTicker) loadChartTicker(currentChartTicker);
+  }
+
+  function toggleMA() {
+    if (currentChartTicker) loadChartTicker(currentChartTicker);
+  }
+
+  function toggleVolume() {
+    if (currentChartTicker) loadChartTicker(currentChartTicker);
+  }
+
+  // Make ticker badges in tracker clickable for charts
+  function makeTickersBadgesClickable() {
+    document.querySelectorAll('.ticker-badge').forEach(badge => {
+      const ticker = badge.textContent.trim();
+      if (!ticker || ticker.length > 6) return;
+      badge.style.cursor = 'pointer';
+      badge.title = `Click to chart ${ticker}`;
+      if (!badge.dataset.chartBound) {
+        badge.dataset.chartBound = '1';
+        badge.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadChartTicker(ticker);
+        });
+      }
+    });
+  }
+
+  // Init
+  buildQuickTickers();
 
   // ---- Clock
   function updateClock() {
