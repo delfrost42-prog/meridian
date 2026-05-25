@@ -444,12 +444,199 @@
 </head>
 <body>
 
+<!-- ============================================================ -->
+<!-- SPLASH SCREEN -->
+<!-- ============================================================ -->
+<div id="splash-screen" style="position:fixed;inset:0;background:#050a0e;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+
+  <!-- Matrix canvas background -->
+  <canvas id="matrix-canvas" style="position:absolute;inset:0;opacity:0.18;"></canvas>
+
+  <!-- Scanline overlay -->
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.015) 2px,rgba(0,212,255,0.015) 4px);pointer-events:none;"></div>
+
+  <!-- Content -->
+  <div style="position:relative;z-index:2;text-align:center;padding:40px;">
+
+    <!-- Glitch logo -->
+    <div id="splash-logo" style="font-family:'Syne',sans-serif;font-size:clamp(48px,8vw,96px);font-weight:800;letter-spacing:0.15em;color:#00d4ff;text-transform:uppercase;opacity:0;animation:splashFadeIn 1s ease 0.5s forwards;text-shadow:0 0 40px rgba(0,212,255,0.4),0 0 80px rgba(0,212,255,0.2);">
+      MERIDIAN
+    </div>
+
+    <!-- Subtitle -->
+    <div id="splash-sub" style="font-family:'Space Mono',monospace;font-size:clamp(11px,1.5vw,14px);letter-spacing:0.3em;color:#3d6478;text-transform:uppercase;margin-top:12px;opacity:0;animation:splashFadeIn 0.8s ease 1.2s forwards;">
+      AI-POWERED RESEARCH TERMINAL
+    </div>
+
+    <!-- Animated ticker strip -->
+    <div style="margin:32px auto;width:100%;max-width:600px;overflow:hidden;opacity:0;animation:splashFadeIn 0.8s ease 1.6s forwards;">
+      <div id="splash-ticker-strip" style="display:flex;gap:24px;white-space:nowrap;animation:tickerScroll 20s linear infinite;font-family:'Space Mono',monospace;font-size:11px;color:#1e3448;">
+        <span style="color:#00d4ff;">HAWK</span> <span>+18.6%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">PL</span> <span>+26.1%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">IONQ</span> <span>+755%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">CBRS</span> <span>+68.1%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">KRMN</span> <span>+359%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">CRSP</span> <span>-36%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">GENB</span> <span>+72% PT</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">SATL</span> <span>+80% Rev</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">RXRX</span> <span>+2x PT</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">HAWK</span> <span>+18.6%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">PL</span> <span>+26.1%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">IONQ</span> <span>+755%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">CBRS</span> <span>+68.1%</span> &nbsp;·&nbsp;
+        <span style="color:#00d4ff;">KRMN</span> <span>+359%</span>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:flex;gap:32px;justify-content:center;margin-bottom:40px;opacity:0;animation:splashFadeIn 0.8s ease 2s forwards;">
+      <div style="text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#00d4ff;" id="splash-count-tickers">0</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-top:4px;">Tickers</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#00ff9d;" id="splash-count-unicorns">0</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-top:4px;">Unicorns</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#ffb830;" id="splash-count-ipos">0</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-top:4px;">IPO Watchlist</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#f472b6;" id="splash-count-sectors">0</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-top:4px;">Sectors</div>
+      </div>
+    </div>
+
+    <!-- Enter button -->
+    <div style="opacity:0;animation:splashFadeIn 0.8s ease 2.4s forwards;">
+      <button id="splash-enter-btn" onclick="enterTerminal()" style="
+        background:transparent;
+        border:1px solid rgba(0,212,255,0.4);
+        color:#00d4ff;
+        font-family:'Space Mono',monospace;
+        font-size:13px;
+        letter-spacing:0.3em;
+        text-transform:uppercase;
+        padding:14px 48px;
+        cursor:pointer;
+        border-radius:2px;
+        position:relative;
+        overflow:hidden;
+        transition:all 0.3s;
+      "
+      onmouseover="this.style.background='rgba(0,212,255,0.08)';this.style.boxShadow='0 0 30px rgba(0,212,255,0.2)'"
+      onmouseout="this.style.background='transparent';this.style.boxShadow='none'">
+        ENTER TERMINAL
+      </button>
+      <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
+        MERIDIAN v1.4 &mdash; <span id="splash-date"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes splashFadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes splashExit {
+  from { opacity:1; transform:scale(1); }
+  to { opacity:0; transform:scale(1.02); }
+}
+</style>
+
+<script>
+// Matrix rain
+(function() {
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+  let cols, drops;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols = Math.floor(canvas.width / 16);
+    drops = Array(cols).fill(1);
+  }
+
+  function draw() {
+    ctx.fillStyle = 'rgba(5,10,14,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00d4ff';
+    ctx.font = '13px Space Mono, monospace';
+    const chars = '0123456789ABCDEF$%#@!HAWKPLIONQKRMNCRSPGENB01';
+    drops.forEach((y, i) => {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = Math.random() > 0.95 ? '#ffffff' : i % 3 === 0 ? '#00d4ff' : '#003d5c';
+      ctx.fillText(char, i * 16, y * 16);
+      if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  const matrixInterval = setInterval(draw, 50);
+  window.stopMatrix = () => clearInterval(matrixInterval);
+})();
+
+// Animated counters
+function animateCounter(id, target, duration) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let start = 0;
+  const step = target / (duration / 50);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { el.textContent = target; clearInterval(timer); return; }
+    el.textContent = Math.floor(start);
+  }, 50);
+}
+
+// Start counters after delay
+setTimeout(() => {
+  animateCounter('splash-count-tickers', 15, 1200);
+  animateCounter('splash-count-unicorns', 16, 1400);
+  animateCounter('splash-count-ipos', 14, 1000);
+  animateCounter('splash-count-sectors', 5, 800);
+}, 2000);
+
+// Set date
+document.getElementById('splash-date').textContent = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }).toUpperCase();
+
+// Enter terminal
+function enterTerminal() {
+  const splash = document.getElementById('splash-screen');
+  splash.style.animation = 'splashExit 0.6s ease forwards';
+  window.stopMatrix && window.stopMatrix();
+  setTimeout(() => {
+    splash.style.display = 'none';
+    // Auto-sync tickers from sheet on entry
+    if (typeof loadTickersFromSheet === 'function') loadTickersFromSheet();
+  }, 600);
+}
+
+// Allow Enter key to proceed
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('splash-screen').style.display !== 'none') {
+    enterTerminal();
+  }
+});
+</script>
+
 <header class="header">
   <div class="logo">MERIDIAN <span>// Research Terminal</span></div>
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.3 &mdash; May 23 2026</span>
+    <span>v1.4 &mdash; May 23 2026</span>
   </div>
 </header>
 
@@ -532,311 +719,6 @@
       </div>
     </div>
 
-    <div style="font-size:10px; letter-spacing:0.15em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">
-      📌 Static Data — Hardcoded Research (pre-database)
-    </div>
-
-    <div class="filter-bar">
-      <span class="filter-label">FILTER:</span>
-      <input class="filter-input" type="text" id="tracker-filter" placeholder="Search ticker, sector, company..." oninput="filterTable('tracker-table', this.value)">
-    </div>
-
-    <div class="table-wrap">
-      <table id="tracker-table">
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Company</th>
-            <th>Sector</th>
-            <th>Date Added</th>
-            <th>Entry Price</th>
-            <th>Market Cap</th>
-            <th>Revenue TTM</th>
-            <th>Profitable</th>
-            <th>Key Thesis</th>
-            <th>Risk Factors</th>
-            <th>Notes</th>
-            <th>Links</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HAWK/" target="_blank">HAWK</a></span></td>
-            <td><strong>HawkEye 360</strong></td>
-            <td><span class="tag">Defense Tech</span><span class="tag">SIGINT</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$30.44</strong></td>
-            <td class="text-muted">$2.85B</td>
-            <td class="text-muted">$118M</td>
-            <td><span class="yes">✓ YES</span></td>
-            <td class="thesis-cell">Fresh IPO defense-grade SIGINT. 30+ satellite constellation. ~57% revenue CAGR 2022–2025. First profitable year. Golden Dome tailwind.</td>
-            <td class="risk-cell">Customer concentration (top 3 = 61% revenue). Rich valuation. Limited trading history.</td>
-            <td class="notes-cell">IPO $26 May 7. Opened $33.80. ATH $35.73 May 12.</td>
-            <td>
-              <div class="quick-links">
-                <a class="chart-link" href="https://finance.yahoo.com/quote/HAWK/" target="_blank">↗ Yahoo</a>
-                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:HAWK" target="_blank">↗ Chart</a>
-                <a class="chart-link" href="https://stockanalysis.com/stocks/hawk/" target="_blank">↗ Analysis</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/PL/" target="_blank">PL</a></span></td>
-            <td><strong>Planet Labs PBC</strong></td>
-            <td><span class="tag">Space</span><span class="tag">Earth Obs</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$42.48</strong></td>
-            <td class="text-muted">$14.70B</td>
-            <td class="text-muted">$308M</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Largest commercial satellite imagery constellation. Daily Earth imaging. Defense pivot. Revenue +26% YoY. Google 10% stakeholder. Wedbush PT $50.</td>
-            <td class="risk-cell">Losses $247M FY2026. ~48x revenue valuation. High beta 2.03. Heavy cash burn.</td>
-            <td class="notes-cell">52-wk: $3.53–$45.78. ATH $43.45 May 14. Earnings Jun 4 2026.</td>
-            <td>
-              <div class="quick-links">
-                <a class="chart-link" href="https://finance.yahoo.com/quote/PL/" target="_blank">↗ Yahoo</a>
-                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:PL" target="_blank">↗ Chart</a>
-                <a class="chart-link" href="https://stockanalysis.com/stocks/pl/" target="_blank">↗ Analysis</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/SATL/" target="_blank">SATL</a></span></td>
-            <td><strong>Satellogic</strong></td>
-            <td><span class="tag">Space</span><span class="tag">Earth Obs</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$7.55</strong></td>
-            <td class="text-muted">$907M</td>
-            <td class="text-muted">$17.7M</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Vertically integrated high-res imagery. Q1 2026 rev +80% YoY. First positive operating cash flow. Merlin constellation Oct 2026. Sovereign defense contracts growing.</td>
-            <td class="risk-cell">Very small revenue base. Loss-making. Extremely volatile (52-wk $1.26–$8.90). Merlin execution risk.</td>
-            <td class="notes-cell">FY2026 guidance $30.87M. Analyst PTs $9–$10. Cantor Fitz 17.6% holder.</td>
-            <td>
-              <div class="quick-links">
-                <a class="chart-link" href="https://finance.yahoo.com/quote/SATL/" target="_blank">↗ Yahoo</a>
-                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:SATL" target="_blank">↗ Chart</a>
-                <a class="chart-link" href="https://stockanalysis.com/stocks/satl/" target="_blank">↗ Analysis</a>
-              </div>
-            </td>
-          </tr>
-          <tr class="highlight-row">
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/IONQ/" target="_blank">IONQ</a></span></td>
-            <td><strong>IonQ Inc</strong></td>
-            <td><span class="tag">Quantum</span><span class="tag">Space Tech</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$47.68</strong></td>
-            <td class="text-muted">$20.79B</td>
-            <td class="text-muted">$130M</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Pure-play quantum computing. Q1 2026 rev +755% YoY. FY2026 guidance $260–270M. Acquired Capella Space + Skyloom. Building first space quantum key distribution network. 13 analysts Strong Buy, avg PT $67.64.</td>
-            <td class="risk-cell">EBITDA loss $96.8M. Expensive valuation. Quantum still early-stage. Complex multi-business pivot.</td>
-            <td class="notes-cell">Capella acquired Jul 2025. SkyWater foundry acquisition pending. 256-qubit system Q4 2026.</td>
-            <td>
-              <div class="quick-links">
-                <a class="chart-link" href="https://finance.yahoo.com/quote/IONQ/" target="_blank">↗ Yahoo</a>
-                <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:IONQ" target="_blank">↗ Chart</a>
-                <a class="chart-link" href="https://stockanalysis.com/stocks/ionq/" target="_blank">↗ Analysis</a>
-              </div>
-            </td>
-          </tr>
-          <!-- SECTOR DIVIDER: SPACE / DEFENSE RECENT IPOs -->
-          <tr style="background:rgba(0,212,255,0.06);">
-            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent); text-transform:uppercase; font-weight:700;">
-              ⬇ Recent IPOs — Space / Defense (2025–2026)
-            </td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/KRMN/" target="_blank">KRMN</a></span></td>
-            <td><strong>Karman Holdings</strong><div class="text-dim text-small">Karman Space & Defense</div></td>
-            <td><span class="tag">Space</span><span class="tag">Defense HW</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$22 IPO</strong><div class="text-dim text-small">peaked ~$101</div></td>
-            <td class="text-muted">$13.5B</td>
-            <td class="text-muted">$471.5M</td>
-            <td><span class="yes">✓ YES</span></td>
-            <td class="thesis-cell">Designs + manufactures mission-critical systems for hypersonics, missile defense, satellites, UAS. Revenue +36.6% YoY 2025. Profitable. Avg analyst PT $105.60 = 64% upside. Golden Dome beneficiary.</td>
-            <td class="risk-cell">PT cuts following Q1. Lockheed supply chain dependency. Hardware margin pressure.</td>
-            <td class="notes-cell">IPO Feb 2025. Trive Capital backer. Former Lockheed Martin VP joined as CSO. 10 analysts Buy.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/KRMN/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:KRMN" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/krmn/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/VOYG/" target="_blank">VOYG</a></span></td>
-            <td><strong>Voyager Technologies</strong></td>
-            <td><span class="tag">Space</span><span class="tag">Commercial</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$31 IPO</strong><div class="text-dim text-small">opened $68 (+120%)</div></td>
-            <td class="text-muted">$3.8B</td>
-            <td class="text-muted">$34.5M Q1</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Parent of Starlab — privately funded commercial space station to replace ISS. JV with Airbus, Mitsubishi, MDA Space, and Palantir. 84% US govt revenue. Strong NASA + defense tailwinds.</td>
-            <td class="risk-cell">Deeply unprofitable. Pre-revenue on Starlab. Very early stage. Single customer concentration.</td>
-            <td class="notes-cell">IPO June 2025. 120% pop on day one. Palantir as JV partner is key signal.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/VOYG/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:VOYG" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/voyg/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/FLY/" target="_blank">FLY</a></span></td>
-            <td><strong>Firefly Aerospace</strong></td>
-            <td><span class="tag">Space</span><span class="tag">Launch</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$45 IPO</strong><div class="text-dim text-small">cut in half post-IPO</div></td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">$160M (2025)</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Rocket launch + SciTec acquisition ($855M) plugs directly into Golden Dome missile defense. 2026 guidance $420–450M (80% booked). $1.4B backlog. Return to orbit March 2026.</td>
-            <td class="risk-cell">Rocket stage explosion post-IPO. Class-action lawsuit over IPO disclosures. Deeply unprofitable.</td>
-            <td class="notes-cell">IPO Aug 2025. AE Industrial Partners backer. 2026 recovery story. Golden Dome = major catalyst.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/FLY/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:FLY" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/fly/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/MDA/" target="_blank">MDA</a></span></td>
-            <td><strong>MDA Space</strong></td>
-            <td><span class="tag">Space</span><span class="tag">Robotics</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">$335.4M (2025)</td>
-            <td><span class="yes">✓ YES</span></td>
-            <td class="thesis-cell">Profitable Canadian space company with long operating history. Makes Canadarm robotic systems. Revenue +10.3% 2025 with Q4 +56.4%. Motley Fool top pick among recent space IPOs. Steady fundamentals play.</td>
-            <td class="risk-cell">Lower growth profile. Canadian company — some US investor hesitation. Less Golden Dome exposure.</td>
-            <td class="notes-cell">Recently listed on NYSE. Ranked #1 recent space IPO by Motley Fool due to profitability + history.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/MDA/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:MDA" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/mda/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-          <!-- SECTOR DIVIDER: QUANTUM RECENT IPOs -->
-          <tr style="background:rgba(0,255,157,0.06);">
-            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent2); text-transform:uppercase; font-weight:700;">
-              ⬇ Recent IPOs — Quantum Computing (2026)
-            </td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/XNDU/" target="_blank">XNDU</a></span></td>
-            <td><strong>Xanadu Quantum Technologies</strong></td>
-            <td><span class="tag">Quantum</span><span class="tag">Photonic</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">$4.6M (2025)</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">First pure-play photonic quantum computing public company. Photons enable quantum networking + cryptography — critical for AI. Revenue +188% YoY. Only photonic approach at public scale vs trapped-ion/superconducting peers.</td>
-            <td class="risk-cell">Tiny revenue. Very early stage. Multiple competing quantum approaches. Photonic unproven at scale.</td>
-            <td class="notes-cell">IPO March 27 2026. NASDAQ. First-mover advantage in photonic quantum computing.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/XNDU/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:XNDU" target="_blank">↗ Chart</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/INFQ/" target="_blank">INFQ</a></span></td>
-            <td><strong>Infleqtion</strong></td>
-            <td><span class="tag">Quantum</span><span class="tag">Sensing</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Neutral-atom quantum computing + high-precision quantum sensing for defense/aerospace. Dual business model — sensing adds near-term revenue path. $540M raised. $1.8B valuation. CNBC flagged as investor radar stock.</td>
-            <td class="risk-cell">SPAC listing. Revenue not disclosed. Execution risk on dual hardware/sensing roadmap.</td>
-            <td class="notes-cell">SPAC via Churchill Capital Corp X. NYSE. Boulder CO. Sensing differentiates from pure quantum peers.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/INFQ/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NYSE:INFQ" target="_blank">↗ Chart</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HQ/" target="_blank">HQ</a></span></td>
-            <td><strong>Horizon Quantum</strong></td>
-            <td><span class="tag">Quantum</span><span class="tag">QaaS</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Neutral-atom qubit technology + QaaS (Quantum as a Service) platform. Post-merger equity ~$1B. QaaS model could provide recurring revenue earlier than pure hardware peers.</td>
-            <td class="risk-cell">SPAC listing. Very early stage. Neutral-atom competing with multiple other approaches.</td>
-            <td class="notes-cell">SPAC merger with dMY Squared. NASDAQ. QaaS platform = potential early recurring revenue.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/HQ/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:HQ" target="_blank">↗ Chart</a>
-            </div></td>
-          </tr>
-          <!-- SECTOR DIVIDER: BIOTECH / AI RECENT IPOs -->
-          <tr style="background:rgba(255,107,53,0.06);">
-            <td colspan="12" style="padding:6px 14px; font-size:10px; letter-spacing:0.15em; color:var(--accent3); text-transform:uppercase; font-weight:700;">
-              ⬇ Recent IPOs — Biotech / AI (2026)
-            </td>
-          </tr>
-          <tr class="highlight-row">
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/GENB/" target="_blank">GENB</a></span></td>
-            <td><strong>Generate Biomedicines</strong></td>
-            <td><span class="tag">Biotech</span><span class="tag">AI Drug</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$16 IPO</strong></td>
-            <td class="text-muted">$1.65B</td>
-            <td class="text-muted">TBD</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Flagship Pioneering spinout — same firm that created Moderna. Generative AI protein design. Lead GB-0895 Phase 3 for severe asthma + COPD. 6 analysts Strong Buy avg PT $25.40 = +72% upside from ~$14.79.</td>
-            <td class="risk-cell">Below IPO price. Phase 3 binary risk. Cash burn. Clinical stage.</td>
-            <td class="notes-cell">IPO Feb 27 2026. Goldman + Morgan Stanley underwrote. Flagship Pioneering pedigree = Moderna creator. Earnings Jun 3 2026.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/GENB/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:GENB" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/genb/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/KLRA/" target="_blank">KLRA</a></span></td>
-            <td><strong>Kailera Therapeutics</strong></td>
-            <td><span class="tag">Biotech</span><span class="tag">GLP-1</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$16 IPO</strong></td>
-            <td class="text-muted">TBD</td>
-            <td class="text-muted">TBD</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">GLP-1 receptor agonist KAI-7535 + injectable/oral ribupatide. Largest biotech IPO of 2026 at $718.8M. Raised $1B privately before IPO ($400M Series A + $600M Series B) — massive investor conviction.</td>
-            <td class="risk-cell">GLP-1 extremely competitive (Novo Nordisk, Eli Lilly dominate). Clinical stage binary risk.</td>
-            <td class="notes-cell">IPO April 2026. $718.8M raised — largest biotech IPO of 2026. $1B pre-IPO funding = top-tier signal.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/KLRA/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:KLRA" target="_blank">↗ Chart</a>
-            </div></td>
-          </tr>
-          <tr>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/CBRS/" target="_blank">CBRS</a></span></td>
-            <td><strong>Cerebras Systems</strong></td>
-            <td><span class="tag">AI Chips</span><span class="tag">Infra</span></td>
-            <td class="text-muted">2026-05-23</td>
-            <td><strong>$185 IPO</strong><div class="text-dim text-small">opened $311 (+68%)</div></td>
-            <td class="text-muted">$39.82B</td>
-            <td class="text-muted">$510M</td>
-            <td><span class="no">✗ NO</span></td>
-            <td class="thesis-cell">Wafer-scale AI chip — direct Nvidia competitor. $20B multi-year OpenAI deal. Largest AI chip IPO ever. Priced $25 above range. Tiger Global led $1B round at $23.1B pre-IPO.</td>
-            <td class="risk-cell">Abu Dhabi G42 relationship caused prior IPO withdrawal. Nvidia competition. Heavily loss-making.</td>
-            <td class="notes-cell">IPO May 14 2026. NASDAQ. Day 1 open $311 vs $185 IPO. Tiger Global + G42 key backers.</td>
-            <td><div class="quick-links">
-              <a class="chart-link" href="https://finance.yahoo.com/quote/CBRS/" target="_blank">↗ Yahoo</a>
-              <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=NASDAQ:CBRS" target="_blank">↗ Chart</a>
-              <a class="chart-link" href="https://stockanalysis.com/stocks/cbrs/" target="_blank">↗ Analysis</a>
-            </div></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </section>
   <section class="section" id="tab-ipo">
     <div class="section-header">
@@ -2280,7 +2162,7 @@
 </main>
 
 <footer class="footer">
-  <span>MERIDIAN Research Terminal &mdash; v1.3 &mdash; Local Build</span>
+  <span>MERIDIAN Research Terminal &mdash; v1.4 &mdash; Local Build</span>
   <span>Data sourced from OGE filings, Yahoo Finance, SEC EDGAR, StockAnalysis, public reporting. Not investment advice.</span>
 </footer>
 
