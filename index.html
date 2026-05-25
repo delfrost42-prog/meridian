@@ -526,7 +526,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.0 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.1 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -739,7 +739,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v2.0 &mdash; May 25 2026</span>
+    <span>v2.1 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -755,7 +755,8 @@ document.addEventListener('keydown', e => {
   <div class="nav-tab" onclick="showTab('biotech')">09 &mdash; Biotech</div>
   <div class="nav-tab" onclick="showTab('notes')">10 &mdash; Research Notes</div>
   <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">12 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('options')">12 &mdash; Options Education</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">13 &mdash; Roadmap</div>
   <div class="nav-tab" id="admin-nav-tab" onclick="showAdminPanel()" style="color:var(--text3);border-left:1px solid var(--border);margin-left:8px;padding-left:16px;">🔐 Admin</div>
 </nav>
 
@@ -2207,7 +2208,317 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
-  <!-- TAB 09: ROADMAP -->
+  <!-- TAB 12: OPTIONS EDUCATION -->
+  <section class="section" id="tab-options">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Options <span>Education</span></div>
+        <div class="section-sub">Strategies, concepts, and free resources — from beginner to advanced</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);">Free resources curated for Meridian</div>
+    </div>
+
+    <div style="margin-bottom:20px;padding:12px 14px;background:rgba(255,184,48,0.05);border:1px solid rgba(255,184,48,0.2);border-radius:3px;font-size:11px;color:var(--text2);line-height:1.7;">
+      <strong style="color:var(--warn);">⚠ DISCLAIMER:</strong> Options trading involves substantial risk and is not suitable for all investors. The educational content below is for informational purposes only and does not constitute investment advice. Always understand your maximum risk before placing any options trade. Paper trade first.
+    </div>
+
+    <!-- Level selector -->
+    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">
+      <button onclick="showOptionsLevel('all')" id="ol-all" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">ALL LEVELS</button>
+      <button onclick="showOptionsLevel('beginner')" id="ol-beginner" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">🟢 BEGINNER</button>
+      <button onclick="showOptionsLevel('intermediate')" id="ol-intermediate" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">🟡 INTERMEDIATE</button>
+      <button onclick="showOptionsLevel('advanced')" id="ol-advanced" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">🔴 ADVANCED</button>
+      <button onclick="showOptionsLevel('strategies')" id="ol-strategies" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">📐 STRATEGIES</button>
+      <button onclick="showOptionsLevel('greeks')" id="ol-greeks" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;">🔢 THE GREEKS</button>
+    </div>
+
+    <!-- Content container -->
+    <div id="options-content">
+
+      <!-- ═══ BEGINNER ═══ -->
+      <div class="options-section" data-level="beginner">
+        <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--green);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">🟢 Beginner — The Foundations</div>
+
+        <!-- Concept cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
+          ${[
+            ['What is an Option?', 'A contract giving you the RIGHT (not obligation) to buy or sell 100 shares of a stock at a specific price (strike) before a specific date (expiry). You pay a premium for this right.', '#00d4ff'],
+            ['Call vs Put', 'CALL = right to BUY. You profit when the stock goes UP.<br>PUT = right to SELL. You profit when the stock goes DOWN.<br>Think: "Call up, Put down."', '#00ff9d'],
+            ['Strike Price', 'The price at which you can buy (call) or sell (put) the underlying stock. Choose wisely — it determines if your option has intrinsic value.', '#fbbf24'],
+            ['Expiration Date', 'Every option expires. After expiry it\'s worthless if out-of-the-money. Weekly options expire Fridays. Monthly options expire the 3rd Friday. LEAPS expire 1-2 years out.', '#f472b6'],
+            ['Premium', 'The price you pay for the option contract. One contract = 100 shares. A $2.00 premium costs $200 total. This is your maximum loss when buying options.', '#a78bfa'],
+            ['In/At/Out of the Money', 'ITM: Has intrinsic value (call strike below stock price).<br>ATM: Strike = current stock price.<br>OTM: No intrinsic value yet. Cheaper but needs bigger move.', '#fb923c'],
+          ].map(([title, desc, color]) => `
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
+          </div>`).join('')}
+        </div>
+
+        <!-- Embedded video -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">📺 RECOMMENDED WATCH — Options Trading for Beginners (Option Alpha)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">What Are Options? (Start Here)</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/4HMm6mBvGKE" title="Options Trading for Beginners" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Calls and Puts Explained</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/VJgHkAqohbU" title="Calls and Puts Explained" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- External links -->
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE BEGINNER RESOURCES</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+            ${[
+              ['Option Alpha — Free Beginner Course', 'https://optionalpha.com/courses', 'Most comprehensive free options course available. 30+ videos covering all basics.'],
+              ['Investopedia — Options Basics', 'https://www.investopedia.com/options-basics-tutorial-4583012', 'Text-based deep dives. Best for reading learners.'],
+              ['tastytrade — Options Education', 'https://www.tastytrade.com/concepts-strategies', 'Founded by CBOE veterans. Excellent free video library.'],
+              ['CBOE — Options Institute', 'https://www.cboe.com/optionsinstitute/', 'Direct from the exchange. Free courses and webinars.'],
+            ].map(([title, url, desc]) => `
+            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+              <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ ${title}</div>
+              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
+            </a>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ INTERMEDIATE ═══ -->
+      <div class="options-section" data-level="intermediate">
+        <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--warn);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🟡 Intermediate — Going Deeper</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
+          ${[
+            ['Implied Volatility (IV)', 'The market\'s forecast of likely movement. HIGH IV = expensive options. LOW IV = cheap options. Buy options in low IV, sell in high IV. IV crush after earnings kills option buyers.', '#fbbf24'],
+            ['Time Decay (Theta)', 'Options lose value every day just from time passing. Theta is your enemy when BUYING options, your friend when SELLING. An option loses ~1/3 of time value in the last week alone.', '#f472b6'],
+            ['Open Interest vs Volume', 'Volume = contracts traded today. Open Interest = total open contracts. High OI = liquid market. Unusual volume vs OI = potential informed activity. Watch this on your tracked tickers.', '#00ff9d'],
+            ['The Options Chain', 'A table showing all available strikes and expiries. Bid/ask spread shows liquidity. Look for tight spreads. Delta shows probability of expiring ITM. High OI = easier to fill orders.', '#00d4ff'],
+            ['Buying vs Selling Options', 'BUYING: limited loss (premium paid), unlimited upside. Needs big move to profit. SELLING: limited upside (premium collected), larger potential loss. Profits from time decay + low IV.', '#a78bfa'],
+            ['Earnings Plays', 'IV spikes before earnings then collapses (IV crush). Buying straddles before earnings rarely works. Selling premium (iron condors, strangles) around earnings can capture the crush.', '#fb923c'],
+          ].map(([title, desc, color]) => `
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
+          </div>`).join('')}
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">📺 RECOMMENDED WATCH — Intermediate Concepts</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Implied Volatility Explained</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/yVmWCb-fWG8" title="Implied Volatility Explained" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Theta Decay — Time is Money</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/1svtAJRPsYQ" title="Theta Decay Explained" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE INTERMEDIATE RESOURCES</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+            ${[
+              ['Option Alpha — Intermediate Course', 'https://optionalpha.com/courses', 'Picks up from basics — IV, probability, position sizing.'],
+              ['tastytrade — Implied Volatility', 'https://www.tastytrade.com/concepts-strategies/implied-volatility', 'Deep dive on IV — the most important concept for option sellers.'],
+              ['Market Chameleon — IV Research', 'https://marketchameleon.com', 'Free IV rank and percentile data for any ticker. Critical for timing entries.'],
+              ['Barchart — Options Scanner', 'https://www.barchart.com/options/unusual-activity', 'Free unusual options activity scanner. Our roadmap Unusual Whales alternative.'],
+            ].map(([title, url, desc]) => `
+            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+              <div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ ${title}</div>
+              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
+            </a>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ADVANCED ═══ -->
+      <div class="options-section" data-level="advanced">
+        <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--red);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🔴 Advanced — Professional Concepts</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
+          ${[
+            ['Volatility Skew', 'Put options on the same stock cost more than equidistant calls. Why? Crash insurance demand. Understanding skew helps you price trades properly and find mispricings.', '#ff4757'],
+            ['Vanna & Charm', 'Second-order Greeks. Vanna = how delta changes with IV. Charm = how delta changes with time. Large options flows through these can move the underlying stock — "options tail wagging the stock dog."', '#f472b6'],
+            ['LEAPS as Stock Replacement', 'Deep ITM calls with 1-2 year expiry. Delta ~0.80+. Behave almost like owning stock but at 30-40% the cost. Theta is low, leverage is high. Warren Buffett\'s preferred structure.', '#fbbf24'],
+            ['Gamma Risk', 'Gamma = rate of change of delta. Peaks near ATM near expiry. Short gamma = dangerous near expiry as small moves create large delta swings. Why market makers hedge aggressively on Fridays.', '#a78bfa'],
+            ['Vega Risk', 'Sensitivity to IV changes. Long vega = you want IV to increase. Short vega = you profit from IV decrease (selling premium). Know your vega before earnings.', '#00d4ff'],
+            ['Pin Risk', 'When the stock closes exactly at your strike on expiry. You don\'t know if you\'ll be assigned. Always close positions before expiry unless you want assignment. Ask your broker about their exercise policy.', '#fb923c'],
+          ].map(([title, desc, color]) => `
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
+          </div>`).join('')}
+        </div>
+
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE ADVANCED RESOURCES</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+            ${[
+              ['Option Alpha — Advanced Course', 'https://optionalpha.com/courses', 'Advanced volatility, portfolio management, complex spreads.'],
+              ['tastytrade — Research', 'https://www.tastytrade.com/research', 'Quantitative options research. Data-driven edge studies.'],
+              ['Sheldon Natenberg — Free Chapters', 'https://www.wiley.com/en-us/Option+Volatility+and+Pricing-p-9780071818773', 'The bible of options. Option Volatility and Pricing — used by every pro trading desk.'],
+              ['CBOE VIX Term Structure', 'https://www.cboe.com/tradable_products/vix/', 'Understanding the VIX term structure for macro options positioning.'],
+            ].map(([title, url, desc]) => `
+            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+              <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ ${title}</div>
+              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
+            </a>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ STRATEGIES ═══ -->
+      <div class="options-section" data-level="strategies">
+        <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">📐 Strategies — From Simple to Complex</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:20px;">
+          ${[
+            ['Covered Call', '🟢 Beginner', 'Own 100 shares + sell a call above current price. Collect premium. Cap your upside. Great for generating income on existing positions. KRMN at $64? Sell the $70 call for income.', 'Neutral to slightly bullish', '#00ff9d'],
+            ['Cash-Secured Put', '🟢 Beginner', 'Sell a put with cash to buy the shares if assigned. Get paid to wait for a stock to come to your price. If HAWK drops to $26 (IPO price), get paid to commit to buying there.', 'Bullish — want to own the stock', '#00ff9d'],
+            ['Long Call', '🟢 Beginner', 'Buy a call option. Bullish. Limited loss (premium), theoretically unlimited upside. Best when IV is low and you expect a big move up. Earnings plays, catalyst trades.', 'Bullish', '#fbbf24'],
+            ['Long Put', '🟢 Beginner', 'Buy a put option. Bearish. Portfolio hedge. Buy puts on SPY to protect against market crash. Or buy puts on overvalued positions you hold as insurance.', 'Bearish or hedging', '#fbbf24'],
+            ['Bull Call Spread', '🟡 Intermediate', 'Buy a lower strike call, sell a higher strike call. Reduces cost vs buying outright. Capped upside. Good for modest bullish moves when IV is high (sell that expensive call).', 'Moderately bullish', '#fb923c'],
+            ['Bear Put Spread', '🟡 Intermediate', 'Buy a higher strike put, sell a lower strike put. Cheaper than buying puts outright. Defined risk. Good for modest bearish plays.', 'Moderately bearish', '#fb923c'],
+            ['Iron Condor', '🟡 Intermediate', 'Sell an OTM call spread + sell an OTM put spread. Profit if stock stays in range. Collect premium on both sides. Ideal for low-movement periods or post-earnings IV crush.', 'Neutral — range bound', '#a78bfa'],
+            ['Straddle', '🟡 Intermediate', 'Buy ATM call + ATM put same strike/expiry. Profit from big move in EITHER direction. Expensive. Used before uncertain catalysts. IV crush is the enemy — don\'t hold through earnings unless planned.', 'Neutral — expects big move', '#a78bfa'],
+            ['Strangle', '🟡 Intermediate', 'Buy OTM call + OTM put. Cheaper than straddle. Needs bigger move to profit. Selling a strangle collects premium from both sides — popular strategy for option sellers.', 'Neutral — expects big move', '#a78bfa'],
+            ['Calendar Spread', '🔴 Advanced', 'Sell a near-term option, buy a farther-term option at the same strike. Profit from time decay differential. Complex but powerful around known events.', 'Neutral to slight directional', '#ff4757'],
+            ['Diagonal Spread', '🔴 Advanced', 'Like a calendar but different strikes. Combines time decay and directional exposure. Poor man\'s covered call using LEAPS as the long leg.', 'Directional with time edge', '#ff4757'],
+            ['Jade Lizard', '🔴 Advanced', 'Sell OTM put + sell OTM call spread. No upside risk. Collect enough premium to cover downside. Popular among tastytrade-style traders for high-IV environments.', 'Neutral to slightly bullish', '#ff4757'],
+          ].map(([name, level, desc, outlook, color]) => `
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};">${name}</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">${level}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">${desc}</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:${color};">${outlook}</span></div>
+          </div>`).join('')}
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">📺 STRATEGY VIDEOS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Iron Condor Explained</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/OKLa0tBM2J8" title="Iron Condor" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Covered Calls for Income</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/pHBRIzDJF-0" title="Covered Calls" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Vertical Spreads</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/7tILbJxRWu4" title="Vertical Spreads" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ THE GREEKS ═══ -->
+      <div class="options-section" data-level="greeks">
+        <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--accent2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🔢 The Greeks — Risk Measures Every Options Trader Must Know</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
+          ${[
+            ['Δ Delta', 'Rate of change of option price vs stock price. Call delta: 0 to 1. Put delta: -1 to 0. Delta 0.50 = ATM. Delta also ≈ probability of expiring ITM. 100-share equivalent position size.', '#00d4ff', '0 to ±1'],
+            ['Γ Gamma', 'Rate of change of delta. Highest ATM near expiry. Positive gamma = long options. Negative gamma = short options. Short gamma near expiry = danger zone — small moves, big delta changes.', '#00ff9d', 'Always positive for long options'],
+            ['Θ Theta', 'Daily time decay. How much the option loses per day just from time passing. Negative for buyers, positive for sellers. Accelerates in final 30 days. The seller\'s profit engine.', '#fbbf24', 'Negative for buyers'],
+            ['ν Vega', 'Sensitivity to implied volatility. +$0.10 vega = option gains $10 for each 1% IV increase. Long vega = want IV to rise. Short vega = want IV to fall. Critical around earnings.', '#f472b6', 'Positive for long options'],
+            ['ρ Rho', 'Sensitivity to interest rate changes. Usually small for short-dated options. More relevant for LEAPS. Rising rates = slightly better for calls, slightly worse for puts.', '#a78bfa', 'Small for most trades'],
+            ['IV Rank / IV Percentile', 'Not a Greek but essential. IVR: where current IV sits vs its 52-week range. IVR > 50 = sell premium. IVR < 30 = buy options. Free on Market Chameleon for any ticker.', '#fb923c', 'Use to time entries'],
+          ].map(([name, desc, color, note]) => `
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:${color};">${name}</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">${note}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
+          </div>`).join('')}
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">📺 THE GREEKS EXPLAINED</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">Delta, Gamma, Theta, Vega — Full Overview</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/GgygNqBODHE" title="Options Greeks Explained" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:6px;font-weight:600;">IV Rank and IV Percentile</div>
+              <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;border:1px solid var(--border);">
+                <iframe src="https://www.youtube.com/embed/QB_WkFmqfpM" title="IV Rank and Percentile" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick reference cheat sheet -->
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:16px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">📋 GREEKS QUICK REFERENCE CHEAT SHEET</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:11px;">
+              <thead>
+                <tr style="background:var(--bg3);border-bottom:1px solid var(--border);">
+                  <th style="padding:8px 12px;text-align:left;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Greek</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Measures</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Long Options</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Short Options</th>
+                  <th style="padding:8px 12px;text-align:left;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Want It To...</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${[
+                  ['Δ Delta','Price sensitivity','Positive (calls) / Negative (puts)','Opposite','Move toward your direction'],
+                  ['Γ Gamma','Delta change rate','Always positive','Always negative','Increase (long) / Stay low (short)'],
+                  ['Θ Theta','Time decay','Negative — hurts you','Positive — helps you','Time to pass (short) / Stop (long)'],
+                  ['ν Vega','IV sensitivity','Positive — want IV up','Negative — want IV down','Rise (long) / Fall (short)'],
+                  ['ρ Rho','Rate sensitivity','Positive (calls)','Negative','Usually minor factor'],
+                ].map(([g,m,l,s,w],i) => `
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);${i%2===0?'background:rgba(15,25,35,0.3);':''}">
+                  <td style="padding:8px 12px;font-weight:700;color:var(--accent2);">${g}</td>
+                  <td style="padding:8px 12px;color:var(--text2);">${m}</td>
+                  <td style="padding:8px 12px;color:var(--green);">${l}</td>
+                  <td style="padding:8px 12px;color:var(--red);">${s}</td>
+                  <td style="padding:8px 12px;color:var(--warn);">${w}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end options-content -->
+
+    <div style="margin-top:16px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
+      ℹ All video content is hosted on YouTube and embedded here for convenience. External links open in a new tab. Meridian does not endorse any specific broker or trading platform mentioned in the linked resources. Paper trade all strategies before using real capital.
+    </div>
+  </section>
+
+  <!-- TAB 13: ROADMAP -->
   <section class="section" id="tab-roadmap">
     <div class="section-header">
       <div>
@@ -2221,7 +2532,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.0 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.1 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -5134,6 +5445,31 @@ Respond naturally and conversationally. The user is building a sophisticated res
       closeAdminPanel();
     }
   });
+
+  // ============================================================
+  // OPTIONS EDUCATION — Level switcher
+  // ============================================================
+  function showOptionsLevel(level) {
+    // Update buttons
+    ['all','beginner','intermediate','advanced','strategies','greeks'].forEach(l => {
+      const btn = document.getElementById(`ol-${l}`);
+      const active = l === level;
+      if (btn) {
+        btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'transparent';
+        btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)';
+        btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+      }
+    });
+
+    // Show/hide sections
+    document.querySelectorAll('.options-section').forEach(sec => {
+      if (level === 'all') {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = sec.dataset.level === level ? 'block' : 'none';
+      }
+    });
+  }
 
   // ---- Clock
   function updateClock() {
