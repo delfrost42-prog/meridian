@@ -530,7 +530,7 @@
         ENTER TERMINAL
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
-        MERIDIAN v1.7 &mdash; <span id="splash-date"></span>
+        MERIDIAN v1.8 &mdash; <span id="splash-date"></span>
       </div>
     </div>
 
@@ -653,7 +653,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v1.7 &mdash; May 23 2026</span>
+    <span>v1.8 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -683,6 +683,7 @@ document.addEventListener('keydown', e => {
       <div style="display:flex;gap:8px;align-items:center;">
         <button onclick="openDBSettings()" style="background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">⚙️ DB SETTINGS</button>
         <button onclick="loadTickersFromSheet()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">↺ SYNC</button>
+        <button onclick="refreshAllPrices()" id="live-price-btn" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">💹 LIVE PRICES</button>
         <button onclick="openAddTicker()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 14px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;font-weight:700;">➕ ADD TICKER</button>
       </div>
     </div>
@@ -749,7 +750,11 @@ document.addEventListener('keydown', e => {
           <thead>
             <tr>
               <th>Ticker</th><th>Company</th><th>Sector</th><th>Date Added</th>
-              <th>Entry Price</th><th>Market Cap</th><th>Revenue TTM</th><th>Profitable</th>
+              <th>Entry Price</th>
+              <th style="color:var(--accent);">Live Price</th>
+              <th style="color:var(--accent);">Day Chg</th>
+              <th style="color:var(--accent);">Return</th>
+              <th>Market Cap</th><th>Revenue TTM</th><th>Profitable</th>
               <th>Key Thesis</th><th>Risk Factors</th><th>Notes</th><th>Actions</th>
             </tr>
           </thead>
@@ -2827,15 +2832,21 @@ document.addEventListener('keydown', e => {
   function renderTickerRow(row, idx) {
     const profitable = (row.Profitable || '').toLowerCase() === 'yes';
     const exchange = row.Exchange || 'NASDAQ';
-    return `<tr data-idx="${idx}">
+    const entryPrice = parseFloat((row.Price_At_Research||'').replace(/[$,]/g,'')) || null;
+    return `<tr data-idx="${idx}" data-ticker="${row.Ticker}">
       <td>
-        <span class="ticker-badge"><a href="https://finance.yahoo.com/quote/${row.Ticker}/" target="_blank">${row.Ticker}</a></span>
+        <span class="ticker-badge" style="cursor:pointer;" onclick="loadChartTicker('${row.Ticker}')" title="Click to chart ${row.Ticker}"><a href="https://finance.yahoo.com/quote/${row.Ticker}/" target="_blank" onclick="event.stopPropagation()">${row.Ticker}</a></span>
         <div style="font-size:10px;color:var(--text3);margin-top:2px;">${exchange}</div>
       </td>
       <td><strong>${row.Company}</strong></td>
       <td>${(row.Sector||'').split('/').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</td>
       <td class="text-muted">${row.Date_Researched||'—'}</td>
       <td><strong>${row.Price_At_Research||'—'}</strong></td>
+      <td id="live-price-${row.Ticker}" style="font-weight:700;color:var(--text);">
+        <span style="color:var(--text3);font-size:11px;">⟳</span>
+      </td>
+      <td id="live-change-${row.Ticker}" style="font-size:12px;">—</td>
+      <td id="live-return-${row.Ticker}" style="font-size:12px;" data-entry="${entryPrice||''}">—</td>
       <td class="text-muted">${row.Market_Cap||'—'}</td>
       <td class="text-muted">${row.Revenue_TTM||'—'}</td>
       <td>${profitable ? '<span class="yes">✓ YES</span>' : '<span class="no">✗ NO</span>'}</td>
@@ -2889,6 +2900,9 @@ document.addEventListener('keydown', e => {
     if (dbStatusBadge) { dbStatusBadge.textContent = `Connected ✓ — ${rows.length} rows`; dbStatusBadge.style.color = 'var(--green)'; }
 
     showDBToast(`✓ Loaded ${rows.length} tickers from Sheets`);
+
+    // Auto-fetch live prices after sheet loads
+    setTimeout(() => refreshAllPrices(), 500);
   }
 
   // ---- DB Settings panel ----
@@ -3104,40 +3118,28 @@ document.addEventListener('keydown', e => {
     });
   }
 
-  // Fetch quote stats from Yahoo Finance via allorigins proxy
+  // Fetch quote stats — uses live price cache if available
   async function fetchQuoteStats(ticker) {
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      const res = await fetch(proxy);
-      const data = await res.json();
-      const parsed = JSON.parse(data.contents);
-      const meta = parsed?.chart?.result?.[0]?.meta;
-      if (!meta) return;
+      // Use cached data if available
+      let data = livePriceCache[ticker]?.data;
+      if (!data) data = await fetchLivePrice(ticker);
+      if (!data) return;
 
-      const price = meta.regularMarketPrice;
-      const prev = meta.chartPreviousClose || meta.previousClose;
-      const change = price - prev;
-      const changePct = (change / prev * 100);
-      const high52 = meta.fiftyTwoWeekHigh;
-      const low52 = meta.fiftyTwoWeekLow;
-      const vol = meta.regularMarketVolume;
-      const mktcap = meta.marketCap;
-
-      const fmt = n => n ? `$${n.toFixed(2)}` : '—';
+      const fmt = n => n != null ? `$${Number(n).toFixed(2)}` : '—';
       const fmtB = n => n ? (n >= 1e12 ? `$${(n/1e12).toFixed(2)}T` : n >= 1e9 ? `$${(n/1e9).toFixed(2)}B` : `$${(n/1e6).toFixed(0)}M`) : '—';
       const fmtV = n => n ? (n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`) : '—';
 
-      document.getElementById('chart-stat-price').textContent = fmt(price);
+      document.getElementById('chart-stat-price').textContent = fmt(data.price);
       const changeEl = document.getElementById('chart-stat-change');
-      changeEl.textContent = `${change >= 0 ? '+' : ''}${fmt(change)} (${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%)`;
-      changeEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
-      document.getElementById('chart-stat-high').textContent = fmt(high52);
-      document.getElementById('chart-stat-low').textContent = fmt(low52);
-      document.getElementById('chart-stat-vol').textContent = fmtV(vol);
-      document.getElementById('chart-stat-mktcap').textContent = fmtB(mktcap);
+      changeEl.textContent = `${data.change >= 0 ? '+' : ''}${fmt(data.change)} (${data.changePct >= 0 ? '+' : ''}${data.changePct.toFixed(2)}%)`;
+      changeEl.style.color = data.change >= 0 ? 'var(--green)' : 'var(--red)';
+      document.getElementById('chart-stat-high').textContent = fmt(data.high52);
+      document.getElementById('chart-stat-low').textContent = fmt(data.low52);
+      document.getElementById('chart-stat-vol').textContent = fmtV(data.vol);
+      document.getElementById('chart-stat-mktcap').textContent = fmtB(data.mktcap);
     } catch(e) {
-      // Stats fetch failed silently — chart still works
+      // Fail silently — chart still works
     }
   }
 
@@ -3729,6 +3731,139 @@ document.addEventListener('keydown', e => {
     }, data);
     setTimeout(() => addLinkPreview(), 100);
   }
+
+  // ============================================================
+  // LIVE PRICE AUTO-UPDATES
+  // ============================================================
+  let livePriceInterval = null;
+  let livePriceCache = {};
+
+  async function fetchLivePrice(ticker) {
+    // Check cache — don't re-fetch if data is less than 60 seconds old
+    const cached = livePriceCache[ticker];
+    if (cached && Date.now() - cached.ts < 60000) return cached.data;
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=2d`;
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+      const raw = await res.json();
+      const parsed = JSON.parse(raw.contents);
+      const meta = parsed?.chart?.result?.[0]?.meta;
+      if (!meta) return null;
+
+      const data = {
+        price: meta.regularMarketPrice,
+        prev: meta.chartPreviousClose || meta.regularMarketPreviousClose,
+        high52: meta.fiftyTwoWeekHigh,
+        low52: meta.fiftyTwoWeekLow,
+        vol: meta.regularMarketVolume,
+        mktcap: meta.marketCap,
+      };
+      data.change = data.price - data.prev;
+      data.changePct = (data.change / data.prev * 100);
+      livePriceCache[ticker] = { data, ts: Date.now() };
+      return data;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function updatePriceCells(ticker, data) {
+    if (!data) {
+      const priceEl = document.getElementById(`live-price-${ticker}`);
+      if (priceEl) priceEl.innerHTML = '<span style="color:var(--text3);font-size:10px;">N/A</span>';
+      return;
+    }
+
+    const fmt = n => n != null ? `$${Number(n).toFixed(2)}` : '—';
+    const changeColor = data.change >= 0 ? 'var(--green)' : 'var(--red)';
+    const arrow = data.change >= 0 ? '▲' : '▼';
+
+    // Live price cell
+    const priceEl = document.getElementById(`live-price-${ticker}`);
+    if (priceEl) {
+      priceEl.innerHTML = `<strong style="color:var(--text);font-size:13px;">${fmt(data.price)}</strong>`;
+      // Flash animation
+      priceEl.style.transition = 'background 0.3s';
+      priceEl.style.background = data.change >= 0 ? 'rgba(46,213,115,0.1)' : 'rgba(255,71,87,0.1)';
+      setTimeout(() => priceEl.style.background = 'transparent', 800);
+    }
+
+    // Day change cell
+    const changeEl = document.getElementById(`live-change-${ticker}`);
+    if (changeEl) {
+      changeEl.innerHTML = `<span style="color:${changeColor};font-size:11px;">${arrow} ${fmt(data.change)}<br>${data.changePct >= 0 ? '+' : ''}${data.changePct.toFixed(2)}%</span>`;
+    }
+
+    // Return since entry cell
+    const returnEl = document.getElementById(`live-return-${ticker}`);
+    if (returnEl) {
+      const entryPrice = parseFloat(returnEl.dataset.entry);
+      if (entryPrice && entryPrice > 0) {
+        const ret = ((data.price - entryPrice) / entryPrice * 100);
+        const retColor = ret >= 0 ? 'var(--green)' : 'var(--red)';
+        const retArrow = ret >= 0 ? '▲' : '▼';
+        returnEl.innerHTML = `<span style="color:${retColor};font-size:11px;font-weight:700;">${retArrow} ${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%</span>`;
+      } else {
+        returnEl.innerHTML = '<span style="color:var(--text3);font-size:10px;">No entry</span>';
+      }
+    }
+  }
+
+  async function refreshAllPrices() {
+    const btn = document.getElementById('live-price-btn');
+    if (btn) { btn.textContent = '⟳ FETCHING...'; btn.style.opacity = '0.6'; }
+
+    // Get all tickers from the dynamic table
+    const rows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
+    const tickers = [...new Set([...rows].map(r => r.dataset.ticker).filter(Boolean))];
+
+    if (tickers.length === 0) {
+      showDBToast('No tickers loaded — sync first', 'warn');
+      if (btn) { btn.textContent = '💹 LIVE PRICES'; btn.style.opacity = '1'; }
+      return;
+    }
+
+    const statusEl = document.getElementById('db-ticker-status');
+    if (statusEl) statusEl.textContent = `Fetching live prices for ${tickers.length} tickers...`;
+
+    // Fetch in batches of 5 to avoid rate limiting
+    const batchSize = 5;
+    let fetched = 0;
+    for (let i = 0; i < tickers.length; i += batchSize) {
+      const batch = tickers.slice(i, i + batchSize);
+      await Promise.all(batch.map(async ticker => {
+        const data = await fetchLivePrice(ticker);
+        updatePriceCells(ticker, data);
+        fetched++;
+      }));
+      // Small delay between batches
+      if (i + batchSize < tickers.length) await new Promise(r => setTimeout(r, 500));
+    }
+
+    const now = new Date().toLocaleTimeString();
+    if (statusEl) statusEl.textContent = `✓ Live prices updated for ${fetched} tickers · ${now}`;
+    if (btn) { btn.textContent = '💹 LIVE PRICES'; btn.style.opacity = '1'; }
+    showDBToast(`💹 Prices updated for ${fetched} tickers`);
+
+    // Update last-refreshed in stats
+    const badge = document.getElementById('db-status-badge');
+    if (badge) { badge.textContent = `Live ✓ — ${now}`; badge.style.color = 'var(--green)'; }
+  }
+
+  // Auto-refresh prices every 5 minutes when tracker tab is active
+  function startLivePriceTimer() {
+    if (livePriceInterval) clearInterval(livePriceInterval);
+    livePriceInterval = setInterval(() => {
+      const trackerTab = document.getElementById('tab-tracker');
+      if (trackerTab && trackerTab.classList.contains('active')) {
+        refreshAllPrices();
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
+  }
+
+  startLivePriceTimer();
 
   // ---- Clock
   function updateClock() {
