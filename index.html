@@ -2685,6 +2685,7 @@
   const TICKER_FIELDS = [
     { key: 'Ticker', label: 'Ticker Symbol', placeholder: 'e.g. PLTR' },
     { key: 'Company', label: 'Company Name', placeholder: 'e.g. Palantir Technologies' },
+    { key: 'Exchange', label: 'Exchange', type: 'select', options: ['NASDAQ', 'NYSE', 'OTC', 'TSX', 'OTHER'] },
     { key: 'Sector', label: 'Sector / Tags', placeholder: 'e.g. AI / Defense Software' },
     { key: 'Date_Researched', label: 'Date Researched', placeholder: 'e.g. 2026-05-23' },
     { key: 'Price_At_Research', label: 'Entry Price', placeholder: 'e.g. $24.50' },
@@ -2694,8 +2695,23 @@
     { key: 'Key_Thesis', label: 'Key Thesis', type: 'textarea', placeholder: 'Why is this interesting?' },
     { key: 'Risk_Factors', label: 'Risk Factors', type: 'textarea', placeholder: 'What could go wrong?' },
     { key: 'Notes', label: 'Notes', type: 'textarea', placeholder: 'Any additional notes...' },
-    { key: 'Reference_URL', label: 'Reference URL', placeholder: 'https://finance.yahoo.com/quote/PLTR/' },
   ];
+
+  // ---- Auto-generate chart links from ticker + exchange ----
+  function getChartLinks(ticker, exchange) {
+    const t = (ticker || '').toUpperCase().trim();
+    const ex = (exchange || 'NASDAQ').toUpperCase().trim();
+    if (!t) return '';
+    const tvSymbol = (ex === 'NYSE' || ex === 'NASDAQ' || ex === 'OTC') ? `${ex}:${t}` : t;
+    return `
+      <div class="quick-links">
+        <a class="chart-link" href="https://finance.yahoo.com/quote/${t}/" target="_blank">↗ Yahoo</a>
+        <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=${tvSymbol}" target="_blank">↗ Chart</a>
+        <a class="chart-link" href="https://stockanalysis.com/stocks/${t.toLowerCase()}/" target="_blank">↗ Analysis</a>
+        <a class="chart-link" href="https://finviz.com/quote.ashx?t=${t}" target="_blank">↗ Finviz</a>
+        <a class="chart-link" href="https://www.macrotrends.net/stocks/charts/${t}/" target="_blank">↗ Macro</a>
+      </div>`;
+  }
 
   // ---- Add Ticker ----
   function openAddTicker() {
@@ -2706,6 +2722,29 @@
         setTimeout(() => loadTickersFromSheet(), 1500);
       }
     });
+    // Add live link preview after modal renders
+    setTimeout(() => addLinkPreview(), 100);
+  }
+
+  // ---- Live link preview in modal ----
+  function addLinkPreview() {
+    const tickerInput = document.getElementById('dbf_Ticker');
+    const exchangeInput = document.getElementById('dbf_Exchange');
+    if (!tickerInput) return;
+    const previewDiv = document.createElement('div');
+    previewDiv.id = 'link-preview';
+    previewDiv.style.cssText = 'margin-top:-8px;margin-bottom:14px;padding:10px 12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:3px;';
+    previewDiv.innerHTML = '<div style="font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Auto-generated links preview</div><div id="link-preview-links" style="color:var(--text3);font-size:11px;">Enter a ticker symbol above to preview links</div>';
+    tickerInput.parentElement.parentElement.insertBefore(previewDiv, tickerInput.parentElement.nextSibling);
+
+    function updatePreview() {
+      const t = tickerInput.value.toUpperCase();
+      const ex = exchangeInput ? exchangeInput.value : 'NASDAQ';
+      const linksEl = document.getElementById('link-preview-links');
+      if (linksEl) linksEl.innerHTML = t ? getChartLinks(t, ex) : '<span style="color:var(--text3);">Enter a ticker symbol above to preview links</span>';
+    }
+    tickerInput.addEventListener('input', updatePreview);
+    if (exchangeInput) exchangeInput.addEventListener('change', updatePreview);
   }
 
   // ---- Edit Ticker ----
@@ -2717,6 +2756,7 @@
         setTimeout(() => loadTickersFromSheet(), 1500);
       }
     }, rowData);
+    setTimeout(() => addLinkPreview(), 100);
   }
 
   // ---- Delete Ticker ----
@@ -2733,9 +2773,12 @@
   // ---- Render sheet row as table row ----
   function renderTickerRow(row, idx) {
     const profitable = (row.Profitable || '').toLowerCase() === 'yes';
-    const url = row.Reference_URL || `https://finance.yahoo.com/quote/${row.Ticker}/`;
+    const exchange = row.Exchange || 'NASDAQ';
     return `<tr data-idx="${idx}">
-      <td><span class="ticker-badge"><a href="${url}" target="_blank">${row.Ticker}</a></span></td>
+      <td>
+        <span class="ticker-badge"><a href="https://finance.yahoo.com/quote/${row.Ticker}/" target="_blank">${row.Ticker}</a></span>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${exchange}</div>
+      </td>
       <td><strong>${row.Company}</strong></td>
       <td>${(row.Sector||'').split('/').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</td>
       <td class="text-muted">${row.Date_Researched||'—'}</td>
@@ -2747,13 +2790,10 @@
       <td class="risk-cell">${row.Risk_Factors||'—'}</td>
       <td class="notes-cell">${row.Notes||'—'}</td>
       <td>
-        <div class="quick-links">
-          <a class="chart-link" href="${url}" target="_blank">↗ Yahoo</a>
-          <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=${row.Ticker}" target="_blank">↗ Chart</a>
-        </div>
-        <div style="display:flex;gap:4px;margin-top:4px;">
-          <button onclick='openEditTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️</button>
-          <button onclick='deleteTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️</button>
+        ${getChartLinks(row.Ticker, exchange)}
+        <div style="display:flex;gap:4px;margin-top:6px;">
+          <button onclick='openEditTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️ Edit</button>
+          <button onclick='deleteTicker(${JSON.stringify(row).replace(/'/g,"&apos;")})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️ Delete</button>
         </div>
       </td>
     </tr>`;
