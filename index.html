@@ -2220,7 +2220,7 @@ document.addEventListener('keydown', e => {
     <div class="stats-row">
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">26</div></div>
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
       <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.0 — GitHub Pages</div></div>
     </div>
 
@@ -2582,8 +2582,66 @@ document.addEventListener('keydown', e => {
       </div>
     </div>
 
+    <!-- ADVANCED MARKET INTELLIGENCE -->
+    <div style="margin-bottom:20px;margin-top:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#06b6d4; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        🔬 ADVANCED MARKET INTELLIGENCE — Options Flow, Dark Pool &amp; On-Chain
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Goal: replicate what Unusual Whales, Nansen, and Quiver Quantitative charge $150-500/month for — options flow, dark pool prints, whale wallet tracking, on-chain intelligence, and congressional trading signals — all inside Meridian for under $100/month total. Combined with Claude analysis in the admin panel, this becomes a signal detection system that rivals institutional tools.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Options Flow Tab</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Unusual Whales API · $50/mo</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Real-time feed of unusual options activity. Ticker, expiry, strike, call/put, premium, side, exchange. Color coded: green sweeps (aggressive buyers hitting multiple exchanges simultaneously — strongest bullish signal), red puts, yellow dark pool. Filter by ticker, min premium ($100K+), expiry. Auto-flags activity on your tracked tickers. Sweep orders are the key signal — they indicate institutional conviction.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Dark Pool Monitor</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Unusual Whales API · Same subscription</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Large off-exchange block trades. When $50M+ of a tracked ticker trades in a dark pool, it surfaces immediately. Dark pool prints often precede major price moves — institutions executing large positions before news. Cross-reference with our political holdings tab for maximum signal.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Congressional Options Tracker</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Quiver Quantitative · $25/mo</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Cross-reference our existing political holdings tab with live options flow and congressional trade disclosures. Quiver Quantitative covers congressional trades, insider buying, government contracts, and options flow in one API. If a cabinet member or spouse buys calls days before a policy announcement — this surfaces it. Extends the political holdings tab from static to live.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Whale Wallet Tracker</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Etherscan + Blockchair · Free tier</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Paste any wallet address — Meridian shows current holdings, values, recent transactions, historical PnL, and whether it matches a known entity (exchange, VC, whale). Watch list of curated alpha wallets — when a monitored wallet buys a new token, it surfaces in the news feed. Starting point: World Liberty Financial (Trump family DeFi) smart contracts monitored live.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Smart Money Crypto Feed</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Nansen · $150/mo or Arkham</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Curated list of known alpha wallets (similar to how we track institutional 13F filings for stocks). When a watched wallet buys a new token — auto-alert in news feed. Nansen provides wallet labeling (identifies exchange, VC, whale wallets). Arkham Intelligence recently opened API access. Start with free Etherscan tier, upgrade to Nansen when signals prove valuable.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Token On-Chain Intelligence</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Glassnode · $29/mo basic</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">For every crypto in your tracker (BTC, ETH, SOL etc): exchange inflow/outflow trends, holder concentration (top 10 wallets % of supply), DEX vs CEX volume ratio, active addresses trend. Large exchange inflows = potential sell pressure. Large outflows = holders moving to cold storage = bullish. Glassnode $29/mo covers BTC + ETH fundamentals. The Graph (free) covers DeFi protocols.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Cross-Chain Transaction Tracer</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Blockchair multi-chain · Free tier</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Follow suspicious fund flows across ETH → BSC → SOL → BTC. Input a wallet or TX hash — Meridian traces the money across chains and visualizes the flow graph. Particularly powerful for tracking WLFI (World Liberty Financial) and USD1 stablecoin flows given the political holdings context already in Meridian. This is the actual blockchain sleuthing.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Crypto Tracker Tab</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New tab · Extends stock tracker</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Dedicated crypto tab alongside stocks. Add BTC, ETH, SOL, and any token. Live prices via CoinGecko free API (no delay on crypto). On-chain metrics alongside price. Portfolio performance vs BTC benchmark. Wallet addresses linked to holdings. DeFi positions tracked. Integrates with Alpaca crypto trading when that phase is built.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Claude Signal Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Admin panel integration</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Once options flow + on-chain data is piped into Meridian, Claude in the admin panel can cross-analyze everything: "this wallet bought $2M of HAWK calls 3 days before the Golden Dome announcement" — that kind of pattern detection across political holdings + options flow + on-chain data + news feed. The combination is genuinely institutional-grade intelligence at retail cost.</div>
+        </div>
+
+      </div>
+    </div>
+
     <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v3.0 — a fully autonomous AI-powered investment research and trading terminal, commercially licensed, available on every device, with a subscription model that funds continued development. Bloomberg for the AI era at 1% of the cost. Built from a single HTML file, one session at a time.
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v3.0 — a fully autonomous AI-powered investment research and trading terminal with options flow, dark pool monitoring, on-chain intelligence, and cross-chain transaction tracing. Commercially licensed, available on every device. Bloomberg Terminal meets Unusual Whales meets Nansen — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
     </div>
   </section>
 
