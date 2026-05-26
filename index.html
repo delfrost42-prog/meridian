@@ -529,10 +529,47 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.6 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.0 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FIRST-TIME SETUP GATE -->
+<!-- ============================================================ -->
+<div id="setup-gate" style="display:none;position:fixed;inset:0;background:rgba(5,10,14,0.97);z-index:100000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0a1520;border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:36px;width:100%;max-width:460px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:#00d4ff;letter-spacing:0.15em;margin-bottom:6px;">MERIDIAN</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:#3d6478;letter-spacing:0.2em;">FIRST TIME SETUP</div>
+    </div>
+    <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.1);border-radius:3px;padding:12px 14px;font-size:11px;color:#7a9db5;line-height:1.8;margin-bottom:24px;">
+      Enter your Apps Script URL and secret token to connect Meridian to your Google Sheets database and load your API keys automatically on any device.
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-bottom:6px;">Apps Script URL</label>
+      <input id="setup-url-input" type="text" placeholder="https://script.google.com/macros/s/..." autocomplete="off"
+        style="width:100%;background:#050a0e;border:1px solid rgba(0,212,255,0.2);color:#e8f4f8;font-family:'Space Mono',monospace;font-size:11px;padding:10px 12px;border-radius:3px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(0,212,255,0.5)'" onblur="this.style.borderColor='rgba(0,212,255,0.2)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('setup-token-input').focus()">
+    </div>
+    <div style="margin-bottom:24px;">
+      <label style="display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#3d6478;text-transform:uppercase;margin-bottom:6px;">Secret Token</label>
+      <input id="setup-token-input" type="password" placeholder="Your password..." autocomplete="off"
+        style="width:100%;background:#050a0e;border:1px solid rgba(0,212,255,0.2);color:#e8f4f8;font-family:'Space Mono',monospace;font-size:11px;padding:10px 12px;border-radius:3px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(0,212,255,0.5)'" onblur="this.style.borderColor='rgba(0,212,255,0.2)'"
+        onkeydown="if(event.key==='Enter')saveSetupAndEnter()">
+    </div>
+    <div id="setup-error" style="display:none;color:#ff4757;font-family:'Space Mono',monospace;font-size:11px;margin-bottom:14px;"></div>
+    <button onclick="saveSetupAndEnter()" style="width:100%;background:transparent;border:1px solid rgba(0,212,255,0.4);color:#00d4ff;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:2px;transition:all 0.2s;"
+      onmouseover="this.style.background='rgba(0,212,255,0.08)'" onmouseout="this.style.background='transparent'">
+      CONNECT &amp; ENTER
+    </button>
+    <div style="margin-top:16px;text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;">
+      Contact the Meridian admin for your access credentials
+    </div>
   </div>
 </div>
 
@@ -552,6 +589,18 @@
 </style>
 
 <script>
+// ---- GLOBAL ALPACA KEYS — declared first so ALL code can access them ----
+// Using var (not let) so they're truly global across both script blocks
+var alpacaKeyId  = localStorage.getItem('meridian_alpaca_key')    || '';
+var alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
+var ALPACA_PAPER_URL = 'https://paper-api.alpaca.markets';
+var ALPACA_DATA_URL  = 'https://data.alpaca.markets';
+
+// DEBUG — remove after confirming keys load
+console.log('[Meridian] alpacaKeyId on load:', alpacaKeyId ? alpacaKeyId.substring(0,8)+'...' : 'EMPTY');
+console.log('[Meridian] alpacaSecret on load:', alpacaSecret ? alpacaSecret.substring(0,4)+'...' : 'EMPTY');
+console.log('[Meridian] All localStorage keys:', Object.keys(localStorage).join(', '));
+
 // Hidden DB settings trigger — click version number 3 times rapidly
 let splashClickCount = 0;
 let splashClickTimer = null;
@@ -589,8 +638,8 @@ const SPLASH_CRYPTO = [
 
 async function fetchSplashQuote(symbol) {
   // Try Alpaca REST for equity symbols when keys are available
-  const alpKey = localStorage.getItem('meridian_alpaca_key');
-  const alpSecret = localStorage.getItem('meridian_alpaca_secret');
+  const alpKey = alpacaKeyId || localStorage.getItem('meridian_alpaca_key') || '';
+  const alpSecret = alpacaSecret || localStorage.getItem('meridian_alpaca_secret') || '';
   const isCrypto = symbol.includes('-USD');
   const isIndex = symbol.startsWith('^') || symbol.includes('=F');
 
@@ -598,17 +647,19 @@ async function fetchSplashQuote(symbol) {
     try {
       const snapRes = await fetch(
         `https://data.alpaca.markets/v2/stocks/${symbol}/snapshot?feed=iex`,
-        { headers: { 'APCA-API-KEY-ID': alpKey, 'APCA-API-SECRET-KEY': alpSecret }, signal: AbortSignal.timeout(4000) }
+        { headers: { 'APCA-API-KEY-ID': alpKey, 'APCA-API-SECRET-KEY': alpSecret }, signal: AbortSignal.timeout(5000) }
       );
       if (snapRes.ok) {
         const snap = await snapRes.json();
-        const price = snap?.latestTrade?.p || snap?.latestQuote?.ap || snap?.latestQuote?.bp;
-        const prev = snap?.prevDailyBar?.c || snap?.dailyBar?.o;
-        if (price && prev) {
-          return { price, changePct: ((price - prev) / prev * 100), source: 'alpaca' };
+        // Alpaca snapshot: latestTrade.p = last price, prevDailyBar.c = prev close
+        const price = snap?.latestTrade?.p || snap?.latestQuote?.ap || snap?.latestQuote?.bp || snap?.minuteBar?.c || snap?.dailyBar?.c;
+        const prev  = snap?.prevDailyBar?.c || snap?.dailyBar?.o || snap?.latestTrade?.p;
+        if (price) {
+          const changePct = prev && prev !== price ? ((price - prev) / prev * 100) : 0;
+          return { price, changePct, source: 'alpaca' };
         }
       }
-    } catch(e) {}
+    } catch(e) { console.log('[Meridian Splash] Alpaca error for', symbol, e.message); }
   }
 
   // Yahoo Finance fallback (indices, crypto, and when no Alpaca keys)
@@ -683,9 +734,35 @@ function startSplashAutoRefresh() {
   }, 30000);
 }
 
-// Start loading market data
-loadSplashMarketData();
-startSplashAutoRefresh();
+// Start loading market data — delayed to allow config from Sheets to load first
+// Config fetch (~500ms) runs before splash fetch so Alpaca keys are available
+async function initSplashData() {
+  // Try to load config from Sheets before fetching market data
+  const scriptUrl = localStorage.getItem('meridian_script_url');
+  if (scriptUrl) {
+    try {
+      const res = await fetch(`${scriptUrl}?action=getConfig&token=${encodeURIComponent(MERIDIAN_TOKEN||localStorage.getItem("meridian_token")||"")}`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'ok' && data.config) {
+          if (data.config.alpaca_key)    { alpacaKeyId  = data.config.alpaca_key.trim();    localStorage.setItem('meridian_alpaca_key', alpacaKeyId); }
+          if (data.config.alpaca_secret) { alpacaSecret = data.config.alpaca_secret.trim(); localStorage.setItem('meridian_alpaca_secret', alpacaSecret); }
+          if (data.config.claude_key)    { localStorage.setItem('meridian_api_key', data.config.claude_key.trim()); }
+          if (data.config.grok_key)      { localStorage.setItem('meridian_grok_key', data.config.grok_key.trim()); }
+        }
+      }
+    } catch(e) {} // Silent — use whatever keys are already in vars
+  }
+  // Now fetch splash data with correct keys
+  loadSplashMarketData();
+  startSplashAutoRefresh();
+}
+initSplashData();
+
+// Init news badge once block 2 is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { if (typeof initNewsBadge === 'function') initNewsBadge(); }, 200);
+});
 
 // Matrix rain
 (function() {
@@ -747,13 +824,61 @@ document.getElementById('splash-date').textContent = new Date().toLocaleDateStri
 
 // Enter terminal
 function enterTerminal() {
+  // Check if first-time setup is needed
+  const hasUrl = localStorage.getItem('meridian_script_url');
+  const hasToken = localStorage.getItem('meridian_token');
+  if (!hasUrl || !hasToken) {
+    showSetupGate();
+    return;
+  }
+  launchTerminal();
+}
+
+function showSetupGate() {
+  // Show setup overlay on top of splash
+  const gate = document.getElementById('setup-gate');
+  if (gate) gate.style.display = 'flex';
+}
+
+function saveSetupAndEnter() {
+  const url = document.getElementById('setup-url-input')?.value.trim();
+  const token = document.getElementById('setup-token-input')?.value.trim();
+  const err = document.getElementById('setup-error');
+
+  if (!url || !token) {
+    if (err) { err.textContent = 'Both fields are required.'; err.style.display = 'block'; }
+    return;
+  }
+
+  localStorage.setItem('meridian_script_url', url);
+  localStorage.setItem('meridian_token', token);
+
+  // Update globals if block 2 is loaded
+  if (typeof APPS_SCRIPT_URL !== 'undefined') window.APPS_SCRIPT_URL = url;
+  if (typeof MERIDIAN_TOKEN !== 'undefined') window.MERIDIAN_TOKEN = token;
+
+  const gate = document.getElementById('setup-gate');
+  if (gate) gate.style.display = 'none';
+  launchTerminal();
+}
+
+function launchTerminal() {
   const splash = document.getElementById('splash-screen');
   splash.style.animation = 'splashExit 0.6s ease forwards';
   window.stopMatrix && window.stopMatrix();
   setTimeout(() => {
     splash.style.display = 'none';
-    // Auto-sync tickers from sheet on entry
-    if (typeof loadTickersFromSheet === 'function') loadTickersFromSheet();
+    if (typeof loadConfigFromSheets === 'function') {
+      loadConfigFromSheets().then(() => {
+        if (typeof loadTickersFromSheet === 'function') loadTickersFromSheet();
+      });
+    } else {
+      if (typeof loadTickersFromSheet === 'function') loadTickersFromSheet();
+    }
+    setTimeout(() => {
+      if (typeof initNewsBadge === 'function') initNewsBadge();
+      if (typeof setPriceFeedBadge === 'function') setPriceFeedBadge(alpacaKeyId ? 'alpaca-rest' : 'yahoo');
+    }, 300);
   }, 600);
 }
 
@@ -787,7 +912,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v3.6 &mdash; May 25 2026</span>
+    <span>v5.0 &mdash; May 26 2026</span>
   </div>
 </header>
 
@@ -920,14 +1045,12 @@ document.addEventListener('keydown', e => {
       </div>
     </div>
 
-    <!-- Ticker quick-select -->
-    <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-      <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-right:4px;">Quick Load:</span>
-      <div id="chart-quick-tickers" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-        <input id="chart-custom-ticker" type="text" placeholder="Any ticker..." style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:3px;outline:none;width:120px;" onkeydown="if(event.key==='Enter')loadChartTicker(this.value.toUpperCase())">
-        <button onclick="loadChartTicker(document.getElementById('chart-custom-ticker').value.toUpperCase())" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">LOAD</button>
-      </div>
+    <!-- Custom ticker input -->
+    <div style="margin-bottom:14px;display:flex;gap:6px;align-items:center;">
+      <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-right:4px;">Load Chart:</span>
+      <input id="chart-custom-ticker" type="text" placeholder="Any ticker, crypto, index..." style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:3px;outline:none;width:200px;" onkeydown="if(event.key==='Enter')loadChartTicker(this.value.toUpperCase())">
+      <button onclick="loadChartTicker(document.getElementById('chart-custom-ticker').value.toUpperCase())" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">LOAD</button>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px;">← or hover the watchlist panel on the right edge to load from your watchlist</span>
     </div>
 
     <!-- Timeframe selector -->
@@ -1011,16 +1134,6 @@ document.addEventListener('keydown', e => {
       </div>
     </div>
 
-    <!-- Chart stats row -->
-    <div class="stats-row" style="margin-bottom:14px;">
-      <div class="stat-card"><div class="stat-label">Current Price</div><div class="stat-value accent" id="chart-stat-price">—</div></div>
-      <div class="stat-card"><div class="stat-label">Change</div><div class="stat-value" id="chart-stat-change">—</div></div>
-      <div class="stat-card"><div class="stat-label">52W High</div><div class="stat-value green" id="chart-stat-high">—</div></div>
-      <div class="stat-card"><div class="stat-label">52W Low</div><div class="stat-value" style="color:var(--red)" id="chart-stat-low">—</div></div>
-      <div class="stat-card"><div class="stat-label">Volume</div><div class="stat-value" id="chart-stat-vol">—</div></div>
-      <div class="stat-card"><div class="stat-label">Market Cap</div><div class="stat-value" id="chart-stat-mktcap">—</div></div>
-    </div>
-
     <!-- Chart container -->
     <div id="chart-loading" style="display:none;padding:60px;text-align:center;color:var(--text3);font-size:12px;border:1px solid var(--border);border-radius:4px;">
       <div style="font-size:24px;margin-bottom:8px;animation:pulse 1.5s infinite;">⟳</div>
@@ -1035,17 +1148,6 @@ document.addEventListener('keydown', e => {
 
     <!-- TradingView Widget Container -->
     <div id="chart-widget-container" style="display:none;border:1px solid var(--border);border-radius:4px;overflow:hidden;"></div>
-
-    <!-- OHLC hover display -->
-    <div id="chart-ohlc" style="display:none;margin-top:10px;padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:3px;font-size:11px;display:flex;gap:20px;flex-wrap:wrap;">
-      <span>O: <strong id="ohlc-o" style="color:var(--text);">—</strong></span>
-      <span>H: <strong id="ohlc-h" style="color:var(--green);">—</strong></span>
-      <span>L: <strong id="ohlc-l" style="color:var(--red);">—</strong></span>
-      <span>C: <strong id="ohlc-c" style="color:var(--accent);">—</strong></span>
-      <span>Vol: <strong id="ohlc-vol" style="color:var(--text2);">—</strong></span>
-      <span>50MA: <strong id="ohlc-ma50" style="color:#f59e0b;">—</strong></span>
-      <span>200MA: <strong id="ohlc-ma200" style="color:#a78bfa;">—</strong></span>
-    </div>
 
     <!-- AI Chart Analysis Button -->
     <div id="chart-analyze-bar" style="display:none;margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -2398,7 +2500,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Tickers Monitored</div><div class="stat-value accent" id="news-ticker-count">21</div></div>
       <div class="stat-card"><div class="stat-label">Articles Loaded</div><div class="stat-value" id="news-article-count">—</div></div>
       <div class="stat-card"><div class="stat-label">Auto-Refresh</div><div class="stat-value green">Every 15 min</div></div>
-      <div class="stat-card"><div class="stat-label">Primary Source</div><div class="stat-value" id="news-source-badge" style="font-size:11px;">RSS (no Alpaca key)</div></div>
+      <div class="stat-card"><div class="stat-label">Primary Source</div><div class="stat-value" id="news-source-badge" style="font-size:11px;">Checking...</div></div>
       <div class="stat-card"><div class="stat-label">Macro Topics</div><div class="stat-value warn">Iran · CLARITY Act</div></div>
     </div>
 
@@ -2948,7 +3050,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.6 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.0 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3871,6 +3973,19 @@ document.addEventListener('keydown', e => {
     }
   }
 
+  function initNewsBadge() {
+    const badge = document.getElementById('news-source-badge');
+    if (!badge) return;
+    const hasAlpaca = !!(alpacaKeyId || localStorage.getItem('meridian_alpaca_key'));
+    if (hasAlpaca) {
+      badge.textContent = '⚡ Alpaca · Benzinga';
+      badge.style.color = 'var(--green)';
+    } else {
+      badge.textContent = '🟡 RSS Fallback';
+      badge.style.color = 'var(--warn)';
+    }
+  }
+
   async function fetchAllNews() {
     document.getElementById('news-loading').style.display = 'block';
     document.getElementById('news-feed').innerHTML = '';
@@ -4047,89 +4162,6 @@ document.addEventListener('keydown', e => {
     return [];
   }
 
-  async function fetchAllNews() {
-    document.getElementById('news-loading').style.display = 'block';
-    document.getElementById('news-feed').innerHTML = '';
-    document.getElementById('news-empty').style.display = 'none';
-    document.getElementById('news-error').style.display = 'none';
-
-    // Build fetch tasks — batched to avoid rate limiting
-    const tasks = [];
-
-    // Yahoo Finance RSS — most reliable, do all tickers
-    for (const { ticker } of NEWS_TICKERS) {
-      tasks.push({ url: `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`, source: 'Yahoo Finance', ticker });
-    }
-
-    // Google News — only top 8 tickers to reduce load
-    const topTickers = NEWS_TICKERS.slice(0, 8);
-    for (const { ticker, name } of topTickers) {
-      tasks.push({ url: `https://news.google.com/rss/search?q=${encodeURIComponent(name + ' stock')}&hl=en-US&gl=US&ceid=US:en`, source: 'Google News', ticker });
-    }
-
-    // SEC EDGAR — key tickers only
-    for (const ticker of ['HAWK','PL','IONQ','CRSP','GENB','CBRS','KRMN']) {
-      tasks.push({
-        url: `https://efts.sec.gov/LATEST/search-index?q=%22${ticker}%22&dateRange=custom&startdt=${new Date(Date.now()-7*86400000).toISOString().split('T')[0]}&enddt=${new Date().toISOString().split('T')[0]}&forms=8-K,S-1,13F`,
-        source: 'SEC EDGAR', ticker
-      });
-    }
-
-    // Macro topics
-    const macroTopics = [
-      { query: 'Iran war military strike ceasefire 2026', ticker: '🌍 IRAN' },
-      { query: 'Iran nuclear deal sanctions defense', ticker: '🌍 IRAN' },
-      { query: 'CLARITY Act crypto regulation Washington 2026', ticker: '⚖️ CLARITY' },
-      { query: 'CLARITY Act digital assets SEC CFTC Congress', ticker: '⚖️ CLARITY' },
-    ];
-    for (const { query, ticker } of macroTopics) {
-      tasks.push({ url: `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`, source: 'Google News', ticker });
-    }
-
-    // Execute in batches of 5 with 400ms delay between batches
-    const BATCH_SIZE = 5;
-    let allArticles_local = [];
-    let fetched = 0;
-
-    for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
-      const batch = tasks.slice(i, i + BATCH_SIZE);
-      const results = await Promise.allSettled(batch.map(t => fetchRSS(t.url, t.source, t.ticker)));
-      results.forEach(r => { if (r.status === 'fulfilled') allArticles_local = allArticles_local.concat(r.value); });
-      fetched += batch.length;
-
-      // Update progress
-      const statusEl = document.getElementById('news-last-updated');
-      if (statusEl) statusEl.textContent = `Loading... ${Math.round(fetched/tasks.length*100)}%`;
-
-      // Small delay between batches to avoid rate limiting
-      if (i + BATCH_SIZE < tasks.length) await new Promise(r => setTimeout(r, 300));
-    }
-
-    // Deduplicate by title
-    const seen = new Set();
-    allArticles_local = allArticles_local.filter(a => {
-      const key = (a.title || '').toLowerCase().trim();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Sort by date descending
-    allArticles_local.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    allArticles = allArticles_local;
-    document.getElementById('news-loading').style.display = 'none';
-    document.getElementById('news-article-count').textContent = allArticles.length;
-    document.getElementById('news-last-updated').textContent = `Updated ${new Date().toLocaleTimeString()} · ${allArticles.length} articles`;
-
-    if (allArticles.length === 0) {
-      document.getElementById('news-error').style.display = 'block';
-      document.getElementById('news-error').textContent = 'No articles loaded. Both proxies may be rate-limited — try again in 2-3 minutes. Articles are cached for 10 minutes once loaded.';
-      return;
-    }
-
-    renderNews(allArticles);
-  }
 
   function renderNews(articles) {
     const feed = document.getElementById('news-feed');
@@ -4195,7 +4227,15 @@ document.addEventListener('keydown', e => {
   const origShowTab = window.showTab;
   window.showTab = function(id) {
     origShowTab && origShowTab(id);
-    if (id === 'news' && allArticles.length === 0) fetchAllNews();
+    if (id === 'news') {
+      initNewsBadge();
+      if (allArticles.length === 0) {
+        if (!alpacaKeyId) alpacaKeyId = localStorage.getItem('meridian_alpaca_key') || '';
+        if (!alpacaSecret) alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
+        initNewsBadge();
+        fetchAllNews();
+      }
+    }
   };
 
   startNewsAutoRefresh();
@@ -4216,6 +4256,7 @@ document.addEventListener('keydown', e => {
 
   // Apps Script Web App URL — paste here after deploying (Step 2 below)
   let APPS_SCRIPT_URL = localStorage.getItem('meridian_script_url') || '';
+  let MERIDIAN_TOKEN = localStorage.getItem('meridian_token') || '';
 
   // ---- CSV Parser ----
   function parseCSV(text) {
@@ -4261,7 +4302,7 @@ document.addEventListener('keydown', e => {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, tab, data }),
+        body: JSON.stringify({ action, tab, data, token: MERIDIAN_TOKEN }),
         mode: 'no-cors'
       });
       return true;
@@ -4538,12 +4579,19 @@ document.addEventListener('keydown', e => {
       <div style="margin-bottom:16px;padding:12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:3px;font-size:11px;color:var(--text2);line-height:1.8;">
         <strong style="color:var(--accent);">SETUP INSTRUCTIONS</strong><br>
         1. Open your Meridian Google Sheet<br>
-        2. Click <strong>Extensions → Apps Script</strong><br>
-        3. Delete any existing code and paste the script below<br>
-        4. Click <strong>Deploy → New Deployment → Web App</strong><br>
-        5. Set "Execute as" = <strong>Me</strong>, "Who has access" = <strong>Anyone</strong><br>
-        6. Click Deploy, copy the Web App URL and paste it below<br>
-        7. Click Save — you now have full read/write access!
+        2. Add a new sheet tab named exactly: <strong style="color:var(--accent);">Config</strong><br>
+        3. In the Config sheet, add these rows (col A = key, col B = value):<br>
+        &nbsp;&nbsp;&nbsp;Row 1: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">key</code> | <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">value</code> (headers)<br>
+        &nbsp;&nbsp;&nbsp;Row 2: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">alpaca_key</code> | your PK... key<br>
+        &nbsp;&nbsp;&nbsp;Row 3: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">alpaca_secret</code> | your secret<br>
+        &nbsp;&nbsp;&nbsp;Row 4: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">claude_key</code> | your sk-ant... key<br>
+        &nbsp;&nbsp;&nbsp;Row 5: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">grok_key</code> | your xai... key<br>
+        4. Click <strong>Extensions → Apps Script</strong><br>
+        5. Delete any existing code and paste the script below<br>
+        6. Click <strong>Deploy → New Deployment → Web App</strong><br>
+        7. Set "Execute as" = <strong>Me</strong>, "Who has access" = <strong>Anyone</strong><br>
+        8. Click Deploy, copy the Web App URL and paste it below<br>
+        ✅ Done — keys now load automatically on any device!
       </div>
 
       <div style="margin-bottom:16px;">
@@ -4552,9 +4600,15 @@ document.addEventListener('keydown', e => {
       </div>
 
       <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Secret Token <span style="color:var(--text3);font-weight:400;">(must match MERIDIAN_TOKEN in your Apps Script)</span></label>
+        <input id="script-token-input" type="password" value="${MERIDIAN_TOKEN}" placeholder="your_secret_password" autocomplete="off" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 10px;border-radius:3px;outline:none;">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Set the same password in your Apps Script: <code style="color:var(--accent2);background:var(--bg3);padding:1px 4px;border-radius:2px;">var MERIDIAN_TOKEN = 'your_secret_password';</code></div>
+      </div>
+
+      <div style="margin-bottom:16px;">
         <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Apps Script Code — Copy & Paste into Apps Script Editor</label>
-        <textarea readonly style="width:100%;height:200px;background:var(--bg3);border:1px solid var(--border);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:10px;border-radius:3px;outline:none;resize:none;line-height:1.6;">${getAppsScriptCode()}</textarea>
-        <button onclick="navigator.clipboard.writeText(document.querySelector('#db-settings-modal textarea').value);showDBToast('✓ Script copied to clipboard!')" style="margin-top:6px;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:0.1em;">📋 COPY SCRIPT</button>
+        <textarea id="apps-script-code-area" readonly style="width:100%;height:200px;background:var(--bg3);border:1px solid var(--border);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:10px;border-radius:3px;outline:none;resize:none;line-height:1.6;"></textarea>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('apps-script-code-area').value);showDBToast('✓ Script copied to clipboard!')" style="margin-top:6px;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--accent2);font-family:var(--mono);font-size:10px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:0.1em;">📋 COPY SCRIPT</button>
       </div>
 
       <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -4563,19 +4617,81 @@ document.addEventListener('keydown', e => {
       </div>
     </div>`;
     document.body.appendChild(modal);
+    // Populate script textarea directly after DOM insertion
+    const _ta = document.getElementById('apps-script-code-area');
+    if (_ta) _ta.value = getAppsScriptCode();
   }
 
   function saveScriptURL() {
-    const url = document.getElementById('script-url-input').value.trim();
+    const url = document.getElementById('script-url-input')?.value.trim();
+    const token = document.getElementById('script-token-input')?.value.trim();
+    if (!url) { showDBToast('Please enter your Apps Script URL', 'warn'); return; }
     APPS_SCRIPT_URL = url;
     localStorage.setItem('meridian_script_url', url);
+    if (token) {
+      MERIDIAN_TOKEN = token;
+      localStorage.setItem('meridian_token', token);
+    }
     document.getElementById('db-settings-modal')?.remove();
-    showDBToast('✓ Apps Script URL saved!');
+    showDBToast('✓ URL and token saved!');
+    setTimeout(() => loadTickersFromSheet(), 500);
   }
 
   function getAppsScriptCode() {
-    return `function doPost(e) {
+    return `// Meridian Apps Script — handles both GET (read) and POST (write)
+
+// ---- SET YOUR SECRET TOKEN HERE ----
+var MERIDIAN_TOKEN = 'change_this_to_your_own_password';
+
+function checkToken(e) {
+  var token = (e.parameter && e.parameter.token) || '';
+  return token === MERIDIAN_TOKEN;
+}
+
+function doGet(e) {
+  if (!checkToken(e)) {
+    return jsonResponse({ status: 'error', message: 'Unauthorized' });
+  }
+  var action = e.parameter.action;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Return config key/value pairs from Config sheet
+  if (action === 'getConfig') {
+    var sheet = ss.getSheetByName('Config');
+    if (!sheet) return jsonResponse({ status: 'error', message: 'Config sheet not found' });
+    var data = sheet.getDataRange().getValues();
+    var config = {};
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0]) config[data[i][0]] = data[i][1];
+    }
+    return jsonResponse({ status: 'ok', config: config });
+  }
+
+  // Return all rows from a sheet as JSON
+  if (action === 'getSheet') {
+    var tab = e.parameter.tab;
+    var sheet = ss.getSheetByName(tab);
+    if (!sheet) return jsonResponse({ status: 'error', message: 'Sheet not found' });
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var rows = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = {};
+      headers.forEach(function(h, j) { row[h] = data[i][j]; });
+      row._id = i + 1;
+      rows.push(row);
+    }
+    return jsonResponse({ status: 'ok', rows: rows });
+  }
+
+  return jsonResponse({ status: 'error', message: 'Unknown action' });
+}
+
+function doPost(e) {
   var data = JSON.parse(e.postData.contents);
+  if (data.token !== MERIDIAN_TOKEN) {
+    return jsonResponse({ status: 'error', message: 'Unauthorized' });
+  }
   var action = data.action;
   var tab = data.tab;
   var row = data.data;
@@ -4595,10 +4711,74 @@ document.addEventListener('keydown', e => {
     sheet.deleteRow(parseInt(row._id));
   }
 
+  return jsonResponse({ status: 'ok' });
+}
+
+function jsonResponse(obj) {
   return ContentService.createTextOutput(
-    JSON.stringify({ status: 'ok' })
+    JSON.stringify(obj)
   ).setMimeType(ContentService.MimeType.JSON);
 }`;
+  }
+
+  // ============================================================
+  // CONFIG — Load API keys from Google Sheets Config tab
+  // ============================================================
+  async function loadConfigFromSheets() {
+    const scriptUrl = localStorage.getItem('meridian_script_url');
+    if (!scriptUrl) return;
+
+    try {
+      const res = await fetch(`${scriptUrl}?action=getConfig&token=${encodeURIComponent(MERIDIAN_TOKEN||localStorage.getItem("meridian_token")||"")}`, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.config) return;
+
+      const cfg = data.config;
+      let loaded = [];
+
+      // Alpaca keys
+      if (cfg.alpaca_key && cfg.alpaca_key.trim()) {
+        alpacaKeyId = cfg.alpaca_key.trim();
+        localStorage.setItem('meridian_alpaca_key', alpacaKeyId);
+        loaded.push('Alpaca');
+      }
+      if (cfg.alpaca_secret && cfg.alpaca_secret.trim()) {
+        alpacaSecret = cfg.alpaca_secret.trim();
+        localStorage.setItem('meridian_alpaca_secret', alpacaSecret);
+      }
+
+      // Claude key
+      if (cfg.claude_key && cfg.claude_key.trim()) {
+        adminAPIKey = cfg.claude_key.trim();
+        localStorage.setItem('meridian_api_key', adminAPIKey);
+        loaded.push('Claude');
+      }
+
+      // Grok key
+      if (cfg.grok_key && cfg.grok_key.trim()) {
+        grokAPIKey = cfg.grok_key.trim();
+        localStorage.setItem('meridian_grok_key', grokAPIKey);
+        loaded.push('Grok');
+      }
+
+      if (loaded.length > 0) {
+        showDBToast(`✓ Config loaded from Sheets — ${loaded.join(', ')}`);
+        // Update all badges
+        if (typeof initNewsBadge === 'function') initNewsBadge();
+        if (typeof setPriceFeedBadge === 'function') setPriceFeedBadge(alpacaKeyId ? 'alpaca-rest' : 'yahoo');
+        // Refresh splash market data with Alpaca now available
+        if (typeof loadSplashMarketData === 'function') loadSplashMarketData();
+        // If news tab is already open, re-fetch with Alpaca
+        const newsSection = document.getElementById('tab-news');
+        if (newsSection && newsSection.classList.contains('active')) {
+          allArticles = [];
+          fetchAllNews();
+        }
+      }
+    } catch(e) {
+      // Silent fail — keys stay from localStorage
+    }
   }
 
   // ---- Auto-load on tab open ----
@@ -4609,11 +4789,24 @@ document.addEventListener('keydown', e => {
       loadTickersFromSheet();
       setTimeout(makeTickersBadgesClickable, 2000);
     }
-    if (id === 'charts') { buildQuickTickers(); syncCTPanel(); refreshAlpacaData(); }
+    if (id === 'charts') {
+      syncCTPanel();
+      refreshAlpacaData();
+      // Load SPX by default if no chart is loaded yet
+      if (!currentChartTicker) loadChartTicker('SPX');
+    }
     if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'optionschain') { buildQuickTickers(); }
-    if (id === 'news' && allArticles.length === 0) fetchAllNews();
+    if (id === 'news') {
+      initNewsBadge();
+      if (allArticles.length === 0) {
+        if (!alpacaKeyId) alpacaKeyId = localStorage.getItem('meridian_alpaca_key') || '';
+        if (!alpacaSecret) alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
+        initNewsBadge();
+        fetchAllNews();
+      }
+    }
   };
 
   // ============================================================
@@ -4727,8 +4920,9 @@ document.addEventListener('keydown', e => {
 
   // Build quick-ticker buttons with sections
   function buildQuickTickers() {
+    // Only used by Options Chain tab now
     const container = document.getElementById('chart-quick-tickers');
-    if (!container) return;
+    if (!container) return; // Charts tab no longer has this element
 
     const btnStyle = (color='0,212,255') => `background:rgba(${color},0.06);border:1px solid rgba(${color},0.15);color:var(--text2);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.15s;`;
 
@@ -4842,9 +5036,6 @@ document.addEventListener('keydown', e => {
         hide_volume: !showVol,
       });
 
-      // Fetch quote stats
-      fetchQuoteStats(ticker);
-
       // Show analyze button
       const analyzeBar = document.getElementById('chart-analyze-bar');
       if (analyzeBar) analyzeBar.style.display = 'flex';
@@ -4870,29 +5061,6 @@ document.addEventListener('keydown', e => {
   }
 
   // Fetch quote stats — uses live price cache if available
-  async function fetchQuoteStats(ticker) {
-    try {
-      // Use cached data if available
-      let data = livePriceCache[ticker]?.data;
-      if (!data) data = await fetchLivePrice(ticker);
-      if (!data) return;
-
-      const fmt = n => n != null ? `$${Number(n).toFixed(2)}` : '—';
-      const fmtB = n => n ? (n >= 1e12 ? `$${(n/1e12).toFixed(2)}T` : n >= 1e9 ? `$${(n/1e9).toFixed(2)}B` : `$${(n/1e6).toFixed(0)}M`) : '—';
-      const fmtV = n => n ? (n >= 1e6 ? `${(n/1e6).toFixed(1)}M` : `${(n/1e3).toFixed(0)}K`) : '—';
-
-      document.getElementById('chart-stat-price').textContent = fmt(data.price);
-      const changeEl = document.getElementById('chart-stat-change');
-      changeEl.textContent = `${data.change >= 0 ? '+' : ''}${fmt(data.change)} (${data.changePct >= 0 ? '+' : ''}${data.changePct.toFixed(2)}%)`;
-      changeEl.style.color = data.change >= 0 ? 'var(--green)' : 'var(--red)';
-      document.getElementById('chart-stat-high').textContent = fmt(data.high52);
-      document.getElementById('chart-stat-low').textContent = fmt(data.low52);
-      document.getElementById('chart-stat-vol').textContent = fmtV(data.vol);
-      document.getElementById('chart-stat-mktcap').textContent = fmtB(data.mktcap);
-    } catch(e) {
-      // Fail silently — chart still works
-    }
-  }
 
   // Set timeframe
   function setTimeframe(tf) {
@@ -4953,7 +5121,6 @@ document.addEventListener('keydown', e => {
   }
 
   // Init
-  buildQuickTickers();
 
   // ============================================================
   // BUBBLE CHARTS — D3.js
@@ -5507,6 +5674,9 @@ document.addEventListener('keydown', e => {
   // ============================================================
   // LIVE PRICE AUTO-UPDATES
   // ============================================================
+  // Note: alpacaKeyId, alpacaSecret, ALPACA_PAPER_URL, ALPACA_DATA_URL
+  // are declared as globals at the top of the first script block.
+
   let livePriceInterval = null;
   let livePriceCache = {};
   let alpacaWS = null;
@@ -7493,11 +7663,8 @@ Be direct and specific. Search the web for current data on each.`;
   // ============================================================
   // ALPACA PAPER TRADING
   // ============================================================
-  const ALPACA_PAPER_URL = 'https://paper-api.alpaca.markets';
-  const ALPACA_DATA_URL = 'https://data.alpaca.markets';
-
-  let alpacaKeyId = localStorage.getItem('meridian_alpaca_key') || '';
-  let alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
+  // Note: ALPACA_PAPER_URL, ALPACA_DATA_URL, alpacaKeyId, alpacaSecret
+  // are declared as globals at the top of the first script block.
   let alpacaOrderSide = 'buy';
   let alpacaCurrentQuote = null;
 
