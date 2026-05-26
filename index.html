@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.5 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.6 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -787,13 +787,13 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v3.5 &mdash; May 25 2026</span>
+    <span>v3.6 &mdash; May 25 2026</span>
   </div>
 </header>
 
 <nav class="nav">
   <div class="nav-tab active" onclick="showTab('tracker')">01 &mdash; Stock Tracker</div>
-  <div class="nav-tab" onclick="showTab('charts')">02 &mdash; Charts</div>
+  <div class="nav-tab" onclick="showTab('charts')">02 &mdash; Charts + Trading</div>
   <div class="nav-tab" onclick="showTab('performance')">03 &mdash; Performance</div>
   <div class="nav-tab" onclick="showTab('bubbles')">04 &mdash; Bubble Charts</div>
   <div class="nav-tab" onclick="showTab('ipo')">05 &mdash; IPO Calendar</div>
@@ -805,8 +805,7 @@ document.addEventListener('keydown', e => {
   <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
   <div class="nav-tab" onclick="showTab('options')">12 &mdash; Options Education</div>
   <div class="nav-tab" onclick="showTab('optionschain')">13 &mdash; Options Chain</div>
-  <div class="nav-tab" onclick="showTab('trading')">14 &mdash; 📈 Trading</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">15 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">14 &mdash; Roadmap</div>
   <div class="nav-tab" id="admin-nav-tab" onclick="showAdminPanel()" style="color:var(--text3);border-left:1px solid var(--border);margin-left:8px;padding-left:16px;">🔐 Admin</div>
 </nav>
 
@@ -911,12 +910,13 @@ document.addEventListener('keydown', e => {
   <section class="section" id="tab-charts">
     <div class="section-header">
       <div>
-        <div class="section-title">Candlestick <span>Charts</span></div>
-        <div class="section-sub">Click any ticker in the Stock Tracker to load its chart here</div>
+        <div class="section-title">Charts <span>+ Trading</span></div>
+        <div class="section-sub">Live charts with integrated paper trading — click any ticker to load · place orders from the panel</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span id="chart-ticker-label" style="font-family:var(--sans);font-size:20px;font-weight:800;color:var(--accent);">—</span>
         <span id="chart-company-label" style="color:var(--text2);font-size:12px;"></span>
+        <span id="alp-mode-badge" style="background:rgba(255,184,48,0.15);color:var(--warn);border:1px solid rgba(255,184,48,0.3);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:0.1em;display:none;">📋 PAPER</span>
       </div>
     </div>
 
@@ -1076,6 +1076,133 @@ document.addEventListener('keydown', e => {
 
     <div style="margin-top:12px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
       ℹ Charts powered by TradingView Advanced Chart widget. Data is delayed 15 minutes for US equities. Click and drag to pan, scroll to zoom. Use the timeframe buttons above to switch intervals. Enter any ticker in the custom field to chart any public stock.
+    </div>
+
+    <!-- ═══ INTEGRATED TRADING PANEL ═══ -->
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start;">
+
+      <!-- Left: Positions + Orders -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        <!-- Account stats strip -->
+        <div id="ct-account-strip" style="display:none;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <div class="stat-card"><div class="stat-label">Portfolio Value</div><div class="stat-value accent" id="ct-portfolio-value">—</div></div>
+          <div class="stat-card"><div class="stat-label">Buying Power</div><div class="stat-value green" id="ct-buying-power">—</div></div>
+          <div class="stat-card"><div class="stat-label">Today P&L</div><div class="stat-value" id="ct-today-pl">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value" id="ct-total-return">—</div></div>
+        </div>
+
+        <!-- Positions -->
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span>📂 OPEN POSITIONS</span>
+            <button onclick="refreshAlpacaData();syncCTPanel()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-family:var(--mono);font-size:10px;padding:0;">↺ refresh</button>
+          </div>
+          <div id="ct-positions-empty" style="padding:12px;text-align:center;color:var(--text3);font-size:11px;border:1px dashed var(--border);border-radius:3px;">No positions · Connect Alpaca in the Trading tab</div>
+          <div class="table-wrap" id="ct-positions-wrap" style="display:none;">
+            <table style="width:100%;font-size:11px;">
+              <thead><tr><th>Symbol</th><th>Qty</th><th>Avg</th><th>Current</th><th>P&L</th><th>P&L %</th><th>Actions</th></tr></thead>
+              <tbody id="ct-positions-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Open orders -->
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warn);margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border);">⏳ OPEN ORDERS</div>
+          <div id="ct-orders-empty" style="padding:12px;text-align:center;color:var(--text3);font-size:11px;border:1px dashed var(--border);border-radius:3px;">No open orders</div>
+          <div class="table-wrap" id="ct-orders-wrap" style="display:none;">
+            <table style="width:100%;font-size:11px;">
+              <thead><tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Limit</th><th>Status</th><th></th></tr></thead>
+              <tbody id="ct-orders-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Compact order entry -->
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;position:sticky;top:20px;">
+        <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+          <span>Place Order</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--warn);background:rgba(255,184,48,0.1);padding:2px 8px;border-radius:2px;">PAPER</span>
+        </div>
+
+        <!-- Symbol — auto-fills from chart -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Symbol</div>
+          <div style="display:flex;gap:5px;">
+            <input id="ct-symbol" type="text" placeholder="HAWK" autocomplete="off"
+              style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;font-weight:700;padding:6px 8px;border-radius:3px;outline:none;text-transform:uppercase;letter-spacing:0.1em;"
+              oninput="this.value=this.value.toUpperCase()" onchange="fetchOrderQuote(this.value);document.getElementById('alp-order-symbol').value=this.value">
+            <button onclick="fetchOrderQuote(document.getElementById('ct-symbol').value);document.getElementById('alp-order-symbol').value=document.getElementById('ct-symbol').value"
+              style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:6px 8px;cursor:pointer;border-radius:3px;">Q</button>
+          </div>
+          <div id="ct-quote" style="font-size:11px;color:var(--text3);margin-top:4px;min-height:14px;"></div>
+        </div>
+
+        <!-- Side -->
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;gap:5px;">
+            <button onclick="setOrderSide('buy');setCTSide('buy')" id="ct-side-buy"
+              style="flex:1;background:rgba(46,213,115,0.15);border:1px solid rgba(46,213,115,0.4);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;padding:7px;cursor:pointer;border-radius:3px;">▲ BUY</button>
+            <button onclick="setOrderSide('sell');setCTSide('sell')" id="ct-side-sell"
+              style="flex:1;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:12px;font-weight:700;padding:7px;cursor:pointer;border-radius:3px;">▼ SELL</button>
+          </div>
+        </div>
+
+        <!-- Type + Qty -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Type</div>
+            <select id="ct-type" onchange="document.getElementById('alp-order-type').value=this.value;updateOrderTypeFields()"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:3px;outline:none;">
+              <option value="market">Market</option>
+              <option value="limit">Limit</option>
+              <option value="stop">Stop</option>
+              <option value="stop_limit">Stop Limit</option>
+              <option value="trailing_stop">Trailing Stop</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Shares</div>
+            <input id="ct-qty" type="number" min="1" placeholder="10"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;"
+              oninput="document.getElementById('alp-order-qty').value=this.value;updateOrderTotal()">
+          </div>
+        </div>
+
+        <!-- Limit price (shown when needed) -->
+        <div id="ct-limit-row" style="display:none;margin-bottom:10px;">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Limit Price</div>
+          <input id="ct-limit" type="number" step="0.01" placeholder="0.00"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;"
+            oninput="document.getElementById('alp-order-limit').value=this.value">
+        </div>
+
+        <!-- Stop price (shown when needed) -->
+        <div id="ct-stop-row" style="display:none;margin-bottom:10px;">
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Stop Price</div>
+          <input id="ct-stop" type="number" step="0.01" placeholder="0.00"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;"
+            oninput="document.getElementById('alp-order-stop').value=this.value">
+        </div>
+
+        <!-- Estimated total -->
+        <div id="ct-total" style="padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--text2);margin-bottom:10px;min-height:30px;">
+          Enter symbol + shares
+        </div>
+
+        <!-- Submit -->
+        <button onclick="syncCTToMain();confirmAndPlaceOrder()" id="ct-submit-btn"
+          style="width:100%;background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.35);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;padding:10px;cursor:pointer;border-radius:4px;letter-spacing:0.1em;transition:all 0.2s;"
+          onmouseover="this.style.background='rgba(46,213,115,0.2)'" onmouseout="this.style.background='rgba(46,213,115,0.12)'">
+          PLACE PAPER ORDER
+        </button>
+
+        <div style="margin-top:8px;font-size:9px;color:var(--text3);text-align:center;">
+          ⚙ Full order settings in <span style="color:var(--accent);cursor:pointer;" onclick="openAlpacaSettings()">API Setup</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2807,201 +2934,6 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
-  <!-- TAB 14: TRADING -->
-  <section class="section" id="tab-trading">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Paper <span>Trading</span></div>
-        <div class="section-sub">Alpaca paper trading — simulate trades with $100K virtual buying power · No real money</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span id="alp-mode-badge" style="background:rgba(255,184,48,0.15);color:var(--warn);border:1px solid rgba(255,184,48,0.3);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:0.1em;">📋 PAPER MODE</span>
-        <button onclick="openAlpacaSettings()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">⚙ API SETUP</button>
-        <button onclick="refreshAlpacaData()" id="alp-refresh-btn" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">↺ REFRESH</button>
-      </div>
-    </div>
-
-    <!-- Account stats -->
-    <div class="stats-row" style="margin-bottom:16px;">
-      <div class="stat-card"><div class="stat-label">Portfolio Value</div><div class="stat-value accent" id="alp-portfolio-value">—</div></div>
-      <div class="stat-card"><div class="stat-label">Buying Power</div><div class="stat-value green" id="alp-buying-power">—</div></div>
-      <div class="stat-card"><div class="stat-label">Today's P&L</div><div class="stat-value" id="alp-today-pl">—</div></div>
-      <div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value" id="alp-total-return">—</div></div>
-      <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value" id="alp-position-count">—</div></div>
-      <div class="stat-card"><div class="stat-label">Open Orders</div><div class="stat-value warn" id="alp-order-count">—</div></div>
-    </div>
-
-    <!-- Setup prompt (shown when no API key) -->
-    <div id="alp-setup-prompt" style="padding:40px;text-align:center;border:1px dashed var(--border);border-radius:4px;margin-bottom:20px;">
-      <div style="font-size:32px;margin-bottom:12px;">📋</div>
-      <div style="font-family:var(--sans);font-size:18px;font-weight:700;color:var(--warn);margin-bottom:8px;">Connect Alpaca Paper Trading</div>
-      <div style="font-size:12px;color:var(--text2);max-width:400px;margin:0 auto 20px;line-height:1.8;">
-        Get your free paper trading API keys at <a href="https://alpaca.markets" target="_blank" style="color:var(--accent);">alpaca.markets</a><br>
-        Go to Paper Trading → Your API Keys → Generate New Key<br>
-        Then click API SETUP above to enter your credentials.
-      </div>
-      <button onclick="openAlpacaSettings()" style="background:rgba(255,184,48,0.1);border:1px solid rgba(255,184,48,0.3);color:var(--warn);font-family:var(--mono);font-size:12px;padding:10px 24px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">⚙ CONNECT ALPACA</button>
-    </div>
-
-    <!-- Main trading layout (shown when connected) -->
-    <div id="alp-main" style="display:none;">
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
-
-        <!-- Left: Positions + Orders + History -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-
-          <!-- Open Positions -->
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📂 OPEN POSITIONS</div>
-            <div id="alp-positions-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No open positions</div>
-            <div class="table-wrap" id="alp-positions-wrap" style="display:none;">
-              <table id="alp-positions-table" style="width:100%;">
-                <thead>
-                  <tr>
-                    <th>Symbol</th><th>Qty</th><th>Avg Cost</th><th>Current</th><th>Market Val</th><th>Unrealized P&L</th><th>P&L %</th><th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="alp-positions-body"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Open Orders -->
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warn);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">⏳ OPEN ORDERS</div>
-            <div id="alp-orders-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No open orders</div>
-            <div class="table-wrap" id="alp-orders-wrap" style="display:none;">
-              <table id="alp-orders-table" style="width:100%;">
-                <thead>
-                  <tr><th>Symbol</th><th>Side</th><th>Type</th><th>Qty</th><th>Limit</th><th>Stop</th><th>Status</th><th>Actions</th></tr>
-                </thead>
-                <tbody id="alp-orders-body"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Trade History -->
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📜 RECENT ACTIVITY</div>
-            <div id="alp-history-empty" style="padding:20px;text-align:center;color:var(--text3);font-size:12px;border:1px dashed var(--border);border-radius:3px;">No recent activity</div>
-            <div class="table-wrap" id="alp-history-wrap" style="display:none;">
-              <table style="width:100%;">
-                <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Value</th></tr></thead>
-                <tbody id="alp-history-body"></tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Right: Order entry panel -->
-        <div>
-          <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:16px;position:sticky;top:20px;">
-            <div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;">Place Order</div>
-
-            <!-- Symbol -->
-            <div style="margin-bottom:12px;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Symbol</label>
-              <div style="display:flex;gap:6px;">
-                <input id="alp-order-symbol" type="text" placeholder="HAWK" autocomplete="off"
-                  style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:14px;font-weight:700;padding:8px 10px;border-radius:3px;outline:none;text-transform:uppercase;letter-spacing:0.1em;"
-                  oninput="this.value=this.value.toUpperCase()" onchange="fetchOrderQuote(this.value)">
-                <button onclick="fetchOrderQuote(document.getElementById('alp-order-symbol').value)"
-                  style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 10px;cursor:pointer;border-radius:3px;">QUOTE</button>
-              </div>
-              <div id="alp-order-quote" style="margin-top:6px;font-size:11px;color:var(--text3);min-height:16px;"></div>
-            </div>
-
-            <!-- Side -->
-            <div style="margin-bottom:12px;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Side</label>
-              <div style="display:flex;gap:6px;">
-                <button onclick="setOrderSide('buy')" id="alp-side-buy"
-                  style="flex:1;background:rgba(46,213,115,0.15);border:1px solid rgba(46,213,115,0.4);color:var(--green);font-family:var(--mono);font-size:12px;font-weight:700;padding:8px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;transition:all 0.2s;">
-                  ▲ BUY
-                </button>
-                <button onclick="setOrderSide('sell')" id="alp-side-sell"
-                  style="flex:1;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:12px;font-weight:700;padding:8px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;transition:all 0.2s;">
-                  ▼ SELL
-                </button>
-              </div>
-            </div>
-
-            <!-- Order Type -->
-            <div style="margin-bottom:12px;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Order Type</label>
-              <select id="alp-order-type" onchange="updateOrderTypeFields()"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">
-                <option value="market">Market</option>
-                <option value="limit">Limit</option>
-                <option value="stop">Stop</option>
-                <option value="stop_limit">Stop Limit</option>
-                <option value="trailing_stop">Trailing Stop</option>
-              </select>
-            </div>
-
-            <!-- Qty -->
-            <div style="margin-bottom:12px;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Quantity (shares)</label>
-              <input id="alp-order-qty" type="number" min="1" placeholder="10"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;"
-                oninput="updateOrderTotal()">
-            </div>
-
-            <!-- Limit price (conditional) -->
-            <div id="alp-limit-field" style="margin-bottom:12px;display:none;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Limit Price</label>
-              <input id="alp-order-limit" type="number" step="0.01" placeholder="0.00"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
-            </div>
-
-            <!-- Stop price (conditional) -->
-            <div id="alp-stop-field" style="margin-bottom:12px;display:none;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Stop Price</label>
-              <input id="alp-order-stop" type="number" step="0.01" placeholder="0.00"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
-            </div>
-
-            <!-- Trail % (conditional) -->
-            <div id="alp-trail-field" style="margin-bottom:12px;display:none;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Trail % (e.g. 5 = 5%)</label>
-              <input id="alp-order-trail" type="number" step="0.1" min="0.1" placeholder="5"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
-            </div>
-
-            <!-- Time in force -->
-            <div style="margin-bottom:14px;">
-              <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;">Time in Force</label>
-              <select id="alp-order-tif"
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">
-                <option value="day">Day (expires EOD)</option>
-                <option value="gtc">GTC (Good Till Cancelled)</option>
-                <option value="ioc">IOC (Immediate or Cancel)</option>
-                <option value="fok">FOK (Fill or Kill)</option>
-              </select>
-            </div>
-
-            <!-- Order total estimate -->
-            <div id="alp-order-total" style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--text2);margin-bottom:14px;min-height:36px;line-height:1.6;">
-              Enter symbol and quantity to see estimate
-            </div>
-
-            <!-- Submit button -->
-            <button onclick="confirmAndPlaceOrder()" id="alp-submit-btn"
-              style="width:100%;background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.35);color:var(--green);font-family:var(--mono);font-size:13px;font-weight:700;padding:12px;cursor:pointer;border-radius:4px;letter-spacing:0.1em;transition:all 0.2s;"
-              onmouseover="this.style.background='rgba(46,213,115,0.2)'" onmouseout="this.style.background='rgba(46,213,115,0.12)'">
-              PLACE PAPER ORDER
-            </button>
-
-            <div style="margin-top:8px;font-size:10px;color:var(--text3);text-align:center;">
-              📋 Paper trading only — no real money
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- TAB 15: ROADMAP -->
   <section class="section" id="tab-roadmap">
     <div class="section-header">
@@ -3016,7 +2948,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.5 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.6 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -4677,11 +4609,10 @@ document.addEventListener('keydown', e => {
       loadTickersFromSheet();
       setTimeout(makeTickersBadgesClickable, 2000);
     }
-    if (id === 'charts') buildQuickTickers();
+    if (id === 'charts') { buildQuickTickers(); syncCTPanel(); refreshAlpacaData(); }
     if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'optionschain') { buildQuickTickers(); }
-    if (id === 'trading') refreshAlpacaData();
     if (id === 'news' && allArticles.length === 0) fetchAllNews();
   };
 
@@ -4918,6 +4849,9 @@ document.addEventListener('keydown', e => {
       const analyzeBar = document.getElementById('chart-analyze-bar');
       if (analyzeBar) analyzeBar.style.display = 'flex';
       document.getElementById('chart-analysis-results').style.display = 'none';
+
+      // Auto-fill CT trading panel with current ticker
+      syncCTSymbol(ticker);
     };
     script.onerror = () => {
       document.getElementById('chart-loading').style.display = 'none';
@@ -7664,6 +7598,7 @@ Be direct and specific. Search the web for current data on each.`;
       renderAlpacaPositions(positions);
       renderAlpacaOrders(orders);
       renderAlpacaHistory(activities);
+      syncCTPanel(); // Mirror data to Charts+Trading panel
 
       showDBToast('✓ Alpaca data refreshed');
     } catch(e) {
@@ -7971,16 +7906,18 @@ Be direct and specific. Search the web for current data on each.`;
 
   // Quick trade from tracker
   function quickTrade(symbol, side) {
-    // Switch to trading tab
+    // Switch to charts+trading tab
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-trading')?.classList.add('active');
-    document.querySelector('.nav-tab[onclick*="trading"]')?.classList.add('active');
-    // Pre-fill form
-    const symbolInput = document.getElementById('alp-order-symbol');
-    if (symbolInput) { symbolInput.value = symbol; fetchOrderQuote(symbol); }
-    setOrderSide(side);
-    document.getElementById('alp-order-qty')?.focus();
+    document.getElementById('tab-charts')?.classList.add('active');
+    document.querySelector('.nav-tab[onclick*="charts"]')?.classList.add('active');
+    // Pre-fill CT panel
+    const symbolInput = document.getElementById('ct-symbol');
+    if (symbolInput) { symbolInput.value = symbol; }
+    setOrderSide(side); setCTSide(side);
+    syncCTSymbol(symbol);
+    document.getElementById('ct-qty')?.focus();
+    syncCTPanel();
   }
 
   // Auto-init when tab opens
@@ -8194,6 +8131,163 @@ Be specific with price levels. Not investment advice — educational analysis on
     localStorage.setItem('meridian-notes', JSON.stringify(notes));
     showDBToast(`📝 Analysis saved to Research Notes`);
   }
+
+  // ============================================================
+  // CHARTS + TRADING — Integrated Panel Sync
+  // ============================================================
+
+  function setCTSide(side) {
+    const buy = document.getElementById('ct-side-buy');
+    const sell = document.getElementById('ct-side-sell');
+    const submit = document.getElementById('ct-submit-btn');
+    if (side === 'buy') {
+      if (buy) { buy.style.background='rgba(46,213,115,0.15)'; buy.style.borderColor='rgba(46,213,115,0.4)'; buy.style.color='var(--green)'; }
+      if (sell) { sell.style.background='transparent'; sell.style.borderColor='var(--border)'; sell.style.color='var(--text3)'; }
+      if (submit) { submit.style.color='var(--green)'; submit.style.borderColor='rgba(46,213,115,0.35)'; submit.style.background='rgba(46,213,115,0.12)'; }
+    } else {
+      if (sell) { sell.style.background='rgba(255,71,87,0.15)'; sell.style.borderColor='rgba(255,71,87,0.4)'; sell.style.color='var(--red)'; }
+      if (buy) { buy.style.background='transparent'; buy.style.borderColor='var(--border)'; buy.style.color='var(--text3)'; }
+      if (submit) { submit.style.color='var(--red)'; submit.style.borderColor='rgba(255,71,87,0.35)'; submit.style.background='rgba(255,71,87,0.12)'; }
+    }
+  }
+
+  // Sync CT fields → main order panel before placing
+  function syncCTToMain() {
+    const sym = document.getElementById('ct-symbol')?.value;
+    const qty = document.getElementById('ct-qty')?.value;
+    const type = document.getElementById('ct-type')?.value;
+    const limit = document.getElementById('ct-limit')?.value;
+    const stop = document.getElementById('ct-stop')?.value;
+    if (sym) document.getElementById('alp-order-symbol').value = sym;
+    if (qty) document.getElementById('alp-order-qty').value = qty;
+    if (type) document.getElementById('alp-order-type').value = type;
+    if (limit) document.getElementById('alp-order-limit').value = limit;
+    if (stop) document.getElementById('alp-order-stop').value = stop;
+    updateOrderTypeFields();
+    updateOrderTotal();
+  }
+
+  // Sync CT order type fields visibility
+  function syncCTTypeFields() {
+    const type = document.getElementById('ct-type')?.value;
+    const limitRow = document.getElementById('ct-limit-row');
+    const stopRow = document.getElementById('ct-stop-row');
+    if (limitRow) limitRow.style.display = (type === 'limit' || type === 'stop_limit') ? 'block' : 'none';
+    if (stopRow) stopRow.style.display = (type === 'stop' || type === 'stop_limit') ? 'block' : 'none';
+  }
+
+  // Sync quote display to CT panel
+  function updateCTQuote(ticker, data) {
+    const quoteEl = document.getElementById('ct-quote');
+    const totalEl = document.getElementById('ct-total');
+    if (!quoteEl || !data) return;
+    const up = data.change >= 0;
+    quoteEl.innerHTML = `<span style="color:var(--accent);font-weight:700;">$${data.price.toFixed(2)}</span> <span style="color:${up?'var(--green)':'var(--red)'};">${up?'+':''}${data.changePct.toFixed(2)}%</span>`;
+    // Update total estimate
+    const qty = parseFloat(document.getElementById('ct-qty')?.value || 0);
+    if (qty > 0 && totalEl) {
+      const est = data.price * qty;
+      totalEl.innerHTML = `Est: <strong style="color:var(--accent);">$${est.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong> · ${qty} × $${data.price.toFixed(2)}`;
+    }
+  }
+
+  // Auto-fill CT symbol when chart loads
+  function syncCTSymbol(ticker) {
+    const input = document.getElementById('ct-symbol');
+    if (input) {
+      input.value = ticker;
+      // Fetch quote and show in CT panel
+      fetchLivePrice(ticker).then(data => {
+        if (data) {
+          alpacaCurrentQuote = data.price;
+          updateCTQuote(ticker, data);
+          document.getElementById('alp-order-symbol').value = ticker;
+          updateOrderTotal();
+        }
+      });
+    }
+  }
+
+  // Sync positions and orders from Alpaca data to CT panel
+  function syncCTPanel() {
+    // Account strip
+    const strip = document.getElementById('ct-account-strip');
+    const pvEl = document.getElementById('ct-portfolio-value');
+    const bpEl = document.getElementById('ct-buying-power');
+    const plEl = document.getElementById('ct-today-pl');
+    const retEl = document.getElementById('ct-total-return');
+
+    // Read from main trading tab elements
+    if (strip && document.getElementById('alp-portfolio-value')?.textContent !== '—') {
+      strip.style.display = 'grid';
+      if (pvEl) pvEl.textContent = document.getElementById('alp-portfolio-value')?.textContent || '—';
+      if (bpEl) bpEl.textContent = document.getElementById('alp-buying-power')?.textContent || '—';
+      if (plEl) {
+        plEl.textContent = document.getElementById('alp-today-pl')?.textContent || '—';
+        plEl.style.color = document.getElementById('alp-today-pl')?.style.color || 'var(--text)';
+      }
+      if (retEl) {
+        retEl.textContent = document.getElementById('alp-total-return')?.textContent || '—';
+        retEl.style.color = document.getElementById('alp-total-return')?.style.color || 'var(--text)';
+      }
+    }
+
+    // Positions
+    const mainPosBody = document.getElementById('alp-positions-body');
+    const ctPosBody = document.getElementById('ct-positions-body');
+    const ctPosEmpty = document.getElementById('ct-positions-empty');
+    const ctPosWrap = document.getElementById('ct-positions-wrap');
+    if (ctPosBody && mainPosBody) {
+      if (mainPosBody.innerHTML.trim()) {
+        ctPosBody.innerHTML = mainPosBody.innerHTML;
+        if (ctPosEmpty) ctPosEmpty.style.display = 'none';
+        if (ctPosWrap) ctPosWrap.style.display = 'block';
+      } else {
+        if (ctPosEmpty) ctPosEmpty.style.display = 'block';
+        if (ctPosWrap) ctPosWrap.style.display = 'none';
+      }
+    }
+
+    // Orders
+    const mainOrdBody = document.getElementById('alp-orders-body');
+    const ctOrdBody = document.getElementById('ct-orders-body');
+    const ctOrdEmpty = document.getElementById('ct-orders-empty');
+    const ctOrdWrap = document.getElementById('ct-orders-wrap');
+    if (ctOrdBody && mainOrdBody) {
+      if (mainOrdBody.innerHTML.trim()) {
+        ctOrdBody.innerHTML = mainOrdBody.innerHTML;
+        if (ctOrdEmpty) ctOrdEmpty.style.display = 'none';
+        if (ctOrdWrap) ctOrdWrap.style.display = 'block';
+      } else {
+        if (ctOrdEmpty) ctOrdEmpty.style.display = 'block';
+        if (ctOrdWrap) ctOrdWrap.style.display = 'none';
+      }
+    }
+
+    // Show PAPER badge
+    const badge = document.getElementById('alp-mode-badge');
+    if (badge && (alpacaKeyId || localStorage.getItem('meridian_alpaca_key'))) {
+      badge.style.display = 'inline-block';
+    }
+  }
+
+  // Wire CT type dropdown
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctType = document.getElementById('ct-type');
+    if (ctType) ctType.addEventListener('change', syncCTTypeFields);
+    const ctQty = document.getElementById('ct-qty');
+    if (ctQty) ctQty.addEventListener('input', () => {
+      const sym = document.getElementById('ct-symbol')?.value;
+      if (sym && alpacaCurrentQuote) {
+        const qty = parseFloat(ctQty.value || 0);
+        const totalEl = document.getElementById('ct-total');
+        if (totalEl && qty > 0) {
+          const est = alpacaCurrentQuote * qty;
+          totalEl.innerHTML = `Est: <strong style="color:var(--accent);">$${est.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong> · ${qty} × $${alpacaCurrentQuote.toFixed(2)}`;
+        }
+      }
+    });
+  });
 
   // ---- Clock
   function updateClock() {
