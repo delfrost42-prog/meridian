@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.1 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.2 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -787,7 +787,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v3.1 &mdash; May 25 2026</span>
+    <span>v3.2 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -937,16 +937,77 @@ document.addEventListener('keydown', e => {
         ${['1D','1W','1M','3M','6M','1Y','5Y'].map((tf,i) => `
         <button onclick="setTimeframe('${tf}')" id="tf-${tf}" style="background:${i===3?'rgba(0,212,255,0.15)':'rgba(0,0,0,0)'};border:1px solid ${i===3?'rgba(0,212,255,0.4)':'var(--border)'};color:${i===3?'var(--accent)':'var(--text3)'};font-family:var(--mono);font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.2s;">${tf}</button>`).join('')}
       </div>
-      <div style="margin-left:16px;display:flex;gap:10px;align-items:center;">
-        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
-          <input type="checkbox" id="show-ma50" checked onchange="toggleMA()" style="cursor:pointer;"> <span style="color:#f59e0b;">50MA</span>
+    </div>
+
+    <!-- Indicators panel -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:3px;">
+      <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-right:4px;flex-shrink:0;">Indicators:</span>
+
+      <!-- Overlays (on price chart) -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:9px;color:var(--text3);letter-spacing:0.1em;">OVERLAYS:</span>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-ma50" checked onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#f59e0b;">
+          <span style="color:#f59e0b;">50 MA</span>
         </label>
-        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
-          <input type="checkbox" id="show-ma200" checked onchange="toggleMA()" style="cursor:pointer;"> <span style="color:#a78bfa;">200MA</span>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-ma200" checked onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#a78bfa;">
+          <span style="color:#a78bfa;">200 MA</span>
         </label>
-        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;cursor:pointer;">
-          <input type="checkbox" id="show-volume" checked onchange="toggleVolume()" style="cursor:pointer;"> <span style="color:var(--text2);">Volume</span>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-ema20" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#34d399;">
+          <span style="color:#34d399;">20 EMA</span>
         </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-bb" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#60a5fa;">
+          <span style="color:#60a5fa;">BB</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-vwap" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#f472b6;">
+          <span style="color:#f472b6;">VWAP</span>
+        </label>
+      </div>
+
+      <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+
+      <!-- Oscillators (sub-pane) -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:9px;color:var(--text3);letter-spacing:0.1em;">OSCILLATORS:</span>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-rsi" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#fb923c;">
+          <span style="color:#fb923c;">RSI</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-macd" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#00d4ff;">
+          <span style="color:#00d4ff;">MACD</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-stoch" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#c084fc;">
+          <span style="color:#c084fc;">Stoch</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-atr" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#94a3b8;">
+          <span style="color:#94a3b8;">ATR</span>
+        </label>
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-obv" onchange="reloadChartIndicators()" style="cursor:pointer;accent-color:#4ade80;">
+          <span style="color:#4ade80;">OBV</span>
+        </label>
+      </div>
+
+      <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+
+      <!-- Volume + presets -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <label style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="show-volume" checked onchange="reloadChartIndicators()" style="cursor:pointer;">
+          <span style="color:var(--text2);">Volume</span>
+        </label>
+        <span style="font-size:9px;color:var(--text3);margin-left:4px;">PRESETS:</span>
+        <button onclick="applyIndicatorPreset('scalp')" style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.2);color:#fb923c;font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;" title="RSI + MACD + EMA20 + Volume">⚡ Scalp</button>
+        <button onclick="applyIndicatorPreset('swing')" style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);color:#60a5fa;font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;" title="50MA + 200MA + BB + RSI + Volume">📊 Swing</button>
+        <button onclick="applyIndicatorPreset('momentum')" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:#34d399;font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;" title="MACD + Stoch + OBV">🚀 Momentum</button>
+        <button onclick="applyIndicatorPreset('clean')" style="background:rgba(122,157,181,0.08);border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;">✕ Clean</button>
       </div>
     </div>
 
@@ -2928,7 +2989,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.1 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.2 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3347,8 +3408,102 @@ document.addEventListener('keydown', e => {
       </div>
     </div>
 
+    <!-- PYTHON BACKEND ROADMAP -->
+    <div style="margin-bottom:20px;margin-top:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#60a5fa; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        🐍 PYTHON BACKEND — When to Add It and Why
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(96,165,250,0.06); border:1px solid rgba(96,165,250,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Current architecture: pure HTML/JS frontend hosted on GitHub Pages — zero cost, zero servers, one file. A Python backend is NOT needed now and would add significant complexity. Add it only when specific capabilities require it. The right model: keep the HTML/JS frontend, add a small Python backend only for what it uniquely enables. Best framework: <strong style="color:#60a5fa;">FastAPI</strong> — lightweight, async, automatic API docs, deploys free on Railway or Render.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 1 — Scheduled Alerts</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">First reason to add Python</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you need price alerts sent to your phone/email even when Meridian isn't open. A browser tab can't run background jobs — Python can. A 20-line FastAPI script on Railway (free tier) checks prices every minute, compares against your watchlist targets, and fires SMS (Twilio) or email alerts. This is the first capability that genuinely requires a backend.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 2 — API Key Security</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Required for commercial launch</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Currently API keys (Alpaca, Claude, Grok) live in localStorage — fine for personal use, not acceptable for a commercial product with paying users. A Python backend acts as a proxy: Meridian calls your backend, your backend calls the APIs with server-side keys. Users never see the keys. Required before charging subscription fees to strangers.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 3 — Backtesting Engine</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Pandas + NumPy + Backtrader</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you want to test trading strategies against historical data — "if I had bought HAWK at IPO and sold covered calls every month, what would my return be?" JavaScript can't do this efficiently. Python with Pandas, NumPy, and Backtrader can backtest years of tick data in seconds. Results feed back into Meridian via an API endpoint and display in a new Backtesting tab.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 4 — ML Signal Detection</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">scikit-learn · PyTorch</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you want to add predictive models — pattern recognition on price data, sentiment scoring on news headlines, anomaly detection on options flow, or correlation analysis across your portfolio. Python's ML ecosystem (scikit-learn, PyTorch, HuggingFace) is unmatched for this. Train models on historical data, deploy predictions as API endpoints, display signals in Meridian.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 5 — Autonomous Agent</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude API · Alpaca · Scheduled</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The endgame — a Python process that runs 24/7, monitors news and price action, calls Claude to analyze signals, generates trade decisions, and executes via Alpaca — all without you being at the computer. This is Phase 5/6 of the trading roadmap. Browser-based JavaScript simply cannot do this. Python makes it possible with a scheduled task running on a $5/month server.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">The Hybrid Architecture</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Best of both worlds</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">
+            <strong style="color:#60a5fa;">Frontend (HTML/JS) — stays as-is:</strong> UI, charts, real-time display, user interaction, TradingView, D3, admin panel.<br><br>
+            <strong style="color:#60a5fa;">Backend (Python FastAPI) — added when needed:</strong> Scheduled jobs, API key proxying, backtesting, ML models, autonomous agent, commercial auth.<br><br>
+            Deploy backend free on <strong>Railway</strong> or <strong>Render</strong>. Connect to Meridian frontend via fetch() calls. Zero rewrite of existing code — pure addition.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v3.0 — a fully autonomous AI-powered investment research and trading terminal with options flow, dark pool monitoring, on-chain intelligence, and cross-chain transaction tracing. Commercially licensed, available on every device. Bloomberg Terminal meets Unusual Whales meets Nansen — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v4.0 — a fully autonomous AI-powered investment research and trading terminal. HTML/JS frontend on every device. Python backend running 24/7 autonomous agents, backtesting engines, and ML signal detection. Options flow, dark pool monitoring, on-chain intelligence. Commercially licensed at $20-50/month. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
+    </div>
+
+    <!-- AI CHART ANALYSIS ROADMAP -->
+    <div style="margin-bottom:20px;margin-top:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#e879f9; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        📸 AI CHART ANALYSIS — Claude + Grok Visual Chart Reading
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(232,121,249,0.06); border:1px solid rgba(232,121,249,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        Goal: add an "Analyze Chart" button to the Charts tab that screenshots the current TradingView chart and sends it directly to Claude Sonnet 4.6 and/or Grok-3 for visual analysis. Both models are multimodal — they can read charts, identify patterns, analyze indicator setups, and generate trade ideas from what they actually see. This closes the gap between visual chart analysis and AI reasoning entirely.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📸 Screenshot + Send</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">html2canvas · One button</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">An "Analyze Chart" button in the Charts tab captures the current TradingView chart using html2canvas (a free JS library). The screenshot is converted to base64 and sent directly to Claude or Grok via their respective APIs. No server needed — runs entirely in the browser. One click, instant AI analysis of whatever chart and indicators are currently displayed.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">🤖 Claude Vision Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">claude-sonnet-4-6 · Multimodal</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Claude Sonnet 4.6 is natively multimodal — send it a chart image and it identifies: trend direction, support/resistance levels, MA crossovers, RSI overbought/oversold, MACD divergence, Bollinger Band squeezes, chart patterns (head and shoulders, flags, wedges, double tops). Returns a structured analysis with pattern identification, key levels, and suggested options strategies. Response appears directly in the admin panel Chat tab with full smart button support.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #63b3ed; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">⚡ Grok Vision Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">grok-3 · xAI · Multimodal</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Grok-3 also supports image inputs via the xAI API. Send the same chart to Grok for a second opinion — Grok's real-time X/Twitter data access means it can combine visual chart analysis with current market sentiment simultaneously. "The chart shows a bull flag forming AND X is buzzing about a Golden Dome contract announcement" — that combination is genuinely unique.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">🔀 Dual Analysis Mode</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude + Grok simultaneously</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Same chart sent to both Claude and Grok simultaneously — responses appear side by side in the admin panel using the existing BOTH agent mode. Claude focuses on technical pattern analysis and options strategy. Grok adds real-time sentiment and social signal context. Together they give a more complete picture than either alone. One click, two perspectives.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📐 Strategy Builder</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Chart → Analysis → Trade</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The full workflow: load a chart → apply indicators → click Analyze → Claude/Grok identify the setup → smart buttons let you add to tracker, view options chain, or place a paper trade — all without leaving Meridian. Example: RSI divergence on HAWK + Grok sees defense contract news on X → Claude suggests a bull call spread → one click opens the options chain at the suggested strikes → another click pre-fills a paper trade. Full circle.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📚 Strategy Library</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Saved analysis · Pattern history</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Every chart analysis auto-saves to a Strategy Library tab — ticker, date, chart screenshot thumbnail, Claude/Grok analysis, and outcome (if you placed a paper trade). Over time builds a personal trading journal with AI commentary on every setup. Identify which patterns and strategies work best on your specific tickers. Connects to the backtesting engine when the Python backend is built.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v4.0 — a fully autonomous AI-powered investment research and trading terminal. HTML/JS frontend on every device. Python backend running 24/7 autonomous agents, backtesting engines, and ML signal detection. Options flow, dark pool monitoring, on-chain intelligence. Claude + Grok visual chart analysis with one-click strategy building. Commercially licensed at $20-50/month. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
     </div>
   </section>
 
@@ -4512,18 +4667,28 @@ document.addEventListener('keydown', e => {
     const tf = TF_INTERVAL_MAP[currentTimeframe] || TF_INTERVAL_MAP['3M'];
     const show50MA = document.getElementById('show-ma50')?.checked;
     const show200MA = document.getElementById('show-ma200')?.checked;
+    const showEMA20 = document.getElementById('show-ema20')?.checked;
+    const showBB = document.getElementById('show-bb')?.checked;
+    const showVWAP = document.getElementById('show-vwap')?.checked;
+    const showRSI = document.getElementById('show-rsi')?.checked;
+    const showMACD = document.getElementById('show-macd')?.checked;
+    const showStoch = document.getElementById('show-stoch')?.checked;
+    const showATR = document.getElementById('show-atr')?.checked;
+    const showOBV = document.getElementById('show-obv')?.checked;
     const showVol = document.getElementById('show-volume')?.checked;
-
-    // Disable MAs for crypto/forex/commodities (not meaningful)
-    const isCrypto = CRYPTO_TICKERS.has(ticker) || ticker.endsWith('USD');
-    if (isCrypto) {
-      const ma50 = document.getElementById('show-ma50');
-      const ma200 = document.getElementById('show-ma200');
-    }
+    const isCrypto = CRYPTO_TICKERS.has(ticker) || ticker.endsWith('USD') || ticker.includes('-USD');
 
     const studies = [];
-    if (show50MA && !isCrypto) studies.push('MASimple@tv-basicstudies');
+    if (show50MA && !isCrypto)  studies.push('MASimple@tv-basicstudies');
     if (show200MA && !isCrypto) studies.push('MASimple@tv-basicstudies');
+    if (showEMA20)  studies.push('MAExp@tv-basicstudies');
+    if (showBB)     studies.push('BB@tv-basicstudies');
+    if (showVWAP)   studies.push('VWAP@tv-basicstudies');
+    if (showRSI)    studies.push('RSI@tv-basicstudies');
+    if (showMACD)   studies.push('MACD@tv-basicstudies');
+    if (showStoch)  studies.push('Stochastic@tv-basicstudies');
+    if (showATR)    studies.push('ATR@tv-basicstudies');
+    if (showOBV)    studies.push('OBV@tv-basicstudies');
 
     const container = document.getElementById('chart-widget-container');
     container.innerHTML = '';
@@ -4625,12 +4790,33 @@ document.addEventListener('keydown', e => {
     if (currentChartTicker) loadChartTicker(currentChartTicker);
   }
 
-  function toggleMA() {
+  function reloadChartIndicators() {
     if (currentChartTicker) loadChartTicker(currentChartTicker);
   }
 
-  function toggleVolume() {
-    if (currentChartTicker) loadChartTicker(currentChartTicker);
+  function toggleMA() { reloadChartIndicators(); }
+  function toggleVolume() { reloadChartIndicators(); }
+
+  function applyIndicatorPreset(preset) {
+    const all = ['show-ma50','show-ma200','show-ema20','show-bb','show-vwap','show-rsi','show-macd','show-stoch','show-atr','show-obv','show-volume'];
+    // Clear all first
+    all.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+
+    const presets = {
+      scalp:    ['show-ema20','show-rsi','show-macd','show-volume'],
+      swing:    ['show-ma50','show-ma200','show-bb','show-rsi','show-volume'],
+      momentum: ['show-macd','show-stoch','show-obv','show-volume'],
+      clean:    ['show-volume'], // just volume, nothing else
+    };
+
+    (presets[preset] || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = true;
+    });
+
+    reloadChartIndicators();
+    const names = { scalp:'⚡ Scalp', swing:'📊 Swing', momentum:'🚀 Momentum', clean:'✕ Clean' };
+    showDBToast(`${names[preset]} preset applied`);
   }
 
   // Make ticker badges in tracker clickable for charts
