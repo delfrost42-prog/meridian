@@ -4679,16 +4679,16 @@ document.addEventListener('keydown', e => {
     const isCrypto = CRYPTO_TICKERS.has(ticker) || ticker.endsWith('USD') || ticker.includes('-USD');
 
     const studies = [];
-    if (show50MA && !isCrypto)  studies.push('MASimple@tv-basicstudies');
-    if (show200MA && !isCrypto) studies.push('MASimple@tv-basicstudies');
-    if (showEMA20)  studies.push('MAExp@tv-basicstudies');
-    if (showBB)     studies.push('BB@tv-basicstudies');
-    if (showVWAP)   studies.push('VWAP@tv-basicstudies');
-    if (showRSI)    studies.push('RSI@tv-basicstudies');
-    if (showMACD)   studies.push('MACD@tv-basicstudies');
-    if (showStoch)  studies.push('Stochastic@tv-basicstudies');
-    if (showATR)    studies.push('ATR@tv-basicstudies');
-    if (showOBV)    studies.push('OBV@tv-basicstudies');
+    if (show50MA && !isCrypto)  studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 50 } });
+    if (show200MA && !isCrypto) studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 200 } });
+    if (showEMA20)  studies.push({ id: 'MAExp@tv-basicstudies', inputs: { length: 20 } });
+    if (showBB)     studies.push({ id: 'BB@tv-basicstudies', inputs: { length: 20, mult: 2 } });
+    if (showVWAP)   studies.push({ id: 'VWAP@tv-basicstudies' });
+    if (showRSI)    studies.push({ id: 'RSI@tv-basicstudies', inputs: { length: 14 } });
+    if (showMACD)   studies.push({ id: 'MACD@tv-basicstudies', inputs: { fast_length: 12, slow_length: 26, signal_smoothing: 9 } });
+    if (showStoch)  studies.push({ id: 'Stochastic@tv-basicstudies', inputs: { smoothK: 3, smoothD: 3, lengthRSI: 14, lengthStoch: 14 } });
+    if (showATR)    studies.push({ id: 'ATR@tv-basicstudies', inputs: { length: 14 } });
+    if (showOBV)    studies.push({ id: 'OBV@tv-basicstudies' });
 
     const container = document.getElementById('chart-widget-container');
     container.innerHTML = '';
@@ -4723,7 +4723,7 @@ document.addEventListener('keydown', e => {
         container_id: 'tradingview_chart',
         backgroundColor: '#050a0e',
         gridColor: 'rgba(30,52,72,0.4)',
-        studies: studies.map(s => s.id),
+        studies: studies,
         show_popup_button: true,
         popup_width: '1000',
         popup_height: '650',
