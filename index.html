@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.4 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.5 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -787,7 +787,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v3.4 &mdash; May 25 2026</span>
+    <span>v3.5 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -3016,7 +3016,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.4 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.5 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3889,12 +3889,18 @@ document.addEventListener('keydown', e => {
 
   // ---- Alpaca News API fetch ----
   async function fetchAlpacaNews(tickers, limit = 50) {
-    if (!alpacaKeyId || !alpacaSecret) return null;
+    // Always read from localStorage so news tab works even before trading tab initializes
+    const key = alpacaKeyId || localStorage.getItem('meridian_alpaca_key') || '';
+    const secret = alpacaSecret || localStorage.getItem('meridian_alpaca_secret') || '';
+    if (!key || !secret) return null;
+    // Sync to module variables
+    if (!alpacaKeyId && key) alpacaKeyId = key;
+    if (!alpacaSecret && secret) alpacaSecret = secret;
     try {
       const symbols = tickers.join(',');
       const url = `${ALPACA_DATA_URL}/v1beta1/news?symbols=${encodeURIComponent(symbols)}&limit=${limit}&sort=desc&include_content=false`;
       const res = await fetch(url, {
-        headers: { 'APCA-API-KEY-ID': alpacaKeyId, 'APCA-API-SECRET-KEY': alpacaSecret },
+        headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret },
         signal: AbortSignal.timeout(8000)
       });
       if (!res.ok) return null;
@@ -3946,6 +3952,9 @@ document.addEventListener('keydown', e => {
     const trackerTickers = NEWS_TICKERS.map(t => t.ticker);
 
     // ---- PRIMARY: Alpaca News API (fast, no proxy, Benzinga-sourced) ----
+    // Always check localStorage so news works without visiting trading tab first
+    if (!alpacaKeyId) alpacaKeyId = localStorage.getItem('meridian_alpaca_key') || '';
+    if (!alpacaSecret) alpacaSecret = localStorage.getItem('meridian_alpaca_secret') || '';
     if (alpacaKeyId && alpacaSecret) {
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">⚡ Fetching from Alpaca · Benzinga...</span>';
 
@@ -3979,7 +3988,7 @@ document.addEventListener('keydown', e => {
 
     // If no Alpaca keys, also fetch Yahoo RSS for all tickers
     if (!alpacaKeyId || !alpacaSecret) {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--warn);">🟡 No Alpaca keys — using RSS fallback...</span>';
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--warn);">🟡 No Alpaca keys found — using RSS fallback...</span>';
       for (const { ticker } of NEWS_TICKERS) {
         macroTasks.push({ url: `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${ticker}&region=US&lang=en-US`, source: 'Yahoo Finance', ticker });
       }
