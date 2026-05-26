@@ -470,7 +470,10 @@
 
     <!-- Live index ticker strip -->
     <div style="margin:28px auto 0;width:100%;max-width:800px;overflow:hidden;opacity:0;animation:splashFadeIn 0.8s ease 1.6s forwards;">
-      <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:#1e3448;text-transform:uppercase;margin-bottom:6px;text-align:left;padding-left:2px;">LIVE MARKETS</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-left:2px;">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;color:#1e3448;text-transform:uppercase;">LIVE MARKETS</div>
+        <div id="splash-market-time" style="font-family:'Space Mono',monospace;font-size:9px;color:#3d6478;letter-spacing:0.1em;"></div>
+      </div>
       <div id="splash-index-strip" style="display:flex;gap:0;flex-wrap:wrap;border:1px solid #0f1923;border-radius:3px;overflow:hidden;">
         <!-- Populated by JS -->
         <div style="padding:8px 16px;color:#3d6478;font-size:11px;font-family:'Space Mono',monospace;">⟳ Fetching live data...</div>
@@ -526,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v2.8 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v3.1 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -585,6 +588,30 @@ const SPLASH_CRYPTO = [
 ];
 
 async function fetchSplashQuote(symbol) {
+  // Try Alpaca REST for equity symbols when keys are available
+  const alpKey = localStorage.getItem('meridian_alpaca_key');
+  const alpSecret = localStorage.getItem('meridian_alpaca_secret');
+  const isCrypto = symbol.includes('-USD');
+  const isIndex = symbol.startsWith('^') || symbol.includes('=F');
+
+  if (alpKey && alpSecret && !isCrypto && !isIndex) {
+    try {
+      const snapRes = await fetch(
+        `https://data.alpaca.markets/v2/stocks/${symbol}/snapshot?feed=iex`,
+        { headers: { 'APCA-API-KEY-ID': alpKey, 'APCA-API-SECRET-KEY': alpSecret }, signal: AbortSignal.timeout(4000) }
+      );
+      if (snapRes.ok) {
+        const snap = await snapRes.json();
+        const price = snap?.latestTrade?.p || snap?.latestQuote?.ap || snap?.latestQuote?.bp;
+        const prev = snap?.prevDailyBar?.c || snap?.dailyBar?.o;
+        if (price && prev) {
+          return { price, changePct: ((price - prev) / prev * 100), source: 'alpaca' };
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Yahoo Finance fallback (indices, crypto, and when no Alpaca keys)
   try {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`;
     const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
@@ -596,7 +623,7 @@ async function fetchSplashQuote(symbol) {
     const price = meta.regularMarketPrice;
     const prev = meta.chartPreviousClose || meta.regularMarketPreviousClose;
     const changePct = prev ? ((price - prev) / prev * 100) : 0;
-    return { price, changePct };
+    return { price, changePct, source: 'yahoo' };
   } catch(e) { return null; }
 }
 
@@ -605,21 +632,25 @@ function renderSplashTile(label, data, isIndex) {
   const up = data.changePct >= 0;
   const color = up ? '#00ff9d' : '#ff4757';
   const arrow = up ? '▲' : '▼';
+  const isAlpaca = data.source === 'alpaca';
   const fmtPrice = isIndex
     ? data.price >= 1000 ? data.price.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})
     : data.price.toFixed(2)
     : data.price >= 1000 ? `$${data.price.toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0})}`
     : data.price >= 1 ? `$${data.price.toFixed(2)}`
     : `$${data.price.toFixed(4)}`;
-  return `<div style="padding:8px 14px;border-right:1px solid #0f1923;font-family:'Space Mono',monospace;font-size:11px;white-space:nowrap;">
+  return `<div style="padding:8px 14px;border-right:1px solid #0f1923;font-family:'Space Mono',monospace;font-size:11px;white-space:nowrap;transition:background 0.3s;" id="splash-tile-${label.replace(/[^A-Z0-9]/g,'')}" >
     <span style="color:#7a9db5;margin-right:6px;">${label}</span>
     <span style="color:#e8f4f8;">${fmtPrice}</span>
     <span style="color:${color};margin-left:5px;font-size:10px;">${arrow}${Math.abs(data.changePct).toFixed(2)}%</span>
+    ${isAlpaca ? '<span style="color:#00ff9d;font-size:8px;margin-left:4px;opacity:0.6;">⚡</span>' : ''}
   </div>`;
 }
 
+let splashRefreshTimer = null;
+let splashLastUpdated = null;
+
 async function loadSplashMarketData() {
-  // Fetch indices and crypto in parallel
   const [indexResults, cryptoResults] = await Promise.all([
     Promise.all(SPLASH_INDICES.map(i => fetchSplashQuote(i.symbol).then(d => ({ ...i, data: d })))),
     Promise.all(SPLASH_CRYPTO.map(c => fetchSplashQuote(c.symbol).then(d => ({ ...c, data: d })))),
@@ -627,17 +658,34 @@ async function loadSplashMarketData() {
 
   const indexStrip = document.getElementById('splash-index-strip');
   const cryptoStrip = document.getElementById('splash-crypto-strip');
+  const timeEl = document.getElementById('splash-market-time');
 
-  if (indexStrip) {
-    indexStrip.innerHTML = indexResults.map(r => renderSplashTile(r.label, r.data, true)).join('');
+  if (indexStrip) indexStrip.innerHTML = indexResults.map(r => renderSplashTile(r.label, r.data, true)).join('');
+  if (cryptoStrip) cryptoStrip.innerHTML = cryptoResults.map(r => renderSplashTile(r.label, r.data, false)).join('');
+
+  splashLastUpdated = new Date();
+  const hasAlpaca = indexResults.some(r => r.data?.source === 'alpaca');
+  if (timeEl) {
+    timeEl.textContent = `${hasAlpaca ? '⚡ Real-time' : '🟡 Delayed'} · Updated ${splashLastUpdated.toLocaleTimeString()}`;
+    timeEl.style.color = hasAlpaca ? '#00ff9d' : '#3d6478';
   }
-  if (cryptoStrip) {
-    cryptoStrip.innerHTML = cryptoResults.map(r => renderSplashTile(r.label, r.data, false)).join('');
-  }
+}
+
+// Auto-refresh every 30 seconds while splash is visible
+function startSplashAutoRefresh() {
+  splashRefreshTimer = setInterval(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash && splash.style.display !== 'none') {
+      loadSplashMarketData();
+    } else {
+      clearInterval(splashRefreshTimer);
+    }
+  }, 30000);
 }
 
 // Start loading market data
 loadSplashMarketData();
+startSplashAutoRefresh();
 
 // Matrix rain
 (function() {
@@ -739,7 +787,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v2.8 &mdash; May 25 2026</span>
+    <span>v3.1 &mdash; May 25 2026</span>
   </div>
 </header>
 
@@ -774,6 +822,7 @@ document.addEventListener('keydown', e => {
       <div style="display:flex;gap:8px;align-items:center;">
         <button onclick="loadTickersFromSheet()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">↺ SYNC</button>
         <button onclick="refreshAllPrices()" id="live-price-btn" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;">💹 LIVE PRICES</button>
+        <span id="price-feed-badge" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px;border:1px solid rgba(255,184,48,0.3);background:rgba(255,184,48,0.08);color:var(--warn);letter-spacing:0.08em;">🟡 YAHOO · 15-min delay</span>
         <button onclick="openAddTicker()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:7px 14px;cursor:pointer;border-radius:3px;letter-spacing:0.08em;font-weight:700;">➕ ADD TICKER</button>
         <!-- Hidden DB settings — triple-click the status dot -->
         <span id="hidden-db-trigger" onclick="handleHiddenDBClick()" title="" style="cursor:default;display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(0,212,255,0.15);margin-left:4px;vertical-align:middle;"></span>
@@ -2879,7 +2928,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v2.8 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v3.1 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -4058,13 +4107,12 @@ document.addEventListener('keydown', e => {
   // ---- Auto-generate chart links from ticker + exchange ----
   function getChartLinks(ticker, exchange) {
     const t = (ticker || '').toUpperCase().trim();
-    const ex = (exchange || 'NASDAQ').toUpperCase().trim();
     if (!t) return '';
-    const tvSymbol = (ex === 'NYSE' || ex === 'NASDAQ' || ex === 'OTC') ? `${ex}:${t}` : t;
+    const tvSym = resolveTVSymbol(t) || `${exchange}:${t}`;
     return `
       <div class="quick-links">
         <a class="chart-link" href="https://finance.yahoo.com/quote/${t}/" target="_blank">↗ Yahoo</a>
-        <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=${tvSymbol}" target="_blank">↗ Chart</a>
+        <a class="chart-link" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tvSym)}" target="_blank">↗ Chart</a>
         <a class="chart-link" href="https://stockanalysis.com/stocks/${t.toLowerCase()}/" target="_blank">↗ Analysis</a>
         <a class="chart-link" href="https://finviz.com/quote.ashx?t=${t}" target="_blank">↗ Finviz</a>
         <a class="chart-link" href="https://www.macrotrends.net/stocks/charts/${t}/" target="_blank">↗ Macro</a>
@@ -4309,7 +4357,97 @@ document.addEventListener('keydown', e => {
   // CHARTS — TradingView Advanced Widget
   // ============================================================
   const CHART_TICKERS = ['HAWK','PL','SATL','IONQ','KRMN','VOYG','FLY','MDA','XNDU','INFQ','RXRX','TEM','SDGR','CRSP','NTLA','BEAM','ILMN','GENB','KLRA','CBRS'];
+
+  // Comprehensive TradingView symbol mapping
+  // Format: ticker → full TradingView symbol string
+  const TV_SYMBOL_MAP = {
+    // Tracked tickers
+    HAWK:'NYSE:HAWK', PL:'NYSE:PL', SATL:'NASDAQ:SATL', IONQ:'NYSE:IONQ',
+    KRMN:'NYSE:KRMN', VOYG:'NYSE:VOYG', FLY:'NASDAQ:FLY', MDA:'NYSE:MDA',
+    XNDU:'NASDAQ:XNDU', INFQ:'NYSE:INFQ', RXRX:'NASDAQ:RXRX', TEM:'NASDAQ:TEM',
+    SDGR:'NASDAQ:SDGR', CRSP:'NASDAQ:CRSP', NTLA:'NASDAQ:NTLA', BEAM:'NASDAQ:BEAM',
+    ILMN:'NASDAQ:ILMN', GENB:'NASDAQ:GENB', KLRA:'NASDAQ:KLRA', CBRS:'NASDAQ:CBRS',
+
+    // Major US ETFs / Indices
+    SPY:'AMEX:SPY', QQQ:'NASDAQ:QQQ', IWM:'AMEX:IWM', DIA:'AMEX:DIA',
+    VTI:'AMEX:VTI', VOO:'AMEX:VOO', GLD:'AMEX:GLD', SLV:'AMEX:SLV',
+    TLT:'NASDAQ:TLT', HYG:'AMEX:HYG', XLF:'AMEX:XLF', XLE:'AMEX:XLE',
+    XLK:'AMEX:XLK', XBI:'AMEX:XBI', ARKK:'AMEX:ARKK',
+
+    // US Indices (TradingView format)
+    'SPX':'SP:SPX', 'NDX':'NASDAQ:NDX', 'DJI':'DJ:DJI', 'RUT':'TVC:RUT',
+    'VIX':'CBOE:VIX',
+
+    // Popular US stocks
+    NVDA:'NASDAQ:NVDA', AAPL:'NASDAQ:AAPL', MSFT:'NASDAQ:MSFT',
+    GOOGL:'NASDAQ:GOOGL', AMZN:'NASDAQ:AMZN', META:'NASDAQ:META',
+    TSLA:'NASDAQ:TSLA', AMD:'NASDAQ:AMD', INTC:'NASDAQ:INTC',
+    PLTR:'NYSE:PLTR', RKLB:'NASDAQ:RKLB', COIN:'NASDAQ:COIN',
+    HOOD:'NASDAQ:HOOD', SOFI:'NASDAQ:SOFI', GS:'NYSE:GS', JPM:'NYSE:JPM',
+    DJT:'NASDAQ:DJT', NVAX:'NASDAQ:NVAX', MRNA:'NASDAQ:MRNA',
+
+    // Crypto — TradingView uses COINBASE or BINANCE prefix
+    BTC:'COINBASE:BTCUSD', BTCUSD:'COINBASE:BTCUSD', 'BTC-USD':'COINBASE:BTCUSD',
+    ETH:'COINBASE:ETHUSD', ETHUSD:'COINBASE:ETHUSD', 'ETH-USD':'COINBASE:ETHUSD',
+    SOL:'COINBASE:SOLUSD', SOLUSD:'COINBASE:SOLUSD', 'SOL-USD':'COINBASE:SOLUSD',
+    BNB:'BINANCE:BNBUSD', 'BNB-USD':'BINANCE:BNBUSD',
+    XRP:'COINBASE:XRPUSD', 'XRP-USD':'COINBASE:XRPUSD',
+    DOGE:'COINBASE:DOGEUSD', 'DOGE-USD':'COINBASE:DOGEUSD',
+    ADA:'COINBASE:ADAUSD', 'ADA-USD':'COINBASE:ADAUSD',
+    AVAX:'COINBASE:AVAXUSD', 'AVAX-USD':'COINBASE:AVAXUSD',
+    LINK:'COINBASE:LINKUSD', 'LINK-USD':'COINBASE:LINKUSD',
+    DOT:'COINBASE:DOTUSD', 'DOT-USD':'COINBASE:DOTUSD',
+    MATIC:'COINBASE:MATICUSD', UNI:'COINBASE:UNIUSD',
+    SHIB:'BINANCE:SHIBUSD', LTC:'COINBASE:LTCUSD',
+
+    // Commodities
+    GOLD:'TVC:GOLD', SILVER:'TVC:SILVER', OIL:'TVC:USOIL', 'CRUDE':'TVC:USOIL',
+    'NATGAS':'TVC:NATURALGAS',
+
+    // Forex
+    EURUSD:'FX:EURUSD', GBPUSD:'FX:GBPUSD', USDJPY:'FX:USDJPY',
+    AUDUSD:'FX:AUDUSD', USDCAD:'FX:USDCAD',
+
+    // International major indices
+    FTSE:'TVC:UKX', DAX:'XETR:DAX', CAC:'EURONEXT:PX1',
+    NIKKEI:'TVC:NI225', HSI:'TVC:HSI', ASX200:'TVC:AS51',
+
+    // Bonds / Rates
+    'US10Y':'TVC:US10Y', 'US2Y':'TVC:US02Y', 'US30Y':'TVC:US30Y',
+  };
+
+  // Detect asset type for chart label
+  const CRYPTO_TICKERS = new Set(['BTC','ETH','SOL','BNB','XRP','DOGE','ADA','AVAX','LINK','DOT','MATIC','UNI','SHIB','LTC','BTCUSD','ETHUSD','SOLUSD','BTC-USD','ETH-USD','SOL-USD','BNB-USD','XRP-USD','DOGE-USD']);
+  const CRYPTO_QUICK = ['BTC','ETH','SOL','XRP','DOGE','BNB','AVAX','LINK'];
+  const INDEX_QUICK = ['SPY','QQQ','IWM','DIA','VIX','GLD','TLT','ARKK'];
   const CHART_EXCHANGES = { HAWK:'NYSE',PL:'NYSE',SATL:'NASDAQ',IONQ:'NYSE',KRMN:'NYSE',VOYG:'NYSE',FLY:'NASDAQ',MDA:'NYSE',XNDU:'NASDAQ',INFQ:'NYSE',RXRX:'NASDAQ',TEM:'NASDAQ',SDGR:'NASDAQ',CRSP:'NASDAQ',NTLA:'NASDAQ',BEAM:'NASDAQ',ILMN:'NASDAQ',GENB:'NASDAQ',KLRA:'NASDAQ',CBRS:'NASDAQ' };
+
+  // Resolve any ticker to its TradingView symbol
+  function resolveTVSymbol(ticker) {
+    const t = ticker.toUpperCase().trim();
+    // Direct map
+    if (TV_SYMBOL_MAP[t]) return TV_SYMBOL_MAP[t];
+    // Crypto detection
+    if (CRYPTO_TICKERS.has(t) || t.endsWith('USD') || t.endsWith('-USD')) {
+      return `COINBASE:${t.replace('-','').replace('USD','')}USD`;
+    }
+    // Known exchanges from tracker
+    const ex = CHART_EXCHANGES[t];
+    if (ex) return `${ex}:${t}`;
+    // Default — let TradingView auto-resolve
+    return t;
+  }
+
+  function getAssetType(ticker) {
+    const t = ticker.toUpperCase();
+    if (CRYPTO_TICKERS.has(t) || t.endsWith('USD') || t.includes('-USD')) return 'Crypto';
+    if (['SPX','NDX','DJI','RUT','VIX','FTSE','DAX','CAC','NIKKEI','HSI'].includes(t)) return 'Index';
+    if (['EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD'].includes(t)) return 'Forex';
+    if (['GOLD','SILVER','OIL','CRUDE','NATGAS'].includes(t)) return 'Commodity';
+    if (['US10Y','US2Y','US30Y'].includes(t)) return 'Bond';
+    const ex = CHART_EXCHANGES[t] || (TV_SYMBOL_MAP[t]?.split(':')[0]) || 'Stock';
+    return ex === 'Stock' ? ex : ex;
+  }
 
   let currentChartTicker = null;
   let currentTimeframe = '3M';
@@ -4324,14 +4462,26 @@ document.addEventListener('keydown', e => {
     '5Y': { interval: 'W', range: '60M' },
   };
 
-  // Build quick-ticker buttons
+  // Build quick-ticker buttons with sections
   function buildQuickTickers() {
     const container = document.getElementById('chart-quick-tickers');
     if (!container) return;
-    container.innerHTML = CHART_TICKERS.map(t => `
-      <button onclick="loadChartTicker('${t}')" style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);color:var(--text2);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.15s;"
-      onmouseover="this.style.color='var(--accent)';this.style.borderColor='rgba(0,212,255,0.4)'"
-      onmouseout="this.style.color='var(--text2)';this.style.borderColor='rgba(0,212,255,0.15)'">${t}</button>`).join('');
+
+    const btnStyle = (color='0,212,255') => `background:rgba(${color},0.06);border:1px solid rgba(${color},0.15);color:var(--text2);font-family:var(--mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;letter-spacing:0.05em;transition:all 0.15s;`;
+
+    const makeBtn = (t, color='0,212,255') =>
+      `<button onclick="loadChartTicker('${t}')" style="${btnStyle(color)}"
+       onmouseover="this.style.color='rgb(${color})';this.style.borderColor='rgba(${color},0.4)'"
+       onmouseout="this.style.color='var(--text2)';this.style.borderColor='rgba(${color},0.15)'">${t}</button>`;
+
+    container.innerHTML = `
+      <span style="font-size:9px;color:var(--text3);letter-spacing:0.1em;align-self:center;">TRACKED:</span>
+      ${CHART_TICKERS.map(t => makeBtn(t, '0,212,255')).join('')}
+      <span style="font-size:9px;color:var(--text3);letter-spacing:0.1em;align-self:center;margin-left:8px;">INDICES:</span>
+      ${INDEX_QUICK.map(t => makeBtn(t, '255,184,48')).join('')}
+      <span style="font-size:9px;color:var(--text3);letter-spacing:0.1em;align-self:center;margin-left:8px;">CRYPTO:</span>
+      ${CRYPTO_QUICK.map(t => makeBtn(t, '244,114,182')).join('')}
+    `;
   }
 
   // Load TradingView widget
@@ -4340,6 +4490,10 @@ document.addEventListener('keydown', e => {
     ticker = ticker.toUpperCase().trim();
     currentChartTicker = ticker;
 
+    // Resolve TradingView symbol
+    const tvSymbol = resolveTVSymbol(ticker);
+    const assetType = getAssetType(ticker);
+
     // Show charts tab
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -4347,9 +4501,8 @@ document.addEventListener('keydown', e => {
     document.querySelector('.nav-tab[onclick*="charts"]')?.classList.add('active');
 
     // Update labels
-    const exchange = CHART_EXCHANGES[ticker] || 'NASDAQ';
     document.getElementById('chart-ticker-label').textContent = ticker;
-    document.getElementById('chart-company-label').textContent = exchange;
+    document.getElementById('chart-company-label').textContent = `${assetType} · ${tvSymbol}`;
 
     // Hide empty, show widget
     document.getElementById('chart-empty').style.display = 'none';
@@ -4361,9 +4514,16 @@ document.addEventListener('keydown', e => {
     const show200MA = document.getElementById('show-ma200')?.checked;
     const showVol = document.getElementById('show-volume')?.checked;
 
+    // Disable MAs for crypto/forex/commodities (not meaningful)
+    const isCrypto = CRYPTO_TICKERS.has(ticker) || ticker.endsWith('USD');
+    if (isCrypto) {
+      const ma50 = document.getElementById('show-ma50');
+      const ma200 = document.getElementById('show-ma200');
+    }
+
     const studies = [];
-    if (show50MA) studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 50 }, styles: { 'Plot.color': '#f59e0b' } });
-    if (show200MA) studies.push({ id: 'MASimple@tv-basicstudies', inputs: { length: 200 }, styles: { 'Plot.color': '#a78bfa' } });
+    if (show50MA && !isCrypto) studies.push('MASimple@tv-basicstudies');
+    if (show200MA && !isCrypto) studies.push('MASimple@tv-basicstudies');
 
     const container = document.getElementById('chart-widget-container');
     container.innerHTML = '';
@@ -4384,7 +4544,7 @@ document.addEventListener('keydown', e => {
       document.getElementById('chart-loading').style.display = 'none';
       new TradingView.widget({
         autosize: true,
-        symbol: `${exchange}:${ticker}`,
+        symbol: tvSymbol,
         interval: tf.interval,
         range: tf.range,
         timezone: 'America/New_York',
@@ -5047,12 +5207,83 @@ document.addEventListener('keydown', e => {
   // ============================================================
   let livePriceInterval = null;
   let livePriceCache = {};
+  let alpacaWS = null;
+  let alpacaWSConnected = false;
+  let alpacaWSSubscriptions = new Set();
 
-  async function fetchLivePrice(ticker) {
-    // Check cache — don't re-fetch if data is less than 60 seconds old
-    const cached = livePriceCache[ticker];
-    if (cached && Date.now() - cached.ts < 60000) return cached.data;
+  // ---- Price feed source indicator ----
+  function setPriceFeedBadge(source) {
+    const badge = document.getElementById('price-feed-badge');
+    if (!badge) return;
+    if (source === 'alpaca-ws') {
+      badge.textContent = '⚡ REAL-TIME · Alpaca IEX';
+      badge.style.color = 'var(--green)';
+      badge.style.borderColor = 'rgba(46,213,115,0.3)';
+      badge.style.background = 'rgba(46,213,115,0.08)';
+    } else if (source === 'alpaca-rest') {
+      badge.textContent = '🔵 ALPACA · IEX Feed';
+      badge.style.color = 'var(--accent)';
+      badge.style.borderColor = 'rgba(0,212,255,0.3)';
+      badge.style.background = 'rgba(0,212,255,0.08)';
+    } else {
+      badge.textContent = '🟡 YAHOO · 15-min delay';
+      badge.style.color = 'var(--warn)';
+      badge.style.borderColor = 'rgba(255,184,48,0.3)';
+      badge.style.background = 'rgba(255,184,48,0.08)';
+    }
+  }
 
+  // ---- Alpaca REST price fetch ----
+  async function fetchAlpacaPrice(ticker) {
+    if (!alpacaKeyId || !alpacaSecret) return null;
+    try {
+      // Latest quote
+      const quoteRes = await fetch(
+        `${ALPACA_DATA_URL}/v2/stocks/${ticker}/quotes/latest?feed=iex`,
+        { headers: { 'APCA-API-KEY-ID': alpacaKeyId, 'APCA-API-SECRET-KEY': alpacaSecret }, signal: AbortSignal.timeout(5000) }
+      );
+      if (!quoteRes.ok) return null;
+      const quoteData = await quoteRes.json();
+      const ap = quoteData?.quote?.ap; // ask price
+      const bp = quoteData?.quote?.bp; // bid price
+      const price = ap || bp;
+      if (!price) return null;
+
+      // Latest bar for prev close + volume
+      const barRes = await fetch(
+        `${ALPACA_DATA_URL}/v2/stocks/${ticker}/bars/latest?feed=iex`,
+        { headers: { 'APCA-API-KEY-ID': alpacaKeyId, 'APCA-API-SECRET-KEY': alpacaSecret }, signal: AbortSignal.timeout(5000) }
+      );
+      const barData = barRes.ok ? await barRes.json() : null;
+      const bar = barData?.bar;
+
+      // Snapshot for 52W range
+      const snapRes = await fetch(
+        `${ALPACA_DATA_URL}/v2/stocks/${ticker}/snapshot?feed=iex`,
+        { headers: { 'APCA-API-KEY-ID': alpacaKeyId, 'APCA-API-SECRET-KEY': alpacaSecret }, signal: AbortSignal.timeout(5000) }
+      );
+      const snapData = snapRes.ok ? await snapRes.json() : null;
+
+      const prev = snapData?.dailyBar?.c || bar?.c || price;
+      const data = {
+        price,
+        prev,
+        change: price - prev,
+        changePct: ((price - prev) / prev * 100),
+        high52: snapData?.minuteBar?.h || null,
+        low52: snapData?.minuteBar?.l || null,
+        vol: bar?.v || null,
+        mktcap: null,
+        source: 'alpaca-rest',
+      };
+      return data;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  // ---- Yahoo Finance fallback ----
+  async function fetchYahooPrice(ticker) {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=2d`;
       const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
@@ -5061,7 +5292,6 @@ document.addEventListener('keydown', e => {
       const parsed = JSON.parse(raw.contents);
       const meta = parsed?.chart?.result?.[0]?.meta;
       if (!meta) return null;
-
       const data = {
         price: meta.regularMarketPrice,
         prev: meta.chartPreviousClose || meta.regularMarketPreviousClose,
@@ -5069,13 +5299,126 @@ document.addEventListener('keydown', e => {
         low52: meta.fiftyTwoWeekLow,
         vol: meta.regularMarketVolume,
         mktcap: meta.marketCap,
+        source: 'yahoo',
       };
       data.change = data.price - data.prev;
       data.changePct = (data.change / data.prev * 100);
-      livePriceCache[ticker] = { data, ts: Date.now() };
       return data;
     } catch(e) {
       return null;
+    }
+  }
+
+  // ---- Main fetchLivePrice — Alpaca first, Yahoo fallback ----
+  async function fetchLivePrice(ticker) {
+    // Check cache — 30s for Alpaca, 60s for Yahoo
+    const cached = livePriceCache[ticker];
+    const cacheTTL = cached?.data?.source === 'yahoo' ? 60000 : 30000;
+    if (cached && Date.now() - cached.ts < cacheTTL) return cached.data;
+
+    // Try Alpaca first if keys are set
+    if (alpacaKeyId && alpacaSecret) {
+      const alpacaData = await fetchAlpacaPrice(ticker);
+      if (alpacaData) {
+        livePriceCache[ticker] = { data: alpacaData, ts: Date.now() };
+        setPriceFeedBadge('alpaca-rest');
+        return alpacaData;
+      }
+    }
+
+    // Fallback to Yahoo
+    const yahooData = await fetchYahooPrice(ticker);
+    if (yahooData) {
+      livePriceCache[ticker] = { data: yahooData, ts: Date.now() };
+      setPriceFeedBadge('yahoo');
+      return yahooData;
+    }
+
+    return null;
+  }
+
+  // ---- Alpaca WebSocket streaming ----
+  function connectAlpacaWebSocket(tickers) {
+    if (!alpacaKeyId || !alpacaSecret || !tickers?.length) return;
+    if (alpacaWS) alpacaWS.close();
+
+    try {
+      alpacaWS = new WebSocket('wss://stream.data.alpaca.markets/v2/iex');
+
+      alpacaWS.onopen = () => {
+        // Authenticate
+        alpacaWS.send(JSON.stringify({ action: 'auth', key: alpacaKeyId, secret: alpacaSecret }));
+      };
+
+      alpacaWS.onmessage = (event) => {
+        try {
+          const messages = JSON.parse(event.data);
+          messages.forEach(msg => {
+            if (msg.T === 'success' && msg.msg === 'authenticated') {
+              // Subscribe to quotes for all tickers
+              alpacaWS.send(JSON.stringify({ action: 'subscribe', quotes: tickers, trades: tickers }));
+              alpacaWSConnected = true;
+              setPriceFeedBadge('alpaca-ws');
+              showDBToast('⚡ Real-time price stream connected!');
+            }
+            // Handle trade updates (most accurate real-time price)
+            if (msg.T === 't' && msg.S) {
+              const ticker = msg.S;
+              const price = msg.p; // trade price
+              const cached = livePriceCache[ticker];
+              if (cached?.data && price) {
+                const prev = cached.data.prev || price;
+                const updated = {
+                  ...cached.data,
+                  price,
+                  change: price - prev,
+                  changePct: ((price - prev) / prev * 100),
+                  source: 'alpaca-ws',
+                  ts: Date.now(),
+                };
+                livePriceCache[ticker] = { data: updated, ts: Date.now() };
+                // Update UI cells in real time
+                updatePriceCells(ticker, updated);
+                // Update watchlist
+                if (fwExpanded) renderWatchlist();
+              }
+            }
+            // Handle quote updates
+            if (msg.T === 'q' && msg.S) {
+              const ticker = msg.S;
+              const price = msg.ap || msg.bp;
+              if (price && livePriceCache[ticker]?.data) {
+                const prev = livePriceCache[ticker].data.prev || price;
+                const updated = {
+                  ...livePriceCache[ticker].data,
+                  price,
+                  change: price - prev,
+                  changePct: ((price - prev) / prev * 100),
+                  source: 'alpaca-ws',
+                };
+                livePriceCache[ticker] = { data: updated, ts: Date.now() };
+                updatePriceCells(ticker, updated);
+              }
+            }
+          });
+        } catch(e) {}
+      };
+
+      alpacaWS.onerror = () => {
+        alpacaWSConnected = false;
+        setPriceFeedBadge('yahoo');
+      };
+
+      alpacaWS.onclose = () => {
+        alpacaWSConnected = false;
+        // Auto-reconnect after 10 seconds
+        setTimeout(() => {
+          if (alpacaKeyId && alpacaSecret) connectAlpacaWebSocket([...alpacaWSSubscriptions]);
+        }, 10000);
+      };
+
+    } catch(e) {
+      alpacaWSConnected = false;
     }
   }
 
@@ -5125,7 +5468,6 @@ document.addEventListener('keydown', e => {
     const btn = document.getElementById('live-price-btn');
     if (btn) { btn.textContent = '⟳ FETCHING...'; btn.style.opacity = '0.6'; }
 
-    // Get all tickers from the dynamic table
     const rows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
     const tickers = [...new Set([...rows].map(r => r.dataset.ticker).filter(Boolean))];
 
@@ -5136,9 +5478,9 @@ document.addEventListener('keydown', e => {
     }
 
     const statusEl = document.getElementById('db-ticker-status');
-    if (statusEl) statusEl.textContent = `Fetching live prices for ${tickers.length} tickers...`;
+    if (statusEl) statusEl.textContent = `Fetching ${alpacaKeyId ? 'Alpaca' : 'Yahoo'} prices for ${tickers.length} tickers...`;
 
-    // Fetch in batches of 5 to avoid rate limiting
+    // Fetch in batches of 5
     const batchSize = 5;
     let fetched = 0;
     for (let i = 0; i < tickers.length; i += batchSize) {
@@ -5148,18 +5490,22 @@ document.addEventListener('keydown', e => {
         updatePriceCells(ticker, data);
         fetched++;
       }));
-      // Small delay between batches
-      if (i + batchSize < tickers.length) await new Promise(r => setTimeout(r, 500));
+      if (i + batchSize < tickers.length) await new Promise(r => setTimeout(r, 400));
     }
 
     const now = new Date().toLocaleTimeString();
-    if (statusEl) statusEl.textContent = `✓ Live prices updated for ${fetched} tickers · ${now}`;
+    if (statusEl) statusEl.textContent = `✓ Prices updated · ${now} · ${alpacaKeyId ? 'Alpaca IEX' : 'Yahoo Finance (15-min delay)'}`;
     if (btn) { btn.textContent = '💹 LIVE PRICES'; btn.style.opacity = '1'; }
     showDBToast(`💹 Prices updated for ${fetched} tickers`);
 
-    // Update last-refreshed in stats
+    // Start WebSocket stream if Alpaca connected and market is open
+    if (alpacaKeyId && alpacaSecret && !alpacaWSConnected) {
+      alpacaWSSubscriptions = new Set(tickers);
+      connectAlpacaWebSocket(tickers);
+    }
+
     const badge = document.getElementById('db-status-badge');
-    if (badge) { badge.textContent = `Live ✓ — ${now}`; badge.style.color = 'var(--green)'; }
+    if (badge) { badge.textContent = `Connected ✓ — ${fetched} live`; badge.style.color = 'var(--green)'; }
   }
 
   // Auto-refresh prices every 5 minutes when tracker tab is active
@@ -6915,6 +7261,13 @@ Be direct and specific. Search the web for current data on each.`;
     document.getElementById('alp-settings-modal')?.remove();
     showDBToast('✓ Alpaca keys saved — connecting...');
     await refreshAlpacaData();
+    // Start real-time price stream
+    const rows = document.querySelectorAll('#tracker-table-dynamic tbody tr[data-ticker]');
+    const tickers = [...rows].map(r => r.dataset.ticker).filter(Boolean);
+    if (tickers.length > 0) {
+      alpacaWSSubscriptions = new Set(tickers);
+      setTimeout(() => connectAlpacaWebSocket(tickers), 1000);
+    }
   }
 
   // ---- Refresh all Alpaca data ----
