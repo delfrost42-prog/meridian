@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.0 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.2 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -912,7 +912,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v5.0 &mdash; May 26 2026</span>
+    <span>v5.2 &mdash; May 26 2026</span>
   </div>
 </header>
 
@@ -930,7 +930,8 @@ document.addEventListener('keydown', e => {
   <div class="nav-tab" onclick="showTab('news')">11 &mdash; News Feed</div>
   <div class="nav-tab" onclick="showTab('options')">12 &mdash; Options Education</div>
   <div class="nav-tab" onclick="showTab('optionschain')">13 &mdash; Options Chain</div>
-  <div class="nav-tab" onclick="showTab('roadmap')">14 &mdash; Roadmap</div>
+  <div class="nav-tab" onclick="showTab('sharedchat')">14 &mdash; 💬 Research Chat</div>
+  <div class="nav-tab" onclick="showTab('roadmap')">15 &mdash; Roadmap</div>
   <div class="nav-tab" id="admin-nav-tab" onclick="showAdminPanel()" style="color:var(--text3);border-left:1px solid var(--border);margin-left:8px;padding-left:16px;">🔐 Admin</div>
 </nav>
 
@@ -1165,19 +1166,28 @@ document.addEventListener('keydown', e => {
         style="background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;font-family:var(--mono);font-size:11px;padding:9px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">
         ⚡ Grok only
       </button>
-      <span style="font-size:10px;color:var(--text3);margin-left:4px;">Screenshots chart → sends to AI for full technical + options analysis</span>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px;">Renders live chart from Alpaca data → sends image to AI</span>
     </div>
+
+    <!-- Hidden canvas for chart rendering + screenshot -->
+    <canvas id="analysis-canvas" width="900" height="500" style="display:none;"></canvas>
 
     <!-- AI Analysis Results -->
     <div id="chart-analysis-results" style="display:none;margin-top:12px;">
-      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">📊 AI CHART ANALYSIS</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="chart-analysis-grid">
-        <!-- Populated by JS -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);">📊 AI CHART ANALYSIS</div>
+        <button onclick="document.getElementById('chart-analysis-results').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;font-family:var(--mono);margin-left:auto;">✕ close</button>
       </div>
+      <!-- Chart thumbnail -->
+      <div id="analysis-chart-preview" style="margin-bottom:12px;display:none;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Chart used for analysis:</div>
+        <img id="analysis-chart-img" style="max-width:100%;border:1px solid var(--border);border-radius:3px;max-height:200px;object-fit:contain;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="chart-analysis-grid"></div>
     </div>
 
     <div style="margin-top:12px;padding:10px 14px;background:rgba(122,157,181,0.05);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--text3);line-height:1.6;">
-      ℹ Charts powered by TradingView Advanced Chart widget. Data is delayed 15 minutes for US equities. Click and drag to pan, scroll to zoom. Use the timeframe buttons above to switch intervals. Enter any ticker in the custom field to chart any public stock.
+      ℹ Charts powered by TradingView Advanced Chart widget. AI Analysis uses Alpaca OHLCV data to render a native canvas chart (no iframe restriction) and sends the actual chart image to Claude + Grok for visual analysis.
     </div>
 
     <!-- ═══ INTEGRATED TRADING PANEL ═══ -->
@@ -3036,6 +3046,92 @@ document.addEventListener('keydown', e => {
     </div>
   </section>
 
+  <!-- TAB 14: SHARED RESEARCH CHAT -->
+  <section class="section" id="tab-sharedchat">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Research <span>Chat</span></div>
+        <div class="section-sub">Shared research chat — powered by Google Sheets · auto-refreshes every 30s</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="chat-online-badge" style="font-size:11px;color:var(--text3);">—</span>
+        <button onclick="loadChatMessages()" id="chat-refresh-btn" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">↺ REFRESH</button>
+      </div>
+    </div>
+
+    <!-- Username setup (shown if no username set) -->
+    <div id="chat-username-setup" style="display:none;padding:20px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:4px;margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Choose a display name for the chat:</div>
+      <div style="display:flex;gap:8px;">
+        <input id="chat-username-input" type="text" placeholder="Your name..." maxlength="20" autocomplete="off"
+          style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 12px;border-radius:3px;outline:none;width:200px;"
+          onkeydown="if(event.key==='Enter')saveChatUsername()">
+        <button onclick="saveChatUsername()" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">SET NAME</button>
+      </div>
+    </div>
+
+    <!-- Channel tabs -->
+    <div style="display:flex;gap:2px;margin-bottom:0;border-bottom:1px solid var(--border);">
+      <button onclick="switchChatChannel('research')" id="ch-research"
+        style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-bottom:none;color:var(--accent);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px 3px 0 0;letter-spacing:0.08em;">
+        📈 #research
+      </button>
+      <button onclick="switchChatChannel('general')" id="ch-general"
+        style="background:transparent;border:1px solid transparent;border-bottom:none;color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 16px;cursor:pointer;border-radius:3px 3px 0 0;letter-spacing:0.08em;">
+        💬 #general
+      </button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding-bottom:4px;">
+        <span style="font-size:10px;color:var(--text3);">Signed in as:</span>
+        <span id="chat-current-user" style="font-size:11px;color:var(--accent);font-family:var(--mono);font-weight:700;">—</span>
+        <button onclick="changeChatUsername()" style="background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;font-family:var(--mono);">✏️</button>
+      </div>
+    </div>
+
+    <!-- Messages area -->
+    <div id="chat-messages" style="height:420px;overflow-y:auto;padding:16px;background:var(--bg3);border:1px solid var(--border);border-top:none;display:flex;flex-direction:column;gap:10px;">
+      <div style="text-align:center;color:var(--text3);font-size:12px;padding:40px 0;">
+        <div style="font-size:24px;margin-bottom:8px;">💬</div>
+        Loading messages...
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div style="border:1px solid var(--border);border-top:none;background:var(--bg2);padding:12px;border-radius:0 0 4px 4px;">
+
+      <!-- Ticker tag + message type -->
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:10px;color:var(--text3);letter-spacing:0.1em;">TAG:</span>
+        <input id="chat-ticker-tag" type="text" placeholder="$TICKER (optional)" maxlength="10"
+          style="background:var(--panel);border:1px solid var(--border);color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 8px;border-radius:3px;outline:none;width:120px;text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'')">
+        <span style="font-size:10px;color:var(--text3);margin-left:8px;">TYPE:</span>
+        <select id="chat-msg-type" style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:3px;outline:none;">
+          <option value="💬">💬 Comment</option>
+          <option value="📈">📈 Bullish</option>
+          <option value="📉">📉 Bearish</option>
+          <option value="⚠️">⚠️ Warning</option>
+          <option value="🎯">🎯 Price Target</option>
+          <option value="📰">📰 News</option>
+          <option value="❓">❓ Question</option>
+        </select>
+      </div>
+
+      <!-- Text input + send -->
+      <div style="display:flex;gap:8px;">
+        <textarea id="chat-input" placeholder="Share your research, ideas, or questions..." rows="2"
+          style="flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 12px;border-radius:3px;outline:none;resize:none;line-height:1.6;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='rgba(0,212,255,0.4)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+        <button onclick="sendChatMessage()" id="chat-send-btn"
+          style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-family:var(--mono);font-size:12px;padding:10px 18px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;transition:all 0.2s;white-space:nowrap;"
+          onmouseover="this.style.background='rgba(0,212,255,0.2)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'">
+          SEND ↵
+        </button>
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:var(--text3);">Enter to send · Shift+Enter for new line · Messages stored in Google Sheets</div>
+    </div>
+  </section>
+
   <!-- TAB 15: ROADMAP -->
   <section class="section" id="tab-roadmap">
     <div class="section-header">
@@ -3050,7 +3146,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.0 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.2 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -4798,6 +4894,7 @@ function jsonResponse(obj) {
     if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'optionschain') { buildQuickTickers(); }
+    if (id === 'sharedchat') initChatTab();
     if (id === 'news') {
       initNewsBadge();
       if (allArticles.length === 0) {
@@ -8094,15 +8191,211 @@ Be direct and specific. Search the web for current data on each.`;
   // AI CHART ANALYSIS — Claude + Grok Visual Chart Reading
   // ============================================================
 
+  // ============================================================
+  // AI CHART ANALYSIS — Real canvas chart + image send
+  // ============================================================
+
+  async function fetchAlpacaBars(ticker, timeframe) {
+    const key = alpacaKeyId || localStorage.getItem('meridian_alpaca_key') || '';
+    const secret = alpacaSecret || localStorage.getItem('meridian_alpaca_secret') || '';
+    if (!key || !secret) return null;
+
+    // Map Meridian timeframe to Alpaca params
+    const tfMap = {
+      '1D': { timeframe:'5Min',  start: new Date(Date.now()-86400000).toISOString() },
+      '1W': { timeframe:'1Hour', start: new Date(Date.now()-7*86400000).toISOString() },
+      '1M': { timeframe:'1Day',  start: new Date(Date.now()-30*86400000).toISOString() },
+      '3M': { timeframe:'1Day',  start: new Date(Date.now()-90*86400000).toISOString() },
+      '6M': { timeframe:'1Day',  start: new Date(Date.now()-180*86400000).toISOString() },
+      '1Y': { timeframe:'1Week', start: new Date(Date.now()-365*86400000).toISOString() },
+      '5Y': { timeframe:'1Month',start: new Date(Date.now()-5*365*86400000).toISOString() },
+    };
+    const { timeframe: tf, start } = tfMap[timeframe] || tfMap['3M'];
+    const end = new Date().toISOString();
+
+    try {
+      const url = `${ALPACA_DATA_URL}/v2/stocks/${ticker}/bars?timeframe=${tf}&start=${start}&end=${end}&limit=200&feed=iex`;
+      const res = await fetch(url, {
+        headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.bars || [];
+    } catch(e) { return null; }
+  }
+
+  function renderCandlestickCanvas(bars, ticker, timeframe, indicators) {
+    const canvas = document.getElementById('analysis-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 900, H = 500;
+    canvas.width = W; canvas.height = H;
+
+    if (!bars || bars.length < 2) return null;
+
+    // Colors
+    const BG = '#050a0e', GRID = '#0f1923', TEXT = '#7a9db5';
+    const GREEN = '#00ff9d', RED = '#ff4757', BLUE = '#00d4ff';
+    const AMBER = '#f59e0b', PURPLE = '#a78bfa';
+    const PADDING = { top:40, right:60, bottom:50, left:70 };
+    const CW = W - PADDING.left - PADDING.right;
+    const CH = H - PADDING.top - PADDING.bottom;
+
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+
+    const closes = bars.map(b => b.c);
+    const highs  = bars.map(b => b.h);
+    const lows   = bars.map(b => b.l);
+    const vols   = bars.map(b => b.v);
+
+    const priceMin = Math.min(...lows) * 0.998;
+    const priceMax = Math.max(...highs) * 1.002;
+    const volMax   = Math.max(...vols);
+
+    const px = i => PADDING.left + (i / (bars.length - 1)) * CW;
+    const py = p => PADDING.top + CH - ((p - priceMin) / (priceMax - priceMin)) * CH;
+    const vy = v => H - PADDING.bottom - (v / volMax) * (CH * 0.2);
+
+    // Grid lines
+    ctx.strokeStyle = GRID; ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 5; i++) {
+      const y = PADDING.top + (CH / 5) * i;
+      ctx.beginPath(); ctx.moveTo(PADDING.left, y); ctx.lineTo(W - PADDING.right, y); ctx.stroke();
+      const price = priceMax - ((priceMax - priceMin) / 5) * i;
+      ctx.fillStyle = TEXT; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+      ctx.fillText('$' + price.toFixed(2), PADDING.left - 6, y + 4);
+    }
+
+    // Volume bars
+    bars.forEach((b, i) => {
+      const x = px(i);
+      const barW = Math.max(1, CW / bars.length * 0.6);
+      ctx.fillStyle = b.c >= b.o ? 'rgba(0,255,157,0.2)' : 'rgba(255,71,87,0.2)';
+      ctx.fillRect(x - barW/2, vy(b.v), barW, H - PADDING.bottom - vy(b.v));
+    });
+
+    // Candlesticks
+    const candleW = Math.max(1, CW / bars.length * 0.6);
+    bars.forEach((b, i) => {
+      const x = px(i);
+      const open = py(b.o), close = py(b.c), high = py(b.h), low = py(b.l);
+      const bull = b.c >= b.o;
+      ctx.strokeStyle = bull ? GREEN : RED;
+      ctx.fillStyle   = bull ? GREEN : RED;
+      ctx.lineWidth = 1;
+      // Wick
+      ctx.beginPath(); ctx.moveTo(x, high); ctx.lineTo(x, low); ctx.stroke();
+      // Body
+      const bodyY = Math.min(open, close);
+      const bodyH = Math.max(1, Math.abs(close - open));
+      if (bull) {
+        ctx.strokeRect(x - candleW/2, bodyY, candleW, bodyH);
+      } else {
+        ctx.fillRect(x - candleW/2, bodyY, candleW, bodyH);
+      }
+    });
+
+    // SMA helper
+    function sma(data, period) {
+      return data.map((_, i) => {
+        if (i < period - 1) return null;
+        return data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0) / period;
+      });
+    }
+
+    // Draw MA lines
+    const show50MA  = indicators.includes('50 MA');
+    const show200MA = indicators.includes('200 MA');
+    const showEMA20 = indicators.includes('20 EMA');
+
+    function drawLine(values, color, dash=[]) {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash(dash);
+      ctx.beginPath();
+      let started = false;
+      values.forEach((v, i) => {
+        if (v == null) return;
+        const x = px(i), y = py(v);
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    if (show50MA)  drawLine(sma(closes, 50),  AMBER);
+    if (show200MA) drawLine(sma(closes, 200), PURPLE);
+    if (showEMA20) {
+      const ema = closes.map((c, i, arr) => {
+        if (i === 0) return c;
+        const k = 2 / (20 + 1);
+        return c * k + (arr[i-1] || c) * (1 - k);
+      });
+      drawLine(ema, '#34d399');
+    }
+
+    // Bollinger Bands
+    if (indicators.includes('Bollinger Bands (20,2)')) {
+      const mid = sma(closes, 20);
+      const upper = mid.map((m, i) => {
+        if (m == null) return null;
+        const slice = closes.slice(Math.max(0, i-19), i+1);
+        const std = Math.sqrt(slice.reduce((s, v) => s + Math.pow(v - m, 2), 0) / slice.length);
+        return m + 2 * std;
+      });
+      const lower = mid.map((m, i) => {
+        if (m == null) return null;
+        const slice = closes.slice(Math.max(0, i-19), i+1);
+        const std = Math.sqrt(slice.reduce((s, v) => s + Math.pow(v - m, 2), 0) / slice.length);
+        return m - 2 * std;
+      });
+      drawLine(mid,   BLUE,  [4,2]);
+      drawLine(upper, 'rgba(0,212,255,0.5)', [2,2]);
+      drawLine(lower, 'rgba(0,212,255,0.5)', [2,2]);
+    }
+
+    // Title + labels
+    ctx.fillStyle = BLUE; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(`${ticker} · ${timeframe}`, PADDING.left, 22);
+
+    // Date labels (first, middle, last)
+    ctx.fillStyle = TEXT; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    [0, Math.floor(bars.length/2), bars.length-1].forEach(i => {
+      const d = new Date(bars[i].t);
+      const label = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+      ctx.fillText(label, px(i), H - PADDING.bottom + 16);
+    });
+
+    // Active indicators legend
+    if (indicators.length) {
+      const legendColors = { '50 MA': AMBER, '200 MA': PURPLE, '20 EMA': '#34d399', 'Bollinger Bands (20,2)': BLUE };
+      let lx = PADDING.left;
+      indicators.slice(0, 4).forEach(ind => {
+        const c = legendColors[ind] || BLUE;
+        ctx.fillStyle = c; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(`● ${ind}`, lx, H - 8);
+        lx += ctx.measureText(`● ${ind}  `).width + 16;
+      });
+    }
+
+    // Current price line
+    const lastPrice = closes[closes.length - 1];
+    const lastY = py(lastPrice);
+    ctx.strokeStyle = 'rgba(0,212,255,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(PADDING.left, lastY); ctx.lineTo(W - PADDING.right, lastY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = BLUE; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'left';
+    ctx.fillText('$' + lastPrice.toFixed(2), W - PADDING.right + 4, lastY + 4);
+
+    return canvas.toDataURL('image/png');
+  }
+
   async function analyzeChartWithAI(agent) {
     const ticker = currentChartTicker;
     if (!ticker) { showDBToast('Load a chart first', 'warn'); return; }
 
     const resultsEl = document.getElementById('chart-analysis-results');
-    const gridEl = document.getElementById('chart-analysis-grid');
+    const gridEl    = document.getElementById('chart-analysis-grid');
     if (!resultsEl || !gridEl) return;
 
-    // Check keys
     if ((agent === 'claude' || agent === 'both') && !adminAPIKey) {
       showDBToast('Claude API key required — open Admin panel first', 'warn'); return;
     }
@@ -8110,98 +8403,132 @@ Be direct and specific. Search the web for current data on each.`;
       showDBToast('Grok API key required — open Admin panel ⚙ GROK KEY', 'warn'); return;
     }
 
-    // Show results area with loading state
+    // Show results with loading
     resultsEl.style.display = 'block';
-    const cols = agent === 'both' ? '1fr 1fr' : '1fr';
-    gridEl.style.gridTemplateColumns = cols;
-
-    // Build loading cards
+    gridEl.style.gridTemplateColumns = agent === 'both' ? '1fr 1fr' : '1fr';
     const agents = agent === 'both' ? ['claude','grok'] : [agent];
     gridEl.innerHTML = agents.map(a => `
       <div id="chart-analysis-${a}" style="background:var(--panel);border:1px solid rgba(${a==='claude'?'244,114,182':'99,179,237'},0.2);border-radius:4px;padding:16px;">
-        <div style="font-size:10px;color:${a==='claude'?'#f472b6':'#63b3ed'};letter-spacing:0.1em;margin-bottom:10px;">${a==='claude'?'🤖 CLAUDE':'⚡ GROK'} · Analyzing ${ticker} chart...</div>
+        <div style="font-size:10px;color:${a==='claude'?'#f472b6':'#63b3ed'};letter-spacing:0.1em;margin-bottom:10px;">${a==='claude'?'🤖 CLAUDE':'⚡ GROK'} · Rendering chart...</div>
         <div style="color:var(--text3);font-size:12px;text-align:center;padding:20px 0;">
-          <span style="animation:pulse 1s infinite;display:inline-block;font-size:20px;">⟳</span><br><br>
-          Capturing chart and sending to ${a==='claude'?'Claude':'Grok'}...
+          <span style="animation:pulse 1s infinite;display:inline-block;font-size:20px;">⟳</span><br><br>Fetching Alpaca data and rendering chart...
         </div>
       </div>`).join('');
 
-    // Capture chart as image using html2canvas approach
-    // Since html2canvas isn't available, we use a data-rich text description instead
-    // and let the AI reason from market data + context
-    const priceData = livePriceCache[ticker]?.data;
+    // Collect active indicators
     const activeIndicators = [];
-    if (document.getElementById('show-ma50')?.checked) activeIndicators.push('50-day Simple MA');
-    if (document.getElementById('show-ma200')?.checked) activeIndicators.push('200-day Simple MA');
-    if (document.getElementById('show-ema20')?.checked) activeIndicators.push('20-day EMA');
-    if (document.getElementById('show-bb')?.checked) activeIndicators.push('Bollinger Bands (20,2)');
-    if (document.getElementById('show-vwap')?.checked) activeIndicators.push('VWAP');
-    if (document.getElementById('show-rsi')?.checked) activeIndicators.push('RSI(14)');
-    if (document.getElementById('show-macd')?.checked) activeIndicators.push('MACD(12,26,9)');
-    if (document.getElementById('show-stoch')?.checked) activeIndicators.push('Stochastic(14,3,3)');
-    if (document.getElementById('show-atr')?.checked) activeIndicators.push('ATR(14)');
-    if (document.getElementById('show-obv')?.checked) activeIndicators.push('OBV');
+    if (document.getElementById('show-ma50')?.checked)   activeIndicators.push('50 MA');
+    if (document.getElementById('show-ma200')?.checked)  activeIndicators.push('200 MA');
+    if (document.getElementById('show-ema20')?.checked)  activeIndicators.push('20 EMA');
+    if (document.getElementById('show-bb')?.checked)     activeIndicators.push('Bollinger Bands (20,2)');
+    if (document.getElementById('show-vwap')?.checked)   activeIndicators.push('VWAP');
+    if (document.getElementById('show-rsi')?.checked)    activeIndicators.push('RSI(14)');
+    if (document.getElementById('show-macd')?.checked)   activeIndicators.push('MACD(12,26,9)');
+    if (document.getElementById('show-stoch')?.checked)  activeIndicators.push('Stochastic');
+    if (document.getElementById('show-atr')?.checked)    activeIndicators.push('ATR(14)');
+    if (document.getElementById('show-obv')?.checked)    activeIndicators.push('OBV');
 
-    const chartContext = `
-CHART ANALYSIS REQUEST — ${ticker}
-Timeframe: ${currentTimeframe}
-Active Indicators: ${activeIndicators.length > 0 ? activeIndicators.join(', ') : 'Price + Volume only'}
-${priceData ? `
-Current Price: $${priceData.price?.toFixed(2)}
-Day Change: ${priceData.change >= 0 ? '+' : ''}$${priceData.change?.toFixed(2)} (${priceData.changePct?.toFixed(2)}%)
-52-Week High: ${priceData.high52 ? '$'+priceData.high52.toFixed(2) : 'N/A'}
-52-Week Low: ${priceData.low52 ? '$'+priceData.low52.toFixed(2) : 'N/A'}
-Volume: ${priceData.vol ? (priceData.vol/1e6).toFixed(2)+'M' : 'N/A'}
-` : ''}`;
+    // Fetch bars from Alpaca
+    const bars = await fetchAlpacaBars(ticker, currentTimeframe);
 
-    const analysisPrompt = `${chartContext}
+    let chartBase64 = null;
+    let chartContextText = '';
 
-Please provide a COMPREHENSIVE chart analysis for ${ticker} on the ${currentTimeframe} timeframe with the following indicators active: ${activeIndicators.join(', ') || 'price and volume'}.
+    if (bars && bars.length >= 10) {
+      // Render canvas chart
+      chartBase64 = renderCandlestickCanvas(bars, ticker, currentTimeframe, activeIndicators);
 
-Search the web for the latest price data, recent news, and any relevant developments for ${ticker}.
+      // Show thumbnail
+      const preview = document.getElementById('analysis-chart-preview');
+      const img = document.getElementById('analysis-chart-img');
+      if (preview && img && chartBase64) {
+        img.src = chartBase64;
+        preview.style.display = 'block';
+      }
 
-Structure your analysis as follows:
+      // Build price context from bars
+      const closes = bars.map(b => b.c);
+      const last = closes[closes.length - 1];
+      const first = closes[0];
+      const high  = Math.max(...bars.map(b => b.h));
+      const low   = Math.min(...bars.map(b => b.l));
+      const change = ((last - first) / first * 100).toFixed(2);
+      const avgVol = (bars.reduce((s,b) => s + b.v, 0) / bars.length / 1e6).toFixed(2);
+
+      chartContextText = `
+CHART DATA (${bars.length} bars, ${currentTimeframe} timeframe):
+Current Price: $${last.toFixed(2)}
+Period Range: $${low.toFixed(2)} — $${high.toFixed(2)}
+Period Change: ${change}%
+Avg Volume: ${avgVol}M
+Active Indicators: ${activeIndicators.join(', ') || 'None'}
+First bar date: ${new Date(bars[0].t).toLocaleDateString()}
+Last bar date: ${new Date(bars[bars.length-1].t).toLocaleDateString()}`;
+    } else {
+      // No Alpaca data — fall back to text context
+      chartContextText = `No Alpaca bar data available. Using cached price context.
+Ticker: ${ticker} · Timeframe: ${currentTimeframe}
+Active Indicators: ${activeIndicators.join(', ') || 'None'}`;
+    }
+
+    const priceData = livePriceCache[ticker]?.data;
+
+    const analysisPrompt = `You are analyzing a ${ticker} candlestick chart on the ${currentTimeframe} timeframe.
+
+${chartContextText}
+${priceData ? `Live Price: $${priceData.price?.toFixed(2)} · Day Change: ${priceData.changePct?.toFixed(2)}%` : ''}
+
+Please search the web for latest news and context on ${ticker}, then provide a COMPREHENSIVE visual chart analysis:
 
 ## 📊 Technical Setup
-- Current trend (bullish/bearish/neutral) and strength
-- Key support and resistance levels with specific prices
-- Price action patterns (flags, wedges, channels, etc.)
-- Volume analysis
+- Overall trend (bullish/bearish/neutral) with strength
+- Key chart patterns visible (flags, wedges, H&S, channels, double tops/bottoms)
+- Support and resistance levels with specific prices
+- Volume analysis — is it confirming the move?
 
 ## 📈 Indicator Readings
-For each active indicator, give the specific reading and what it signals:
-${activeIndicators.map(i => `- ${i}: [reading] → [signal]`).join('\n')}
+${activeIndicators.map(i => `- ${i}: What does it show? Bullish/bearish signal?`).join('\n')}
+${activeIndicators.length === 0 ? '- Price action only — describe the candle patterns' : ''}
 
 ## 🎯 Key Levels
 - Immediate resistance: $?
-- Major resistance: $?  
+- Major resistance: $?
 - Immediate support: $?
 - Major support: $?
 - Stop loss level: $?
 
 ## ⛓️ Options Strategy
-Based on this technical setup, recommend ONE specific options strategy:
-- Strategy name and structure (e.g. bull call spread)
-- Specific strikes and expiry (e.g. Buy $30 call, Sell $35 call, June 20 expiry)
-- Max risk / Max reward
-- Breakeven price
-- Why this structure fits the current setup
+ONE specific options trade based on this setup:
+- Strategy (e.g. bull call spread, cash-secured put)
+- Exact strikes and expiry
+- Max risk / Max reward / Breakeven
+- Why this fits the current setup
 
 ## 💰 Trade Idea
 - Direction: LONG / SHORT / NEUTRAL
-- Entry price: $?
-- Target price: $? (% gain)
-- Stop loss: $? (% risk)
-- Position sizing suggestion: % of portfolio
+- Entry: $? · Target: $? · Stop: $?
+- Position size: % of portfolio
 - Risk/reward ratio
-- Conviction level: High / Medium / Low
+- Conviction: High / Medium / Low
+- Time horizon
 
 ## ⚠️ Key Risks
-2-3 specific risks that could invalidate this setup.
+2-3 specific things that could invalidate this setup.
 
-Be specific with price levels. Not investment advice — educational analysis only.`;
+Be specific with price levels. Frame as research, not advice.`;
 
-    // Run analyses
+    // Build message content — include image if available
+    const buildMessages = (isImage) => {
+      if (isImage && chartBase64) {
+        return [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: chartBase64.split(',')[1] } },
+          { type: 'text', text: analysisPrompt }
+        ]}];
+      }
+      return [{ role: 'user', content: analysisPrompt }];
+    };
+
+    // Run both analyses in parallel
     const promises = [];
 
     if (agent === 'claude' || agent === 'both') {
@@ -8213,7 +8540,7 @@ Be specific with price levels. Not investment advice — educational analysis on
             model: 'claude-sonnet-4-6',
             max_tokens: 2048,
             system: buildSystemPrompt(),
-            messages: [{ role: 'user', content: analysisPrompt }],
+            messages: buildMessages(true), // Claude supports vision
             tools: [{ type: 'web_search_20250305', name: 'web_search' }],
           })
         }).then(r => r.json()).then(data => ({
@@ -8226,18 +8553,23 @@ Be specific with price levels. Not investment advice — educational analysis on
     }
 
     if (agent === 'grok' || agent === 'both') {
+      // Build Grok message — include image if available
+      const grokMessages = chartBase64 ? [
+        { role: 'system', content: buildSystemPrompt() },
+        { role: 'user', content: [
+          { type: 'image_url', image_url: { url: chartBase64 } },
+          { type: 'text', text: analysisPrompt }
+        ]}
+      ] : [
+        { role: 'system', content: buildSystemPrompt() },
+        { role: 'user', content: analysisPrompt }
+      ];
+
       promises.push(
         fetch('https://api.x.ai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${grokAPIKey}` },
-          body: JSON.stringify({
-            model: 'grok-3',
-            max_tokens: 2048,
-            messages: [
-              { role: 'system', content: buildSystemPrompt() },
-              { role: 'user', content: analysisPrompt }
-            ]
-          })
+          body: JSON.stringify({ model:'grok-3', max_tokens:2048, messages: grokMessages })
         }).then(r => r.json()).then(data => ({
           agent: 'grok',
           text: data.choices?.[0]?.message?.content || 'No response',
@@ -8254,42 +8586,43 @@ Be specific with price levels. Not investment advice — educational analysis on
       if (!el) return;
       const isC = result.agent === 'claude';
       const color = isC ? '#f472b6' : '#63b3ed';
-      const label = isC ? '🤖 CLAUDE · Chart Analysis' : '⚡ GROK · Chart Analysis';
+      const label = isC ? '🤖 CLAUDE · Visual Chart Analysis' : '⚡ GROK · Visual Chart Analysis';
+      const hasImage = !!chartBase64;
 
       if (result.error) {
-        el.innerHTML = `
-          <div style="font-size:10px;color:${color};letter-spacing:0.1em;margin-bottom:10px;">${label}</div>
+        el.innerHTML = `<div style="font-size:10px;color:${color};letter-spacing:0.1em;margin-bottom:10px;">${label}</div>
           <div style="color:var(--red);font-size:12px;">Error: ${result.error}</div>`;
         return;
       }
 
-      // Format markdown
-      const formatted = (result.text || '')
-        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text);">$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/^## (.*$)/gm, '<div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">$1</div>')
-        .replace(/^### (.*$)/gm, `<div style="font-family:var(--sans);font-size:12px;font-weight:700;color:${color};margin:10px 0 4px;">$1</div>`)
-        .replace(/^- (.*$)/gm, '<div style="padding-left:12px;margin:3px 0;color:var(--text2);">· $1</div>')
-        .replace(/`(.*?)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:11px;color:var(--accent2);">$1</code>');
+      const formatted = (result.text||'')
+        .replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--text);">$1</strong>')
+        .replace(/^## (.*$)/gm,'<div style="font-family:var(--sans);font-size:14px;font-weight:700;color:var(--text);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border);">$1</div>')
+        .replace(/^### (.*$)/gm,`<div style="font-size:12px;font-weight:700;color:${color};margin:10px 0 4px;">$1</div>`)
+        .replace(/^- (.*$)/gm,'<div style="padding-left:12px;margin:3px 0;color:var(--text2);">· $1</div>');
 
       el.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div style="font-size:10px;color:${color};letter-spacing:0.1em;">${label} · ${ticker} · ${currentTimeframe}</div>
-          ${result.searchUsed ? '<span style="font-size:9px;color:var(--green);background:rgba(46,213,115,0.1);padding:2px 6px;border-radius:2px;">🔍 Web searched</span>' : ''}
+          <div style="display:flex;gap:4px;">
+            ${result.searchUsed ? '<span style="font-size:9px;color:var(--green);background:rgba(46,213,115,0.1);padding:2px 6px;border-radius:2px;">🔍 web</span>' : ''}
+            ${hasImage ? '<span style="font-size:9px;color:#e879f9;background:rgba(232,121,249,0.1);padding:2px 6px;border-radius:2px;">📸 vision</span>' : ''}
+          </div>
         </div>
         <div style="font-size:12px;color:var(--text2);line-height:1.8;">${formatted}</div>
         <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;">
-          <button onclick="saveChartAnalysis('${ticker}','${result.agent}',this.closest('[id]').querySelector('div:last-of-type').innerText)"
-            style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:#a78bfa;font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">📝 Save to Notes</button>
+          <button onclick="saveChartAnalysis('${ticker}','${result.agent}',document.getElementById('chart-analysis-${result.agent}').innerText)"
+            style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:#a78bfa;font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">📝 Save</button>
           <button onclick="loadOptionsFromTracker('${ticker}')"
-            style="background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);color:var(--warn);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">⛓️ Options Chain</button>
+            style="background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);color:var(--warn);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">⛓️ Options</button>
           <button onclick="quickTrade('${ticker}','buy')"
-            style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">▲ Paper Trade</button>
+            style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.2);color:var(--green);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">▲ Trade</button>
           <button onclick="navigator.clipboard.writeText(document.getElementById('chart-analysis-${result.agent}').innerText)"
             style="background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;">📋 Copy</button>
         </div>`;
     });
   }
+
 
   function saveChartAnalysis(ticker, agent, text) {
     const notes = JSON.parse(localStorage.getItem('meridian-notes') || '[]');
@@ -8455,6 +8788,215 @@ Be specific with price levels. Not investment advice — educational analysis on
       }
     });
   });
+
+  // ============================================================
+  // SHARED RESEARCH CHAT
+  // ============================================================
+  let chatChannel = 'research';
+  let chatUsername = localStorage.getItem('meridian_chat_username') || '';
+  let chatMessages = [];
+  let chatRefreshTimer = null;
+  let chatLastTs = null;
+
+  // User colors — consistent per username
+  const CHAT_COLORS = ['#00d4ff','#00ff9d','#f472b6','#fbbf24','#a78bfa','#34d399','#fb923c','#63b3ed','#e879f9','#4ade80'];
+  function getChatColor(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return CHAT_COLORS[Math.abs(hash) % CHAT_COLORS.length];
+  }
+
+  function saveChatUsername() {
+    const val = document.getElementById('chat-username-input')?.value.trim();
+    if (!val) return;
+    chatUsername = val;
+    localStorage.setItem('meridian_chat_username', val);
+    document.getElementById('chat-username-setup').style.display = 'none';
+    document.getElementById('chat-current-user').textContent = val;
+    loadChatMessages();
+  }
+
+  function changeChatUsername() {
+    chatUsername = '';
+    localStorage.removeItem('meridian_chat_username');
+    document.getElementById('chat-username-setup').style.display = 'block';
+    document.getElementById('chat-username-input').value = '';
+    document.getElementById('chat-username-input').focus();
+  }
+
+  function switchChatChannel(channel) {
+    chatChannel = channel;
+    ['research','general'].forEach(ch => {
+      const btn = document.getElementById(`ch-${ch}`);
+      if (!btn) return;
+      const active = ch === channel;
+      btn.style.background = active ? 'rgba(0,212,255,0.1)' : 'transparent';
+      btn.style.borderColor = active ? 'rgba(0,212,255,0.3)' : 'transparent';
+      btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+    });
+    renderChatMessages();
+  }
+
+  async function loadChatMessages() {
+    if (!APPS_SCRIPT_URL) return;
+    const btn = document.getElementById('chat-refresh-btn');
+    if (btn) { btn.textContent = '⟳'; btn.style.opacity = '0.6'; }
+
+    try {
+      const token = MERIDIAN_TOKEN || localStorage.getItem('meridian_token') || '';
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getSheet&tab=Chat&token=${encodeURIComponent(token)}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error');
+
+      chatMessages = (data.rows || []).filter(r => r.message).reverse(); // newest first in array
+      renderChatMessages();
+
+      const badge = document.getElementById('chat-online-badge');
+      if (badge) badge.textContent = `${chatMessages.length} messages · ${new Date().toLocaleTimeString()}`;
+    } catch(e) {
+      const msgs = document.getElementById('chat-messages');
+      if (msgs && chatMessages.length === 0) {
+        msgs.innerHTML = `<div style="text-align:center;color:var(--red);font-size:12px;padding:40px 0;">Could not load messages. Check your Apps Script URL and token.<br><span style="font-size:10px;color:var(--text3);">${e.message}</span></div>`;
+      }
+    }
+    if (btn) { btn.textContent = '↺ REFRESH'; btn.style.opacity = '1'; }
+  }
+
+  function renderChatMessages() {
+    const msgs = document.getElementById('chat-messages');
+    if (!msgs) return;
+
+    const filtered = chatMessages.filter(m => (m.channel || 'research') === chatChannel);
+
+    if (filtered.length === 0) {
+      msgs.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:12px;padding:60px 0;">
+        <div style="font-size:28px;margin-bottom:10px;">${chatChannel === 'research' ? '📈' : '💬'}</div>
+        No messages yet in #${chatChannel}. Be the first to post!
+      </div>`;
+      return;
+    }
+
+    // Render oldest first (reverse filtered since we stored newest-first)
+    const ordered = [...filtered].reverse();
+    const isAtBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
+
+    msgs.innerHTML = ordered.map(msg => {
+      const user = msg.user || 'Anonymous';
+      const color = getChatColor(user);
+      const isMe = user === chatUsername;
+      const ticker = msg.ticker?.trim();
+      const type = msg.type || '💬';
+      const ts = msg.timestamp ? new Date(msg.timestamp) : null;
+      const timeStr = ts ? ts.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) : '';
+      const dateStr = ts ? ts.toLocaleDateString('en-US', { month:'short', day:'numeric' }) : '';
+      const isToday = ts ? new Date().toDateString() === ts.toDateString() : true;
+
+      return `<div style="display:flex;gap:10px;align-items:flex-start;${isMe ? 'flex-direction:row-reverse;' : ''}">
+        <!-- Avatar -->
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(${hexToRgb(color)},0.15);border:1px solid rgba(${hexToRgb(color)},0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:700;color:${color};">
+          ${user.charAt(0).toUpperCase()}
+        </div>
+        <!-- Bubble -->
+        <div style="flex:1;max-width:75%;">
+          <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:3px;${isMe ? 'justify-content:flex-end;' : ''}">
+            <span style="font-size:11px;font-weight:700;color:${color};font-family:var(--mono);">${user}</span>
+            ${ticker ? `<span onclick="loadChartTicker('${ticker}');showTab('charts')" style="background:rgba(0,212,255,0.12);color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 6px;border-radius:2px;cursor:pointer;" title="Open ${ticker} chart">$${ticker}</span>` : ''}
+            <span style="font-size:10px;color:var(--text3);">${isToday ? timeStr : dateStr + ' ' + timeStr}</span>
+          </div>
+          <div style="background:${isMe ? 'rgba(0,212,255,0.08)' : 'var(--panel)'};border:1px solid ${isMe ? 'rgba(0,212,255,0.2)' : 'var(--border)'};border-radius:${isMe ? '8px 2px 8px 8px' : '2px 8px 8px 8px'};padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.7;word-break:break-word;">
+            <span style="margin-right:5px;">${type}</span>${escapeHtml(msg.message)}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Auto-scroll to bottom if was at bottom
+    if (isAtBottom || ordered.length <= 3) {
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+  }
+
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `${r},${g},${b}`;
+  }
+
+  function escapeHtml(text) {
+    return (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input?.value.trim();
+    if (!message) return;
+
+    if (!chatUsername) {
+      document.getElementById('chat-username-setup').style.display = 'block';
+      document.getElementById('chat-username-input').focus();
+      showDBToast('Set your display name first', 'warn');
+      return;
+    }
+    if (!APPS_SCRIPT_URL) { showDBToast('Apps Script URL not set', 'warn'); return; }
+
+    const ticker = document.getElementById('chat-ticker-tag')?.value.trim();
+    const type = document.getElementById('chat-msg-type')?.value || '💬';
+    const btn = document.getElementById('chat-send-btn');
+    if (btn) { btn.textContent = '⟳'; btn.style.opacity = '0.6'; }
+
+    // Optimistic UI — add immediately
+    const ts = new Date().toISOString();
+    const optimistic = { timestamp: ts, user: chatUsername, channel: chatChannel, message, ticker, type, _id: 'temp' };
+    chatMessages.unshift(optimistic);
+    renderChatMessages();
+    if (input) input.value = '';
+    if (document.getElementById('chat-ticker-tag')) document.getElementById('chat-ticker-tag').value = '';
+
+    try {
+      await writeToSheet('append', 'Chat', {
+        timestamp: ts,
+        user: chatUsername,
+        channel: chatChannel,
+        message,
+        ticker: ticker || '',
+        type,
+      });
+      // Reload to get server-confirmed messages
+      setTimeout(() => loadChatMessages(), 1000);
+    } catch(e) {
+      showDBToast('Message failed to send', 'error');
+      // Remove optimistic message
+      chatMessages = chatMessages.filter(m => m._id !== 'temp');
+      renderChatMessages();
+    }
+
+    if (btn) { btn.textContent = 'SEND ↵'; btn.style.opacity = '1'; }
+  }
+
+  // Auto-refresh chat every 30s when tab is active
+  function startChatAutoRefresh() {
+    if (chatRefreshTimer) clearInterval(chatRefreshTimer);
+    chatRefreshTimer = setInterval(() => {
+      const chatSection = document.getElementById('tab-sharedchat');
+      if (chatSection?.classList.contains('active')) loadChatMessages();
+    }, 30000);
+  }
+
+  function initChatTab() {
+    // Show/hide username setup
+    if (!chatUsername) {
+      document.getElementById('chat-username-setup').style.display = 'block';
+    } else {
+      document.getElementById('chat-username-setup').style.display = 'none';
+      document.getElementById('chat-current-user').textContent = chatUsername;
+    }
+    loadChatMessages();
+    startChatAutoRefresh();
+  }
 
   // ---- Clock
   function updateClock() {
