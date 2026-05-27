@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.2 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.3 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -912,7 +912,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v5.2 &mdash; May 26 2026</span>
+    <span>v5.3 &mdash; May 27 2026</span>
   </div>
 </header>
 
@@ -1439,25 +1439,41 @@ document.addEventListener('keydown', e => {
     <div class="section-header">
       <div>
         <div class="section-title">IPO <span>Calendar</span></div>
-        <div class="section-sub">2026 pipeline — completed, upcoming & watchlist</div>
+        <div class="section-sub">2026 pipeline — live from Google Sheets · add, edit, delete entries</div>
       </div>
-      <div class="section-date">Refreshed: May 23, 2026 &mdash; check Wed/Thu evenings for updates</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="ipo-last-updated" style="font-size:11px;color:var(--text3);">—</span>
+        <button onclick="loadIPOFromSheet()" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 12px;cursor:pointer;border-radius:3px;">↺ SYNC</button>
+        <button onclick="openAddIPO()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;font-weight:700;">➕ ADD IPO</button>
+      </div>
     </div>
 
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Completed 2026</div><div class="stat-value green">2</div></div>
-      <div class="stat-card"><div class="stat-label">Upcoming (Filed)</div><div class="stat-value warn">4</div></div>
-      <div class="stat-card"><div class="stat-label">Pipeline</div><div class="stat-value accent">7</div></div>
-      <div class="stat-card"><div class="stat-label">Withdrawn</div><div class="stat-value" style="color:var(--red)">1</div></div>
-      <div class="stat-card"><div class="stat-label">Largest Expected</div><div class="stat-value" style="font-size:13px;">SpaceX ~$1.75T</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green" id="ipo-stat-completed">—</div></div>
+      <div class="stat-card"><div class="stat-label">Upcoming</div><div class="stat-value warn" id="ipo-stat-upcoming">—</div></div>
+      <div class="stat-card"><div class="stat-label">Pipeline</div><div class="stat-value accent" id="ipo-stat-pipeline">—</div></div>
+      <div class="stat-card"><div class="stat-label">Withdrawn</div><div class="stat-value" style="color:var(--red)" id="ipo-stat-withdrawn">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Entries</div><div class="stat-value" id="ipo-stat-total">—</div></div>
     </div>
 
     <div class="filter-bar">
       <span class="filter-label">FILTER:</span>
-      <input class="filter-input" type="text" id="ipo-filter" placeholder="Search company, sector, status..." oninput="filterTable('ipo-table', this.value)">
+      <input class="filter-input" type="text" id="ipo-filter" placeholder="Search company, sector, status..." oninput="filterIPO(this.value)">
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        ${['All','Completed','Upcoming','Pipeline','Withdrawn'].map(s =>
+          `<button onclick="filterIPOByStatus('${s}')" id="ipo-status-${s.toLowerCase()}"
+            style="background:${s==='All'?'rgba(0,212,255,0.15)':'transparent'};border:1px solid ${s==='All'?'rgba(0,212,255,0.4)':'var(--border)'};color:${s==='All'?'var(--accent)':'var(--text3)'};font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">${s}</button>`
+        ).join('')}
+      </div>
     </div>
 
-    <div class="table-wrap">
+    <!-- Empty state -->
+    <div id="ipo-empty" style="padding:60px;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:4px;display:none;">
+      <div style="font-size:28px;margin-bottom:10px;">📅</div>
+      <div style="font-size:13px;">No IPO entries yet. Click <strong>➕ ADD IPO</strong> to get started, or <strong>↺ SYNC</strong> to load from Sheets.</div>
+    </div>
+
+    <div class="table-wrap" id="ipo-table-wrap">
       <table id="ipo-table">
         <thead>
           <tr>
@@ -1466,197 +1482,16 @@ document.addEventListener('keydown', e => {
             <th>Ticker</th>
             <th>Exchange</th>
             <th>Sector</th>
-            <th>IPO Date</th>
-            <th>Price</th>
-            <th>Deal Size</th>
-            <th>Market Cap</th>
-            <th>Revenue TTM</th>
+            <th>Expected Date</th>
+            <th>Price Range</th>
+            <th>Shares</th>
+            <th>Valuation</th>
             <th>Notes</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><span class="status-badge status-completed">Completed</span></td>
-            <td><strong>HawkEye 360</strong></td>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/HAWK/" target="_blank">HAWK</a></span></td>
-            <td>NYSE</td>
-            <td><span class="tag">Space / SIGINT</span></td>
-            <td class="text-muted">2026-05-07</td>
-            <td class="yes">$26.00</td>
-            <td class="text-muted">$416M</td>
-            <td class="text-muted">$2.42B</td>
-            <td class="text-muted">$118M</td>
-            <td class="notes-cell">Opened +30% at $33.80. ATH $35.73.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-completed">Completed</span></td>
-            <td><strong>Cerebras Systems</strong></td>
-            <td><span class="ticker-badge"><a href="https://finance.yahoo.com/quote/CBRS/" target="_blank">CBRS</a></span></td>
-            <td>NASDAQ</td>
-            <td><span class="tag">AI Chips</span></td>
-            <td class="text-muted">2026-05-14</td>
-            <td class="yes">$185.00</td>
-            <td class="text-muted">$5.55B</td>
-            <td class="text-muted">$39.82B</td>
-            <td class="text-muted">$510M</td>
-            <td class="notes-cell">Day 1 close $311.07. $20B OpenAI deal. Nvidia competitor.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-upcoming">Upcoming</span></td>
-            <td><strong>Lime (Neutron Holdings)</strong></td>
-            <td><span class="ticker-badge">LIME</span></td>
-            <td>NASDAQ</td>
-            <td><span class="tag">Micro-Mobility</span></td>
-            <td class="text-muted">Q2/Q3 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">S-1 filed May 8 2026. Blackstone backed. Electric scooters/bikes.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-upcoming">Upcoming</span></td>
-            <td><strong>Jersey Mike's</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">Restaurant</span></td>
-            <td class="text-muted">Q2/Q3 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Confidential S-1 mid-April 2026. Blackstone majority stake.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-upcoming">Upcoming</span></td>
-            <td><strong>Quantinuum</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">Quantum</span></td>
-            <td class="text-muted">Q2/Q3 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$10B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Confidential S-1 Feb 2026. Fault-tolerant quantum roadmap 2030.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-upcoming">Upcoming</span></td>
-            <td><strong>Kraken (Payward)</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">Crypto Exchange</span></td>
-            <td class="text-muted">Q2/Q3 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$20B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Confidential S-1 Nov 2025. $800M raised pre-IPO.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>OpenAI</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">AI</span></td>
-            <td class="text-muted">Q3/Q4 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$1T</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">May file confidentially May/June. IPO as early as Sept 2026.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>SpaceX</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">Aerospace</span><span class="tag">AI Infra</span></td>
-            <td class="text-muted">2026 H2</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$1.5–1.75T</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">S-1 filed with SEC. Largest IPO in US history if completed. Includes Starlink.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>Anthropic</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">AI</span></td>
-            <td class="text-muted">Late 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$300B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Contingent on $10B annualized run-rate. Claude product line. Amazon + Google backed.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>Revolut</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>NASDAQ</td>
-            <td><span class="tag">Fintech</span></td>
-            <td class="text-muted">2026 TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$75B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Confidential S-1 filed. UK neobank.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>Canva</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>NYSE/ASX</td>
-            <td><span class="tag">Design SaaS</span></td>
-            <td class="text-muted">2026 TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$42B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Goldman + Morgan Stanley engaged. Dual listing under consideration.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>Crusoe Energy</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">AI Infra</span><span class="tag">Energy</span></td>
-            <td class="text-muted">Q4 2026</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$13B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Largest pure-play AI infrastructure IPO of cycle if completed.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-pipeline">Pipeline</span></td>
-            <td><strong>Consensys</strong></td>
-            <td><span class="ticker-badge">TBD</span></td>
-            <td>TBD</td>
-            <td><span class="tag">Crypto</span><span class="tag">Web3</span></td>
-            <td class="text-muted">2026 TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-muted">~$7B</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Parent of MetaMask + Infura. Dominant Ethereum infrastructure.</td>
-          </tr>
-          <tr>
-            <td><span class="status-badge status-withdrawn">Withdrawn</span></td>
-            <td><strong>Clear Street</strong></td>
-            <td><span class="ticker-badge" style="opacity:0.5">N/A</span></td>
-            <td>N/A</td>
-            <td><span class="tag">Fintech</span></td>
-            <td class="text-muted">Feb 2026 (pulled)</td>
-            <td class="text-dim">N/A</td>
-            <td class="text-dim">N/A</td>
-            <td class="text-dim">TBD</td>
-            <td class="text-dim">TBD</td>
-            <td class="notes-cell">Withdrew after trimming price range. AI sell-off weakened demand. No timeline.</td>
-          </tr>
+        <tbody id="ipo-tbody">
+          <tr id="ipo-loading-row"><td colspan="11" style="text-align:center;padding:40px;color:var(--text3);">↺ Click SYNC to load IPO data from Google Sheets</td></tr>
         </tbody>
       </table>
     </div>
@@ -2619,18 +2454,12 @@ document.addEventListener('keydown', e => {
 
         <!-- Concept cards -->
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
-          ${[
-            ['What is an Option?', 'A contract giving you the RIGHT (not obligation) to buy or sell 100 shares of a stock at a specific price (strike) before a specific date (expiry). You pay a premium for this right.', '#00d4ff'],
-            ['Call vs Put', 'CALL = right to BUY. You profit when the stock goes UP.<br>PUT = right to SELL. You profit when the stock goes DOWN.<br>Think: "Call up, Put down."', '#00ff9d'],
-            ['Strike Price', 'The price at which you can buy (call) or sell (put) the underlying stock. Choose wisely — it determines if your option has intrinsic value.', '#fbbf24'],
-            ['Expiration Date', 'Every option expires. After expiry it\'s worthless if out-of-the-money. Weekly options expire Fridays. Monthly options expire the 3rd Friday. LEAPS expire 1-2 years out.', '#f472b6'],
-            ['Premium', 'The price you pay for the option contract. One contract = 100 shares. A $2.00 premium costs $200 total. This is your maximum loss when buying options.', '#a78bfa'],
-            ['In/At/Out of the Money', 'ITM: Has intrinsic value (call strike below stock price).<br>ATM: Strike = current stock price.<br>OTM: No intrinsic value yet. Cheaper but needs bigger move.', '#fb923c'],
-          ].map(([title, desc, color]) => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
-            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
-          </div>`).join('')}
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00d4ff;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00d4ff;margin-bottom:8px;">What is an Option?</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">A contract giving you the RIGHT (not obligation) to buy or sell 100 shares of a stock at a specific price (strike) before a specific date (expiry). You pay a premium for this right.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00ff9d;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00ff9d;margin-bottom:8px;">Call vs Put</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">CALL = right to BUY. You profit when the stock goes UP.<br>PUT = right to SELL. You profit when the stock goes DOWN.<br>Think: "Call up, Put down."</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">Strike Price</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">The price at which you can buy (call) or sell (put) the underlying stock. Choose wisely — it determines if your option has intrinsic value.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #f472b6;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#f472b6;margin-bottom:8px;">Expiration Date</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Every option expires. After expiry it's worthless if out-of-the-money. Weekly options expire Fridays. Monthly options expire the 3rd Friday. LEAPS expire 1-2 years out.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:8px;">Premium</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">The price you pay for the option contract. One contract = 100 shares. A $2.00 premium costs $200 total. This is your maximum loss when buying options.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fb923c;margin-bottom:8px;">In/At/Out of the Money</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">ITM: Has intrinsic value (call strike below stock price).<br>ATM: Strike = current stock price.<br>OTM: No intrinsic value yet. Cheaper but needs bigger move.</div></div>
         </div>
 
         <!-- Embedded video -->
@@ -2656,16 +2485,10 @@ document.addEventListener('keydown', e => {
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE BEGINNER RESOURCES</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
-            ${[
-              ['Option Alpha — Free Beginner Course', 'https://optionalpha.com/courses', 'Most comprehensive free options course available. 30+ videos covering all basics.'],
-              ['Investopedia — Options Basics', 'https://www.investopedia.com/options-basics-tutorial-4583012', 'Text-based deep dives. Best for reading learners.'],
-              ['tastytrade — Options Education', 'https://www.tastytrade.com/concepts-strategies', 'Founded by CBOE veterans. Excellent free video library.'],
-              ['CBOE — Options Institute', 'https://www.cboe.com/optionsinstitute/', 'Direct from the exchange. Free courses and webinars.'],
-            ].map(([title, url, desc]) => `
-            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ ${title}</div>
-              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
-            </a>`).join('')}
+            <a href="https://optionalpha.com/courses" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ Option Alpha — Free Beginner Course</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Most comprehensive free options course available. 30+ videos covering all basics.</div></a>
+            <a href="https://www.investopedia.com/options-basics-tutorial-4583012" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ Investopedia — Options Basics</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Text-based deep dives. Best for reading learners.</div></a>
+            <a href="https://www.tastytrade.com/concepts-strategies" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ tastytrade — Options Education</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Founded by CBOE veterans. Excellent free video library.</div></a>
+            <a href="https://www.cboe.com/optionsinstitute/" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">↗ CBOE — Options Institute</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Direct from the exchange. Free courses and webinars.</div></a>
           </div>
         </div>
       </div>
@@ -2675,18 +2498,12 @@ document.addEventListener('keydown', e => {
         <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--warn);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🟡 Intermediate — Going Deeper</div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
-          ${[
-            ['Implied Volatility (IV)', 'The market\'s forecast of likely movement. HIGH IV = expensive options. LOW IV = cheap options. Buy options in low IV, sell in high IV. IV crush after earnings kills option buyers.', '#fbbf24'],
-            ['Time Decay (Theta)', 'Options lose value every day just from time passing. Theta is your enemy when BUYING options, your friend when SELLING. An option loses ~1/3 of time value in the last week alone.', '#f472b6'],
-            ['Open Interest vs Volume', 'Volume = contracts traded today. Open Interest = total open contracts. High OI = liquid market. Unusual volume vs OI = potential informed activity. Watch this on your tracked tickers.', '#00ff9d'],
-            ['The Options Chain', 'A table showing all available strikes and expiries. Bid/ask spread shows liquidity. Look for tight spreads. Delta shows probability of expiring ITM. High OI = easier to fill orders.', '#00d4ff'],
-            ['Buying vs Selling Options', 'BUYING: limited loss (premium paid), unlimited upside. Needs big move to profit. SELLING: limited upside (premium collected), larger potential loss. Profits from time decay + low IV.', '#a78bfa'],
-            ['Earnings Plays', 'IV spikes before earnings then collapses (IV crush). Buying straddles before earnings rarely works. Selling premium (iron condors, strangles) around earnings can capture the crush.', '#fb923c'],
-          ].map(([title, desc, color]) => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
-            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
-          </div>`).join('')}
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">Implied Volatility (IV)</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">The market's forecast of likely movement. HIGH IV = expensive options. LOW IV = cheap options. Buy options in low IV, sell in high IV. IV crush after earnings kills option buyers.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #f472b6;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#f472b6;margin-bottom:8px;">Time Decay (Theta)</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Options lose value every day just from time passing. Theta is your enemy when BUYING options, your friend when SELLING. An option loses ~1/3 of time value in the last week alone.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00ff9d;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00ff9d;margin-bottom:8px;">Open Interest vs Volume</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Volume = contracts traded today. Open Interest = total open contracts. High OI = liquid market. Unusual volume vs OI = potential informed activity. Watch this on your tracked tickers.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00d4ff;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00d4ff;margin-bottom:8px;">The Options Chain</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">A table showing all available strikes and expiries. Bid/ask spread shows liquidity. Look for tight spreads. Delta shows probability of expiring ITM. High OI = easier to fill orders.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:8px;">Buying vs Selling Options</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">BUYING: limited loss (premium paid), unlimited upside. Needs big move to profit. SELLING: limited upside (premium collected), larger potential loss. Profits from time decay + low IV.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fb923c;margin-bottom:8px;">Earnings Plays</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">IV spikes before earnings then collapses (IV crush). Buying straddles before earnings rarely works. Selling premium (iron condors, strangles) around earnings can capture the crush.</div></div>
         </div>
 
         <div style="margin-bottom:20px;">
@@ -2710,16 +2527,10 @@ document.addEventListener('keydown', e => {
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE INTERMEDIATE RESOURCES</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
-            ${[
-              ['Option Alpha — Intermediate Course', 'https://optionalpha.com/courses', 'Picks up from basics — IV, probability, position sizing.'],
-              ['tastytrade — Implied Volatility', 'https://www.tastytrade.com/concepts-strategies/implied-volatility', 'Deep dive on IV — the most important concept for option sellers.'],
-              ['Market Chameleon — IV Research', 'https://marketchameleon.com', 'Free IV rank and percentile data for any ticker. Critical for timing entries.'],
-              ['Barchart — Options Scanner', 'https://www.barchart.com/options/unusual-activity', 'Free unusual options activity scanner. Our roadmap Unusual Whales alternative.'],
-            ].map(([title, url, desc]) => `
-            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ ${title}</div>
-              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
-            </a>`).join('')}
+            <a href="https://optionalpha.com/courses" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ Option Alpha — Intermediate Course</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Picks up from basics — IV, probability, position sizing.</div></a>
+            <a href="https://www.tastytrade.com/concepts-strategies/implied-volatility" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ tastytrade — Implied Volatility</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Deep dive on IV — the most important concept for option sellers.</div></a>
+            <a href="https://marketchameleon.com" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ Market Chameleon — IV Research</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Free IV rank and percentile data for any ticker. Critical for timing entries.</div></a>
+            <a href="https://www.barchart.com/options/unusual-activity" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,184,48,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:3px;">↗ Barchart — Options Scanner</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Free unusual options activity scanner. Our roadmap Unusual Whales alternative.</div></a>
           </div>
         </div>
       </div>
@@ -2729,33 +2540,21 @@ document.addEventListener('keydown', e => {
         <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--red);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🔴 Advanced — Professional Concepts</div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
-          ${[
-            ['Volatility Skew', 'Put options on the same stock cost more than equidistant calls. Why? Crash insurance demand. Understanding skew helps you price trades properly and find mispricings.', '#ff4757'],
-            ['Vanna & Charm', 'Second-order Greeks. Vanna = how delta changes with IV. Charm = how delta changes with time. Large options flows through these can move the underlying stock — "options tail wagging the stock dog."', '#f472b6'],
-            ['LEAPS as Stock Replacement', 'Deep ITM calls with 1-2 year expiry. Delta ~0.80+. Behave almost like owning stock but at 30-40% the cost. Theta is low, leverage is high. Warren Buffett\'s preferred structure.', '#fbbf24'],
-            ['Gamma Risk', 'Gamma = rate of change of delta. Peaks near ATM near expiry. Short gamma = dangerous near expiry as small moves create large delta swings. Why market makers hedge aggressively on Fridays.', '#a78bfa'],
-            ['Vega Risk', 'Sensitivity to IV changes. Long vega = you want IV to increase. Short vega = you profit from IV decrease (selling premium). Know your vega before earnings.', '#00d4ff'],
-            ['Pin Risk', 'When the stock closes exactly at your strike on expiry. You don\'t know if you\'ll be assigned. Always close positions before expiry unless you want assignment. Ask your broker about their exercise policy.', '#fb923c'],
-          ].map(([title, desc, color]) => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
-            <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
-          </div>`).join('')}
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #ff4757;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#ff4757;margin-bottom:8px;">Volatility Skew</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Put options on the same stock cost more than equidistant calls. Why? Crash insurance demand. Understanding skew helps you price trades properly and find mispricings.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #f472b6;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#f472b6;margin-bottom:8px;">Vanna &amp; Charm</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Second-order Greeks. Vanna = how delta changes with IV. Charm = how delta changes with time. Large options flows through these can move the underlying stock — "options tail wagging the stock dog."</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px;">LEAPS as Stock Replacement</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Deep ITM calls with 1-2 year expiry. Delta ~0.80+. Behave almost like owning stock but at 30-40% the cost. Theta is low, leverage is high. Warren Buffett's preferred structure.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:8px;">Gamma Risk</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Gamma = rate of change of delta. Peaks near ATM near expiry. Short gamma = dangerous near expiry as small moves create large delta swings. Why market makers hedge aggressively on Fridays.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00d4ff;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00d4ff;margin-bottom:8px;">Vega Risk</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">Sensitivity to IV changes. Long vega = you want IV to increase. Short vega = you profit from IV decrease (selling premium). Know your vega before earnings.</div></div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;"><div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fb923c;margin-bottom:8px;">Pin Risk</div><div style="font-size:12px;color:var(--text2);line-height:1.7;">When the stock closes exactly at your strike on expiry. You don't know if you'll be assigned. Always close positions before expiry unless you want assignment. Ask your broker about their exercise policy.</div></div>
         </div>
 
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px 16px;">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">🔗 FREE ADVANCED RESOURCES</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
-            ${[
-              ['Option Alpha — Advanced Course', 'https://optionalpha.com/courses', 'Advanced volatility, portfolio management, complex spreads.'],
-              ['tastytrade — Research', 'https://www.tastytrade.com/research', 'Quantitative options research. Data-driven edge studies.'],
-              ['Sheldon Natenberg — Free Chapters', 'https://www.wiley.com/en-us/Option+Volatility+and+Pricing-p-9780071818773', 'The bible of options. Option Volatility and Pricing — used by every pro trading desk.'],
-              ['CBOE VIX Term Structure', 'https://www.cboe.com/tradable_products/vix/', 'Understanding the VIX term structure for macro options positioning.'],
-            ].map(([title, url, desc]) => `
-            <a href="${url}" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
-              <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ ${title}</div>
-              <div style="font-size:11px;color:var(--text3);line-height:1.5;">${desc}</div>
-            </a>`).join('')}
+            <a href="https://optionalpha.com/courses" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ Option Alpha — Advanced Course</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Advanced volatility, portfolio management, complex spreads.</div></a>
+            <a href="https://www.tastytrade.com/research" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ tastytrade — Research</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Quantitative options research. Data-driven edge studies.</div></a>
+            <a href="https://www.wiley.com/en-us/Option+Volatility+and+Pricing-p-9780071818773" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ Sheldon Natenberg — Free Chapters</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">The bible of options. Option Volatility and Pricing — used by every pro trading desk.</div></a>
+            <a href="https://www.cboe.com/tradable_products/vix/" target="_blank" style="display:block;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-decoration:none;" onmouseover="this.style.borderColor='rgba(255,71,87,0.4)'" onmouseout="this.style.borderColor='var(--border)'"><div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:3px;">↗ CBOE VIX Term Structure</div><div style="font-size:11px;color:var(--text3);line-height:1.5;">Understanding the VIX term structure for macro options positioning.</div></a>
           </div>
         </div>
       </div>
@@ -2765,28 +2564,102 @@ document.addEventListener('keydown', e => {
         <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">📐 Strategies — From Simple to Complex</div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:20px;">
-          ${[
-            ['Covered Call', '🟢 Beginner', 'Own 100 shares + sell a call above current price. Collect premium. Cap your upside. Great for generating income on existing positions. KRMN at $64? Sell the $70 call for income.', 'Neutral to slightly bullish', '#00ff9d'],
-            ['Cash-Secured Put', '🟢 Beginner', 'Sell a put with cash to buy the shares if assigned. Get paid to wait for a stock to come to your price. If HAWK drops to $26 (IPO price), get paid to commit to buying there.', 'Bullish — want to own the stock', '#00ff9d'],
-            ['Long Call', '🟢 Beginner', 'Buy a call option. Bullish. Limited loss (premium), theoretically unlimited upside. Best when IV is low and you expect a big move up. Earnings plays, catalyst trades.', 'Bullish', '#fbbf24'],
-            ['Long Put', '🟢 Beginner', 'Buy a put option. Bearish. Portfolio hedge. Buy puts on SPY to protect against market crash. Or buy puts on overvalued positions you hold as insurance.', 'Bearish or hedging', '#fbbf24'],
-            ['Bull Call Spread', '🟡 Intermediate', 'Buy a lower strike call, sell a higher strike call. Reduces cost vs buying outright. Capped upside. Good for modest bullish moves when IV is high (sell that expensive call).', 'Moderately bullish', '#fb923c'],
-            ['Bear Put Spread', '🟡 Intermediate', 'Buy a higher strike put, sell a lower strike put. Cheaper than buying puts outright. Defined risk. Good for modest bearish plays.', 'Moderately bearish', '#fb923c'],
-            ['Iron Condor', '🟡 Intermediate', 'Sell an OTM call spread + sell an OTM put spread. Profit if stock stays in range. Collect premium on both sides. Ideal for low-movement periods or post-earnings IV crush.', 'Neutral — range bound', '#a78bfa'],
-            ['Straddle', '🟡 Intermediate', 'Buy ATM call + ATM put same strike/expiry. Profit from big move in EITHER direction. Expensive. Used before uncertain catalysts. IV crush is the enemy — don\'t hold through earnings unless planned.', 'Neutral — expects big move', '#a78bfa'],
-            ['Strangle', '🟡 Intermediate', 'Buy OTM call + OTM put. Cheaper than straddle. Needs bigger move to profit. Selling a strangle collects premium from both sides — popular strategy for option sellers.', 'Neutral — expects big move', '#a78bfa'],
-            ['Calendar Spread', '🔴 Advanced', 'Sell a near-term option, buy a farther-term option at the same strike. Profit from time decay differential. Complex but powerful around known events.', 'Neutral to slight directional', '#ff4757'],
-            ['Diagonal Spread', '🔴 Advanced', 'Like a calendar but different strikes. Combines time decay and directional exposure. Poor man\'s covered call using LEAPS as the long leg.', 'Directional with time edge', '#ff4757'],
-            ['Jade Lizard', '🔴 Advanced', 'Sell OTM put + sell OTM call spread. No upside risk. Collect enough premium to cover downside. Popular among tastytrade-style traders for high-IV environments.', 'Neutral to slightly bullish', '#ff4757'],
-          ].map(([name, level, desc, outlook, color]) => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00ff9d;border-radius:4px;padding:14px 16px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:${color};">${name}</div>
-              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">${level}</span>
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00ff9d;">Covered Call</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟢 Beginner</span>
             </div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">${desc}</div>
-            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:${color};">${outlook}</span></div>
-          </div>`).join('')}
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Own 100 shares + sell a call above current price. Collect premium. Cap your upside. Great for generating income on existing positions. KRMN at $64? Sell the $70 call for income.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#00ff9d;">Neutral to slightly bullish</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00ff9d;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#00ff9d;">Cash-Secured Put</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟢 Beginner</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Sell a put with cash to buy the shares if assigned. Get paid to wait for a stock to come to your price. If HAWK drops to $26 (IPO price), get paid to commit to buying there.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#00ff9d;">Bullish — want to own the stock</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fbbf24;">Long Call</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟢 Beginner</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy a call option. Bullish. Limited loss (premium), theoretically unlimited upside. Best when IV is low and you expect a big move up. Earnings plays, catalyst trades.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#fbbf24;">Bullish</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fbbf24;">Long Put</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟢 Beginner</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy a put option. Bearish. Portfolio hedge. Buy puts on SPY to protect against market crash. Or buy puts on overvalued positions you hold as insurance.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#fbbf24;">Bearish or hedging</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fb923c;">Bull Call Spread</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟡 Intermediate</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy a lower strike call, sell a higher strike call. Reduces cost vs buying outright. Capped upside. Good for modest bullish moves when IV is high (sell that expensive call).</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#fb923c;">Moderately bullish</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#fb923c;">Bear Put Spread</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟡 Intermediate</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy a higher strike put, sell a lower strike put. Cheaper than buying puts outright. Defined risk. Good for modest bearish plays.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#fb923c;">Moderately bearish</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;">Iron Condor</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟡 Intermediate</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Sell an OTM call spread + sell an OTM put spread. Profit if stock stays in range. Collect premium on both sides. Ideal for low-movement periods or post-earnings IV crush.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#a78bfa;">Neutral — range bound</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;">Straddle</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟡 Intermediate</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy ATM call + ATM put same strike/expiry. Profit from big move in EITHER direction. Expensive. Used before uncertain catalysts. IV crush is the enemy.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#a78bfa;">Neutral — expects big move</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#a78bfa;">Strangle</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🟡 Intermediate</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Buy OTM call + OTM put. Cheaper than straddle. Needs bigger move to profit. Selling a strangle collects premium from both sides — popular strategy for option sellers.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#a78bfa;">Neutral — expects big move</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #ff4757;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#ff4757;">Calendar Spread</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🔴 Advanced</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Sell a near-term option, buy a farther-term option at the same strike. Profit from time decay differential. Complex but powerful around known events.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#ff4757;">Neutral to slight directional</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #ff4757;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#ff4757;">Diagonal Spread</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🔴 Advanced</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Like a calendar but different strikes. Combines time decay and directional exposure. Poor man's covered call using LEAPS as the long leg.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#ff4757;">Directional with time edge</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #ff4757;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:13px;font-weight:700;color:#ff4757;">Jade Lizard</div>
+              <span style="font-size:10px;background:rgba(30,52,72,0.8);padding:2px 6px;border-radius:2px;color:var(--text3);">🔴 Advanced</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;">Sell OTM put + sell OTM call spread. No upside risk. Collect enough premium to cover downside. Popular among tastytrade-style traders for high-IV environments.</div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;">OUTLOOK: <span style="color:#ff4757;">Neutral to slightly bullish</span></div>
+          </div>
         </div>
 
         <div style="margin-bottom:20px;">
@@ -2819,21 +2692,48 @@ document.addEventListener('keydown', e => {
         <div style="font-family:var(--sans);font-size:16px;font-weight:700;color:var(--accent2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:24px;">🔢 The Greeks — Risk Measures Every Options Trader Must Know</div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;">
-          ${[
-            ['Δ Delta', 'Rate of change of option price vs stock price. Call delta: 0 to 1. Put delta: -1 to 0. Delta 0.50 = ATM. Delta also ≈ probability of expiring ITM. 100-share equivalent position size.', '#00d4ff', '0 to ±1'],
-            ['Γ Gamma', 'Rate of change of delta. Highest ATM near expiry. Positive gamma = long options. Negative gamma = short options. Short gamma near expiry = danger zone — small moves, big delta changes.', '#00ff9d', 'Always positive for long options'],
-            ['Θ Theta', 'Daily time decay. How much the option loses per day just from time passing. Negative for buyers, positive for sellers. Accelerates in final 30 days. The seller\'s profit engine.', '#fbbf24', 'Negative for buyers'],
-            ['ν Vega', 'Sensitivity to implied volatility. +$0.10 vega = option gains $10 for each 1% IV increase. Long vega = want IV to rise. Short vega = want IV to fall. Critical around earnings.', '#f472b6', 'Positive for long options'],
-            ['ρ Rho', 'Sensitivity to interest rate changes. Usually small for short-dated options. More relevant for LEAPS. Rising rates = slightly better for calls, slightly worse for puts.', '#a78bfa', 'Small for most trades'],
-            ['IV Rank / IV Percentile', 'Not a Greek but essential. IVR: where current IV sits vs its 52-week range. IVR > 50 = sell premium. IVR < 30 = buy options. Free on Market Chameleon for any ticker.', '#fb923c', 'Use to time entries'],
-          ].map(([name, desc, color, note]) => `
-          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${color};border-radius:4px;padding:14px 16px;">
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00d4ff;border-radius:4px;padding:14px 16px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:${color};">${name}</div>
-              <span style="font-size:10px;color:var(--text3);font-style:italic;">${note}</span>
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#00d4ff;">Δ Delta</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">0 to ±1</span>
             </div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.7;">${desc}</div>
-          </div>`).join('')}
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Rate of change of option price vs stock price. Call delta: 0 to 1. Put delta: -1 to 0. Delta 0.50 = ATM. Delta also ≈ probability of expiring ITM. 100-share equivalent position size.</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #00ff9d;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#00ff9d;">Γ Gamma</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">Always positive for long options</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Rate of change of delta. Highest ATM near expiry. Positive gamma = long options. Negative gamma = short options. Short gamma near expiry = danger zone — small moves, big delta changes.</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#fbbf24;">Θ Theta</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">Negative for buyers</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Daily time decay. How much the option loses per day just from time passing. Negative for buyers, positive for sellers. Accelerates in final 30 days. The seller's profit engine.</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #f472b6;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#f472b6;">ν Vega</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">Positive for long options</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Sensitivity to implied volatility. +$0.10 vega = option gains $10 for each 1% IV increase. Long vega = want IV to rise. Short vega = want IV to fall. Critical around earnings.</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#a78bfa;">ρ Rho</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">Small for most trades</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Sensitivity to interest rate changes. Usually small for short-dated options. More relevant for LEAPS. Rising rates = slightly better for calls, slightly worse for puts.</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid #fb923c;border-radius:4px;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:#fb923c;">IV Rank / IV Percentile</div>
+              <span style="font-size:10px;color:var(--text3);font-style:italic;">Use to time entries</span>
+            </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Not a Greek but essential. IVR: where current IV sits vs its 52-week range. IVR > 50 = sell premium. IVR < 30 = buy options. Free on Market Chameleon for any ticker.</div>
+          </div>
         </div>
 
         <div style="margin-bottom:20px;">
@@ -2869,20 +2769,11 @@ document.addEventListener('keydown', e => {
                 </tr>
               </thead>
               <tbody>
-                ${[
-                  ['Δ Delta','Price sensitivity','Positive (calls) / Negative (puts)','Opposite','Move toward your direction'],
-                  ['Γ Gamma','Delta change rate','Always positive','Always negative','Increase (long) / Stay low (short)'],
-                  ['Θ Theta','Time decay','Negative — hurts you','Positive — helps you','Time to pass (short) / Stop (long)'],
-                  ['ν Vega','IV sensitivity','Positive — want IV up','Negative — want IV down','Rise (long) / Fall (short)'],
-                  ['ρ Rho','Rate sensitivity','Positive (calls)','Negative','Usually minor factor'],
-                ].map(([g,m,l,s,w],i) => `
-                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);${i%2===0?'background:rgba(15,25,35,0.3);':''}">
-                  <td style="padding:8px 12px;font-weight:700;color:var(--accent2);">${g}</td>
-                  <td style="padding:8px 12px;color:var(--text2);">${m}</td>
-                  <td style="padding:8px 12px;color:var(--green);">${l}</td>
-                  <td style="padding:8px 12px;color:var(--red);">${s}</td>
-                  <td style="padding:8px 12px;color:var(--warn);">${w}</td>
-                </tr>`).join('')}
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);background:rgba(15,25,35,0.3);"><td style="padding:8px 12px;font-weight:700;color:var(--accent2);">Δ Delta</td><td style="padding:8px 12px;color:var(--text2);">Price sensitivity</td><td style="padding:8px 12px;color:var(--green);">Positive (calls) / Negative (puts)</td><td style="padding:8px 12px;color:var(--red);">Opposite</td><td style="padding:8px 12px;color:var(--warn);">Move toward your direction</td></tr>
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);"><td style="padding:8px 12px;font-weight:700;color:var(--accent2);">Γ Gamma</td><td style="padding:8px 12px;color:var(--text2);">Delta change rate</td><td style="padding:8px 12px;color:var(--green);">Always positive</td><td style="padding:8px 12px;color:var(--red);">Always negative</td><td style="padding:8px 12px;color:var(--warn);">Increase (long) / Stay low (short)</td></tr>
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);background:rgba(15,25,35,0.3);"><td style="padding:8px 12px;font-weight:700;color:var(--accent2);">Θ Theta</td><td style="padding:8px 12px;color:var(--text2);">Time decay</td><td style="padding:8px 12px;color:var(--green);">Negative — hurts you</td><td style="padding:8px 12px;color:var(--red);">Positive — helps you</td><td style="padding:8px 12px;color:var(--warn);">Time to pass (short) / Stop (long)</td></tr>
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);"><td style="padding:8px 12px;font-weight:700;color:var(--accent2);">ν Vega</td><td style="padding:8px 12px;color:var(--text2);">IV sensitivity</td><td style="padding:8px 12px;color:var(--green);">Positive — want IV up</td><td style="padding:8px 12px;color:var(--red);">Negative — want IV down</td><td style="padding:8px 12px;color:var(--warn);">Rise (long) / Fall (short)</td></tr>
+                <tr style="border-bottom:1px solid rgba(30,52,72,0.5);background:rgba(15,25,35,0.3);"><td style="padding:8px 12px;font-weight:700;color:var(--accent2);">ρ Rho</td><td style="padding:8px 12px;color:var(--text2);">Rate sensitivity</td><td style="padding:8px 12px;color:var(--green);">Positive (calls)</td><td style="padding:8px 12px;color:var(--red);">Negative</td><td style="padding:8px 12px;color:var(--warn);">Usually minor factor</td></tr>
               </tbody>
             </table>
           </div>
@@ -3146,7 +3037,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.2 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.3 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -8997,6 +8888,211 @@ Be specific with price levels. Frame as research, not advice.`;
     loadChatMessages();
     startChatAutoRefresh();
   }
+
+  // ============================================================
+  // IPO CALENDAR — Google Sheets powered
+  // ============================================================
+  const IPO_FIELDS = [
+    { key:'Company',      label:'Company',       type:'text',   required:true  },
+    { key:'Ticker',       label:'Ticker',        type:'text',   required:false },
+    { key:'Exchange',     label:'Exchange',      type:'text',   required:false },
+    { key:'ExpectedDate', label:'Expected Date', type:'text',   required:false },
+    { key:'PriceRange',   label:'Price Range',   type:'text',   required:false },
+    { key:'Shares',       label:'Shares Offered',type:'text',   required:false },
+    { key:'Valuation',    label:'Valuation',     type:'text',   required:false },
+    { key:'Status',       label:'Status',        type:'select', required:true,
+      options:['Pipeline','Upcoming','Completed','Withdrawn'] },
+    { key:'Sector',       label:'Sector',        type:'text',   required:false },
+    { key:'Notes',        label:'Notes',         type:'textarea',required:false },
+  ];
+
+  let ipoData = [];
+  let ipoStatusFilter = 'All';
+
+  const STATUS_COLORS = {
+    Completed: { bg:'rgba(46,213,115,0.12)', color:'#00ff9d', border:'rgba(46,213,115,0.3)' },
+    Upcoming:  { bg:'rgba(255,184,48,0.12)',  color:'#fbbf24', border:'rgba(255,184,48,0.3)' },
+    Pipeline:  { bg:'rgba(0,212,255,0.12)',   color:'#00d4ff', border:'rgba(0,212,255,0.3)'  },
+    Withdrawn: { bg:'rgba(255,71,87,0.12)',   color:'#ff4757', border:'rgba(255,71,87,0.3)'  },
+  };
+
+  async function loadIPOFromSheet() {
+    if (!APPS_SCRIPT_URL) { showDBToast('Apps Script URL not set', 'warn'); return; }
+    const btn = document.querySelector('[onclick="loadIPOFromSheet()"]');
+    if (btn) { btn.textContent = '⟳'; btn.style.opacity = '0.6'; }
+
+    try {
+      const token = MERIDIAN_TOKEN || localStorage.getItem('meridian_token') || '';
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getSheet&tab=IPO&token=${encodeURIComponent(token)}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error loading IPO sheet');
+
+      ipoData = data.rows || [];
+      renderIPOTable();
+      updateIPOStats();
+      document.getElementById('ipo-last-updated').textContent = `${ipoData.length} entries · ${new Date().toLocaleTimeString()}`;
+      showDBToast(`✓ Loaded ${ipoData.length} IPO entries`);
+    } catch(e) {
+      showDBToast(`IPO load failed: ${e.message}`, 'error');
+    }
+    if (btn) { btn.textContent = '↺ SYNC'; btn.style.opacity = '1'; }
+  }
+
+  function updateIPOStats() {
+    const counts = { Completed:0, Upcoming:0, Pipeline:0, Withdrawn:0 };
+    ipoData.forEach(r => { if (counts[r.Status] !== undefined) counts[r.Status]++; });
+    document.getElementById('ipo-stat-completed').textContent = counts.Completed;
+    document.getElementById('ipo-stat-upcoming').textContent  = counts.Upcoming;
+    document.getElementById('ipo-stat-pipeline').textContent  = counts.Pipeline;
+    document.getElementById('ipo-stat-withdrawn').textContent = counts.Withdrawn;
+    document.getElementById('ipo-stat-total').textContent     = ipoData.length;
+  }
+
+  function filterIPOByStatus(status) {
+    ipoStatusFilter = status;
+    ['All','Completed','Upcoming','Pipeline','Withdrawn'].forEach(s => {
+      const btn = document.getElementById(`ipo-status-${s.toLowerCase()}`);
+      if (!btn) return;
+      const active = s === status;
+      btn.style.background = active ? 'rgba(0,212,255,0.15)' : 'transparent';
+      btn.style.borderColor = active ? 'rgba(0,212,255,0.4)' : 'var(--border)';
+      btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+    });
+    renderIPOTable();
+  }
+
+  function filterIPO(query) {
+    renderIPOTable(query);
+  }
+
+  function renderIPOTable(searchQuery) {
+    const tbody = document.getElementById('ipo-tbody');
+    const empty = document.getElementById('ipo-empty');
+    const wrap  = document.getElementById('ipo-table-wrap');
+    if (!tbody) return;
+
+    const q = (searchQuery || document.getElementById('ipo-filter')?.value || '').toLowerCase();
+
+    let rows = ipoData.filter(r => {
+      if (ipoStatusFilter !== 'All' && r.Status !== ipoStatusFilter) return false;
+      if (q) {
+        const searchStr = Object.values(r).join(' ').toLowerCase();
+        if (!searchStr.includes(q)) return false;
+      }
+      return true;
+    });
+
+    // Sort: Completed last, then by date
+    const order = { Upcoming:0, Pipeline:1, Completed:2, Withdrawn:3 };
+    rows.sort((a,b) => (order[a.Status]||99) - (order[b.Status]||99));
+
+    if (rows.length === 0) {
+      if (empty) empty.style.display = 'block';
+      if (wrap)  wrap.style.display  = 'none';
+      tbody.innerHTML = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (wrap)  wrap.style.display  = 'block';
+
+    tbody.innerHTML = rows.map(row => {
+      const sc = STATUS_COLORS[row.Status] || STATUS_COLORS.Pipeline;
+      const ticker = (row.Ticker || '').trim();
+      const sector = (row.Sector || '').split(',').map(s => s.trim()).filter(Boolean);
+
+      return `<tr data-id="${row._id}">
+        <td><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border};padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;white-space:nowrap;">${row.Status || '—'}</span></td>
+        <td><strong style="color:var(--text);">${row.Company || '—'}</strong></td>
+        <td>${ticker ? `<span class="ticker-badge" style="cursor:pointer;" onclick="loadChartTicker('${ticker}')">${ticker}</span>` : '<span style="color:var(--text3);font-size:11px;">TBD</span>'}</td>
+        <td class="text-muted">${row.Exchange || 'TBD'}</td>
+        <td>${sector.map(s => `<span class="tag">${s}</span>`).join(' ') || '—'}</td>
+        <td class="text-muted">${row.ExpectedDate || 'TBD'}</td>
+        <td class="${row.PriceRange && row.PriceRange !== 'TBD' ? 'yes' : 'text-dim'}">${row.PriceRange || 'TBD'}</td>
+        <td class="text-muted">${row.Shares || 'TBD'}</td>
+        <td class="text-muted">${row.Valuation || 'TBD'}</td>
+        <td class="notes-cell">${row.Notes || '—'}</td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <button onclick='openEditIPO(${JSON.stringify(row).replace(/'/g,"&apos;")})'
+              style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">✏️</button>
+            <button onclick='deleteIPO(${JSON.stringify(row).replace(/'/g,"&apos;")})'
+              style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openAddIPO() {
+    showIPOModal('➕ Add IPO Entry', IPO_FIELDS, async (formData) => {
+      const ok = await writeToSheet('append', 'IPO', formData);
+      if (ok) { showDBToast(`✓ ${formData.Company} added!`); setTimeout(() => loadIPOFromSheet(), 1000); }
+    });
+  }
+
+  function openEditIPO(row) {
+    showIPOModal('✏️ Edit IPO — ' + row.Company, IPO_FIELDS, async (formData) => {
+      const ok = await writeToSheet('update', 'IPO', { ...formData, _id: row._id });
+      if (ok) { showDBToast(`✓ ${formData.Company} updated!`); setTimeout(() => loadIPOFromSheet(), 1000); }
+    }, row);
+  }
+
+  async function deleteIPO(row) {
+    if (!confirm(`Delete ${row.Company} from IPO calendar?`)) return;
+    const ok = await writeToSheet('delete', 'IPO', { _id: row._id });
+    if (ok) { showDBToast(`✓ ${row.Company} deleted`); setTimeout(() => loadIPOFromSheet(), 800); }
+  }
+
+  function showIPOModal(title, fields, onSave, prefill = {}) {
+    document.getElementById('ipo-modal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'ipo-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+    modal.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
+      <div style="font-family:var(--sans);font-size:18px;font-weight:800;color:var(--text);margin-bottom:20px;">${title}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        ${fields.map(f => `
+        <div style="${f.type === 'textarea' || f.key === 'Notes' ? 'grid-column:1/-1;' : ''}">
+          <label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">${f.label}${f.required ? ' *' : ''}</label>
+          ${f.type === 'select'
+            ? `<select id="ipo-field-${f.key}" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">
+                ${f.options.map(o => `<option value="${o}" ${(prefill[f.key]||'')=== o?'selected':''}>${o}</option>`).join('')}
+               </select>`
+            : f.type === 'textarea'
+            ? `<textarea id="ipo-field-${f.key}" rows="3" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;resize:vertical;">${prefill[f.key]||''}</textarea>`
+            : `<input id="ipo-field-${f.key}" type="text" value="${prefill[f.key]||''}" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">`
+          }
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+        <button onclick="document.getElementById('ipo-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>
+        <button onclick="submitIPOModal()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    // Store callback
+    modal._onSave = onSave;
+    setTimeout(() => document.getElementById('ipo-field-Company')?.focus(), 100);
+  }
+
+  async function submitIPOModal() {
+    const modal = document.getElementById('ipo-modal');
+    if (!modal) return;
+    const formData = {};
+    IPO_FIELDS.forEach(f => {
+      const el = document.getElementById(`ipo-field-${f.key}`);
+      if (el) formData[f.key] = el.value.trim();
+    });
+    if (!formData.Company) { showDBToast('Company name is required', 'warn'); return; }
+    modal.remove();
+    await modal._onSave(formData);
+  }
+
+  // Wire into showTab
+  // (handled in the existing showTab override below)
 
   // ---- Clock
   function updateClock() {
