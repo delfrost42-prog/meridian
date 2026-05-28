@@ -8636,7 +8636,7 @@ Be specific with price levels. Frame as research, not advice.`;
     'Planned':     { bg:'rgba(0,212,255,0.1)',    color:'var(--accent)', border:'rgba(0,212,255,0.3)'  },
     'In Progress': { bg:'rgba(255,184,48,0.1)',   color:'var(--warn)',   border:'rgba(255,184,48,0.3)' },
     'Completed':   { bg:'rgba(46,213,115,0.1)',   color:'var(--green)',  border:'rgba(46,213,115,0.3)' },
-    'Cancelled':   { bg:'rgba(122,157,181,0.08)', color:'var(--text3)',  border:'var(--border)'        },
+    'Cancelled':   { bg:'rgba(122,157,181,0.08)', color:'var(--text3)',  border:'var(--border)'        }
   };
   const ROADMAP_PRIORITY_COLORS = { High:'var(--red)', Medium:'var(--warn)', Low:'var(--text3)' };
   const ROADMAP_FIELDS = [
@@ -8646,28 +8646,36 @@ Be specific with price levels. Frame as research, not advice.`;
     { key:'Category', label:'Category', type:'select',   options:['ML/AI','Infrastructure','UI','MCP','Quantum','Research','Security','Backlog'] },
     { key:'Priority', label:'Priority', type:'select',   options:['High','Medium','Low'] },
     { key:'Effort',   label:'Effort',   placeholder:'e.g. 1 session' },
-    { key:'Notes',    label:'Notes',    type:'textarea' },
+    { key:'Notes',    label:'Notes',    type:'textarea' }
   ];
 
   async function syncRoadmap() {
     const btn = document.getElementById('roadmap-sync-btn');
-    if (btn) btn.textContent = '\u21ba SYNCING...';
+    if (btn) { btn.textContent = 'SYNCING...'; btn.style.opacity = '0.6'; }
     try {
-      const res = await readFromSheet('Roadmap');
-      roadmapData = res.rows || [];
+      const token = MERIDIAN_TOKEN || localStorage.getItem('meridian_token') || '';
+      const res = await fetch(APPS_SCRIPT_URL + '?action=getSheet&tab=Roadmap&token=' + encodeURIComponent(token), {
+        signal: AbortSignal.timeout(8000)
+      });
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error loading Roadmap sheet');
+      roadmapData = data.rows || [];
       renderRoadmap();
       const t = document.getElementById('roadmap-sync-time');
-      if (t) t.textContent = roadmapData.length + ' items \u00b7 ' + new Date().toLocaleTimeString('en-US',{hour12:false});
-    } catch(e) { showDBToast('Failed to sync roadmap: ' + e.message, 'warn'); }
-    if (btn) btn.textContent = '\u21ba SYNC';
+      if (t) t.textContent = roadmapData.length + ' items · ' + new Date().toLocaleTimeString();
+      showDBToast('Loaded ' + roadmapData.length + ' roadmap items');
+    } catch(e) {
+      showDBToast('Roadmap sync failed: ' + e.message, 'error');
+    }
+    if (btn) { btn.textContent = '\u21ba SYNC'; btn.style.opacity = '1'; }
   }
 
   function setRoadmapFilter(type, val) {
     roadmapStatusFilter = val;
-    ['All','Planned','In Progress','Completed','Cancelled'].forEach(s => {
-      const btn = document.getElementById('rmf-status-' + s);
+    ['All','Planned','In Progress','Completed','Cancelled'].forEach(function(s) {
+      var btn = document.getElementById('rmf-status-' + s);
       if (!btn) return;
-      const active = s === val;
+      var active = s === val;
       btn.style.background  = active ? 'rgba(0,212,255,0.15)' : 'transparent';
       btn.style.borderColor = active ? 'rgba(0,212,255,0.4)'  : 'var(--border)';
       btn.style.color       = active ? 'var(--accent)'        : 'var(--text3)';
@@ -8676,22 +8684,22 @@ Be specific with price levels. Frame as research, not advice.`;
   }
 
   function renderRoadmap() {
-    const tbody = document.getElementById('roadmap-tbody');
-    const empty = document.getElementById('roadmap-empty');
-    const wrap  = document.getElementById('roadmap-table-wrap');
+    var tbody = document.getElementById('roadmap-tbody');
+    var empty = document.getElementById('roadmap-empty');
+    var wrap  = document.getElementById('roadmap-table-wrap');
     if (!tbody) return;
-    const phase  = document.getElementById('rmf-phase')?.value || '';
-    const search = (document.getElementById('rmf-search')?.value || '').toLowerCase();
-    let rows = roadmapData.filter(r => {
+    var phase  = (document.getElementById('rmf-phase') || {}).value || '';
+    var search = ((document.getElementById('rmf-search') || {}).value || '').toLowerCase();
+    var rows = roadmapData.filter(function(r) {
       if (roadmapStatusFilter !== 'All' && r.Status !== roadmapStatusFilter) return false;
       if (phase && r.Phase !== phase) return false;
-      if (search && !Object.values(r).join(' ').toLowerCase().includes(search)) return false;
+      if (search && Object.values(r).join(' ').toLowerCase().indexOf(search) === -1) return false;
       return true;
     });
-    const order = { 'In Progress':0, Planned:1, Completed:2, Cancelled:3 };
-    rows.sort((a,b) => (order[a.Status]||99) - (order[b.Status]||99));
-    const counts = { Planned:0, 'In Progress':0, Completed:0, Cancelled:0 };
-    roadmapData.forEach(r => { if (counts[r.Status] !== undefined) counts[r.Status]++; });
+    var order = { 'In Progress':0, Planned:1, Completed:2, Cancelled:3 };
+    rows.sort(function(a,b) { return (order[a.Status]||99) - (order[b.Status]||99); });
+    var counts = { Planned:0, 'In Progress':0, Completed:0, Cancelled:0 };
+    roadmapData.forEach(function(r) { if (counts[r.Status] !== undefined) counts[r.Status]++; });
     document.getElementById('rm-stat-planned').textContent    = counts['Planned'];
     document.getElementById('rm-stat-inprogress').textContent = counts['In Progress'];
     document.getElementById('rm-stat-completed').textContent  = counts['Completed'];
@@ -8704,80 +8712,93 @@ Be specific with price levels. Frame as research, not advice.`;
     }
     if (empty) empty.style.display = 'none';
     if (wrap)  wrap.style.display  = 'block';
-    tbody.innerHTML = rows.map(row => {
-      const sc = ROADMAP_STATUS_COLORS[row.Status] || ROADMAP_STATUS_COLORS['Planned'];
-      const pc = ROADMAP_PRIORITY_COLORS[row.Priority] || 'var(--text3)';
-      const rowJson = JSON.stringify(row).replace(/'/g,"&apos;");
-      return `<tr data-id="${row._id}">
-        <td><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border};padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.06em;white-space:nowrap;">${row.Status||'\u2014'}</span></td>
-        <td style="color:var(--text2);font-size:11px;white-space:nowrap;">${row.Phase||'\u2014'}</td>
-        <td><strong style="color:var(--text);">${row.Title||'\u2014'}</strong></td>
-        <td><span class="tag">${row.Category||'\u2014'}</span></td>
-        <td style="color:${pc};font-size:11px;font-weight:700;">${row.Priority||'\u2014'}</td>
-        <td style="color:var(--text3);font-size:11px;">${row.Effort||'\u2014'}</td>
-        <td class="notes-cell" style="max-width:220px;">${row.Notes||'\u2014'}</td>
-        <td><div style="display:flex;gap:4px;">
-          <button onclick='openEditRoadmapItem(${rowJson})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">\u270f\ufe0f</button>
-          <button onclick='deleteRoadmapItem(${rowJson})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">\u{1f5d1}\ufe0f</button>
-        </div></td>
-      </tr>`;
+    tbody.innerHTML = rows.map(function(row) {
+      var sc = ROADMAP_STATUS_COLORS[row.Status] || ROADMAP_STATUS_COLORS['Planned'];
+      var pc = ROADMAP_PRIORITY_COLORS[row.Priority] || 'var(--text3)';
+      var rowStr = JSON.stringify(row).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<tr data-id="' + row._id + '">'
+        + '<td><span style="background:' + sc.bg + ';color:' + sc.color + ';border:1px solid ' + sc.border + ';padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.06em;white-space:nowrap;">' + (row.Status||'—') + '</span></td>'
+        + '<td style="color:var(--text2);font-size:11px;white-space:nowrap;">' + (row.Phase||'—') + '</td>'
+        + '<td><strong style="color:var(--text);">' + (row.Title||'—') + '</strong></td>'
+        + '<td><span class="tag">' + (row.Category||'—') + '</span></td>'
+        + '<td style="color:' + pc + ';font-size:11px;font-weight:700;">' + (row.Priority||'—') + '</td>'
+        + '<td style="color:var(--text3);font-size:11px;">' + (row.Effort||'—') + '</td>'
+        + '<td class="notes-cell" style="max-width:220px;font-size:11px;color:var(--text2);">' + (row.Notes||'—') + '</td>'
+        + '<td><div style="display:flex;gap:4px;">'
+        + '<button onclick="openEditRoadmapItem(' + row._id + ')" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">Edit</button>'
+        + '<button onclick="deleteRoadmapItem(' + row._id + ')" style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">Del</button>'
+        + '</div></td>'
+        + '</tr>';
     }).join('');
   }
 
   function openAddRoadmapItem() {
-    showRoadmapModal('Add Roadmap Item', async (data) => {
-      const ok = await writeToSheet('append', 'Roadmap', data);
-      if (ok) { showDBToast('\u2713 ' + data.Title + ' added!'); setTimeout(() => syncRoadmap(), 800); }
+    showRoadmapModal('Add Roadmap Item', null, function(data) {
+      writeToSheet('append', 'Roadmap', data).then(function(ok) {
+        if (ok) { showDBToast('Added: ' + data.Title); setTimeout(syncRoadmap, 800); }
+      });
     });
   }
 
-  function openEditRoadmapItem(row) {
-    showRoadmapModal('Edit \u2014 ' + row.Title, async (data) => {
-      const ok = await writeToSheet('update', 'Roadmap', { ...data, _id: row._id });
-      if (ok) { showDBToast('\u2713 ' + data.Title + ' updated!'); setTimeout(() => syncRoadmap(), 800); }
-    }, row);
+  function openEditRoadmapItem(id) {
+    var row = roadmapData.find(function(r) { return r._id == id; });
+    if (!row) return;
+    showRoadmapModal('Edit — ' + row.Title, row, function(data) {
+      writeToSheet('update', 'Roadmap', Object.assign({}, data, { _id: row._id })).then(function(ok) {
+        if (ok) { showDBToast('Updated: ' + data.Title); setTimeout(syncRoadmap, 800); }
+      });
+    });
   }
 
-  async function deleteRoadmapItem(row) {
-    if (!confirm('Delete "' + row.Title + '" from roadmap?')) return;
-    const ok = await writeToSheet('delete', 'Roadmap', { _id: row._id });
-    if (ok) { showDBToast('\u2713 Deleted'); setTimeout(() => syncRoadmap(), 800); }
+  function deleteRoadmapItem(id) {
+    var row = roadmapData.find(function(r) { return r._id == id; });
+    if (!row || !confirm('Delete "' + row.Title + '" from roadmap?')) return;
+    writeToSheet('delete', 'Roadmap', { _id: row._id }).then(function(ok) {
+      if (ok) { showDBToast('Deleted'); setTimeout(syncRoadmap, 800); }
+    });
   }
 
-  function showRoadmapModal(title, onSave, prefill) {
+  function showRoadmapModal(title, prefill, onSave) {
     prefill = prefill || {};
-    document.getElementById('roadmap-modal')?.remove();
-    const modal = document.createElement('div');
+    var existing = document.getElementById('roadmap-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
     modal.id = 'roadmap-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
-    const fields = ROADMAP_FIELDS.map(f => {
-      const full = f.type === 'textarea' ? 'grid-column:1/-1;' : '';
-      let input;
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    var fields = ROADMAP_FIELDS.map(function(f) {
+      var full = f.type === 'textarea' ? 'grid-column:1/-1;' : '';
+      var inp;
+      var base = 'width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;box-sizing:border-box;';
       if (f.type === 'select') {
-        const opts = f.options.map(o => '<option value="' + o + '" ' + ((prefill[f.key]||'')===o?'selected':'') + '>' + o + '</option>').join('');
-        input = '<select id="rm-field-' + f.key + '" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">' + opts + '</select>';
+        var opts = f.options.map(function(o) { return '<option value="' + o + '"' + ((prefill[f.key]||'')==o?' selected':'') + '>' + o + '</option>'; }).join('');
+        inp = '<select id="rm-f-' + f.key + '" style="' + base + '">' + opts + '</select>';
       } else if (f.type === 'textarea') {
-        input = '<textarea id="rm-field-' + f.key + '" rows="3" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;resize:vertical;">' + (prefill[f.key]||'') + '</textarea>';
+        inp = '<textarea id="rm-f-' + f.key + '" rows="3" style="' + base + 'resize:vertical;">' + (prefill[f.key]||'') + '</textarea>';
       } else {
-        input = '<input id="rm-field-' + f.key + '" type="text" value="' + (prefill[f.key]||'') + '" placeholder="' + (f.placeholder||'') + '" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">';
+        inp = '<input id="rm-f-' + f.key + '" type="text" value="' + (prefill[f.key]||'') + '" placeholder="' + (f.placeholder||'') + '" style="' + base + '">';
       }
-      return '<div style="' + full + '"><label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">' + f.label + (f.required?' *':'') + '</label>' + input + '</div>';
+      return '<div style="' + full + '"><label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">' + f.label + (f.required?' *':'') + '</label>' + inp + '</div>';
     }).join('');
-    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;"><div style="font-family:var(--sans);font-size:18px;font-weight:800;color:var(--text);margin-bottom:20px;">' + title + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' + fields + '</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;"><button onclick="document.getElementById('roadmap-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button><button onclick="submitRoadmapModal()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE</button></div></div>';
+    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">'
+      + '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:18px;">' + title + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' + fields + '</div>'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;">'
+      + '<button onclick="document.getElementById('roadmap-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button>'
+      + '<button id="rm-save-btn" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;">SAVE</button>'
+      + '</div></div>';
     document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-    modal._onSave = onSave;
-    setTimeout(() => document.getElementById('rm-field-Title')?.focus(), 100);
-  }
-
-  async function submitRoadmapModal() {
-    const modal = document.getElementById('roadmap-modal');
-    if (!modal) return;
-    const data = {};
-    ROADMAP_FIELDS.forEach(f => { const el = document.getElementById('rm-field-' + f.key); if (el) data[f.key] = el.value.trim(); });
-    if (!data.Title) { showDBToast('Title is required', 'warn'); return; }
-    modal.remove();
-    await modal._onSave(data);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    document.getElementById('rm-save-btn').addEventListener('click', function() {
+      var data = {};
+      ROADMAP_FIELDS.forEach(function(f) {
+        var el = document.getElementById('rm-f-' + f.key);
+        if (el) data[f.key] = el.value.trim();
+      });
+      if (!data.Title) { showDBToast('Title is required', 'warn'); return; }
+      modal.remove();
+      onSave(data);
+    });
+    setTimeout(function() { var el = document.getElementById('rm-f-Title'); if (el) el.focus(); }, 100);
   }
 
   // ---- Clock
