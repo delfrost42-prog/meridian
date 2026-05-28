@@ -3037,559 +3037,65 @@ document.addEventListener('keydown', e => {
     <div class="section-header">
       <div>
         <div class="section-title">Build <span>Roadmap</span></div>
-        <div class="section-sub">Planned features and enhancements for Meridian Terminal</div>
+        <div class="section-sub">Live from Google Sheets — add, edit, and track all Meridian development items</div>
       </div>
-      <div class="section-date">Last updated: May 23, 2026</div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
-      <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
-      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.4 — GitHub Pages</div></div>
-    </div>
-
-    <!-- COMPLETED -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--green); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        ✓ COMPLETED
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-                <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Admin Panel + Embedded Claude</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v2.0 — Password Protected</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Full-screen password-protected admin panel with Claude Sonnet. Portfolio-aware system prompt injects tracked tickers, unicorns, IPO pipeline, and recent news. Markdown rendering, typing indicators, 6 quick-start prompts, clear session. API key stored in localStorage only.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Performance Chart vs S&P 500</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.9 — Tab 03</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">4 portfolio views: My Tracker, Trump Q1, BlackRock, ARK Invest. Equal and entry-price weighting. YTD/3M/6M/1Y timeframes. Hover crosshair with alpha calculation. Individual ticker sparkline cards. Best/worst performer stats.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Live Price Auto-Updates</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.8 — Stock Tracker</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Live Price, Day Change (▲▼), Return since entry columns. 💹 LIVE PRICES button. Auto-refresh every 5 minutes. 60-second cache. Chart stats row uses price cache — no more errors.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Live Indices + Crypto on Splash</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.8 — Splash Screen</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">S&P 500, DOW, NASDAQ, Russell 2K, VIX, 10Y Yield, Gold, Oil. BTC, ETH, SOL, BNB, XRP, DOGE. All live with price and % change.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Hidden DB Settings Trigger</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.8 — Security</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">DB Settings hidden. Triple-click version on splash or triple-click dot next to ADD TICKER to access.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ External Ticker Search + Auto-fill</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.7 — Global + Tracker</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Global search bar in header. Preview card with live price/stats. Add to Tracker pre-fills form. Autocomplete dropdown for known tickers.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Candlestick Charts</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.5 — Tab 02</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">TradingView Advanced Chart. 7 timeframes. 50MA/200MA/Volume toggles. Live stats row. Click any ticker badge to load chart.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Bubble Charts</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.6 — Tab 04</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">3 views: Valuation vs Revenue, Unicorn Map, Smart Money. Hover tooltips. Click to chart. Sector color legend.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Splash Screen</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.4 — Matrix Style</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Matrix rain with ticker symbols. Animated counters. Live market strips. ENTER TERMINAL button. Triple-click hidden DB trigger.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Google Sheets Database</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">v1.3 — Full CRUD</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Google Sheets as live database. Add/Edit/Delete from Meridian. Apps Script handles writes. 5 auto-generated chart links per ticker.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ News Feed</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 11 — Live</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">RSS across 21 tickers + Iran + CLARITY Act. Yahoo, EDGAR, Google News, PRNewswire. Auto-refresh 15min. Priority flagging.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ GitHub Pages Hosting</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Infrastructure — Live</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Deployed to GitHub Pages. Shareable URL, version controlled.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Stock Tracker</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 01 — Live DB</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">15+ tickers. Google Sheets powered. Live price/change/return. Full CRUD buttons.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ IPO Calendar</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 05</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">14 entries: completed, upcoming, pipeline, withdrawn. Status badges, filter.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Institutional Investors</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 06</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Major stakeholders across HAWK, PL, SATL, IONQ.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Political Holdings</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 07</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">60+ rows. Trump Q1 2026, cabinet, family. 3,642 disclosed trades.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Unicorn Watchlist</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 08</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">16 unicorns. Alert signals, Google Alerts links, IPO likelihood badges.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Biotech Tab</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 09</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">7 public tickers + 6 longevity unicorns. Alert signals on all.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Research Notes</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 10</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Notepad with localStorage persistence.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Iran + CLARITY Act Feeds</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 11</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Dedicated macro feeds with filter options.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Alert Signals</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">All unicorn sections</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Every private company: alert signals + Google Alerts + Crunchbase links.</div></div>
-        <div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:3px;padding:12px 16px;display:flex;gap:16px;align-items:flex-start;"><div style="min-width:200px;"><div style="font-weight:700;color:var(--text);font-size:13px;">✓ Roadmap Tab</div><div style="color:var(--green);font-size:10px;margin-top:2px;letter-spacing:0.1em;">Tab 12</div></div><div style="color:var(--text2);font-size:12px;line-height:1.6;">Full roadmap: trading phases, DB stages, admin layers, app deployment.</div></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="roadmap-sync-time" style="font-size:11px;color:var(--text3);"></span>
+        <button onclick="syncRoadmap()" id="roadmap-sync-btn" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);color:var(--accent);font-family:var(--mono);font-size:11px;padding:5px 14px;cursor:pointer;border-radius:2px;letter-spacing:0.08em;">↺ SYNC</button>
+        <button onclick="openAddRoadmapItem()" style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.25);color:var(--green);font-family:var(--mono);font-size:11px;padding:5px 14px;cursor:pointer;border-radius:2px;letter-spacing:0.08em;">+ ADD ITEM</button>
       </div>
     </div>
 
-    <!-- IN PROGRESS removed — nothing currently in progress -->
-
-    <!-- PLANNED -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:var(--accent); letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        ◎ PLANNED
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">External Ticker Search</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 01 — Stock Tracker</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Search any ticker or company name from inside Meridian. Pulls live data via Yahoo Finance API — current price, market cap, revenue, 52-week range, analyst rating and PT. Shows a preview card before adding. One click pre-fills the Add Ticker form with all financial data — you just add thesis and risk factors. Also triggers the news feed filtered to that ticker. No API key required.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Candlestick Chart Tab</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 09 — Analytics</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Interactive candlestick charts using TradingView Lightweight Charts (free, open-source). Click any ticker from the tracker to load its chart inline. Switchable timeframes (1D/1W/1M/3M/1Y), volume bars, OHLC hover tooltips. Fed by Polygon.io free API (5 calls/min). Matches Meridian dark theme.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Bubble Chart — Analytics</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 09 or 10 — Analytics</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Interactive D3.js or Chart.js bubble charts. Views planned: (1) Valuation vs Revenue — spot over/undervalued tickers instantly. (2) Unicorn Map — 16 private companies by valuation vs funding, bubble size = IPO likelihood. (3) Smart Money Concentration — which investors appear most across holdings. Color-coded by sector, hover tooltips, click-to-filter.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Performance Chart</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 08 — Analytics</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Line graph comparing portfolio performance vs S&P 500 since research date. One line per "portfolio" — Trump disclosed holdings, Google Ventures positions, BlackRock, ARK Invest. Blended or equal-weighted returns. Toggleable lines, hover tooltips. Note: OGE disclosures use value ranges not exact dates — Trump portfolio will be approximate.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Live Price Auto-Update</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 01 — Stock Tracker</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Auto-fetch current prices for all 15 tickers via Yahoo Finance or Polygon.io API and populate the Current Price column on page load. Calculate % change from entry price automatically. No more manual price updates.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">More Sector Unicorns</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Tab 05 — Unicorn Watchlist</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Expand unicorn watchlist beyond Defense Tech and Longevity. Next sectors queued: AI / LLMs, Fintech, Cybersecurity, Energy / Nuclear, Crypto / Web3. Each sector gets its own card cluster with alert signals.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Custom Domain</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Infrastructure</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect GoDaddy domain to GitHub Pages so Meridian lives at a custom URL (e.g. meridianresearch.com). One-time setup: point GoDaddy DNS to GitHub Pages, add CNAME file to repo. Free hosting + custom domain = professional setup.</div>
-        </div>
-
-      </div>
+    <!-- Stats -->
+    <div class="stats-row" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent" id="rm-stat-planned">—</div></div>
+      <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn" id="rm-stat-inprogress">—</div></div>
+      <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green" id="rm-stat-completed">—</div></div>
+      <div class="stat-card"><div class="stat-label">Cancelled</div><div class="stat-value" style="color:var(--text3);" id="rm-stat-cancelled">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-value" id="rm-stat-total">—</div></div>
     </div>
 
-    <!-- TRADING INTEGRATION ROADMAP -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#c084fc; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🤖 TRADING INTEGRATION — Phased Roadmap
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(192,132,252,0.06); border:1px solid rgba(192,132,252,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: evolve Meridian from a research terminal into a semi-automated and eventually fully automated trading platform. Built in phases — paper trading before any real money. Broker: <strong style="color:#c084fc;">Alpaca</strong> (free API, commission-free, built-in paper trading environment).
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 1 — Live Prices</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Already on roadmap · Pre-requisite</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Auto-fetch current prices for all tickers via Polygon.io or Yahoo Finance API. Populate Current Price + % change from entry in Stock Tracker tab. Foundation everything else is built on.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 2 — Price Alerts</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New Tab — Alerts</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Set price targets and stop levels for any tracked ticker. Meridian checks prices on refresh and fires a browser notification when a level is hit. You still act manually — this is the notification layer before any automation. No broker connection needed at this stage.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 3 — Quick Order</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Stock Tracker integration</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add a "Trade" button next to each ticker. Clicking it generates a pre-filled order form — ticker, direction (buy/sell), quantity, order type (market/limit). You review all details, then one click opens your broker's trade ticket with parameters pre-populated. You confirm and submit manually. No API key needed — just a deep-link to your broker.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 4 — Paper Trading</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Alpaca API · Simulated only</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect Alpaca's paper trading API (free, no real money). Execute simulated trades directly from Meridian to test strategies. Track paper P&L alongside your research. Validate your AI-assisted research edge before risking real capital. Alpaca gives $100K simulated buying power by default. Requires Alpaca account + API key stored locally.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 5 — Agent Triggers</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude-powered · Semi-auto</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Claude monitors the news feed and price alerts, evaluates trigger conditions against your research thesis, and recommends trades with reasoning. You approve or reject each recommendation before execution. Claude is the analyst layer — you remain the decision maker. Connects news feed → analysis → suggested order → your approval → Alpaca execution.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #c084fc; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Phase 6 — Full Automation</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Long-term · Real money</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Fully autonomous agent executes trades against pre-defined rules: position sizing, stop losses, max exposure per sector, daily loss limits. Real money via Alpaca live API. Extensive paper trading validation required before activation. Kill switch always accessible. Regulatory note: automated trading must comply with pattern day trader rules (PDT) — $25K minimum account for unlimited day trades.</div>
-        </div>
-
-      </div>
+    <!-- Filters -->
+    <div class="filter-bar" style="margin-bottom:16px;">
+      <span class="filter-label">STATUS:</span>
+      <button onclick="setRoadmapFilter('status','All')" id="rmf-status-All" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">All</button>
+      <button onclick="setRoadmapFilter('status','Planned')" id="rmf-status-Planned" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Planned</button>
+      <button onclick="setRoadmapFilter('status','In Progress')" id="rmf-status-In Progress" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">In Progress</button>
+      <button onclick="setRoadmapFilter('status','Completed')" id="rmf-status-Completed" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Completed</button>
+      <button onclick="setRoadmapFilter('status','Cancelled')" id="rmf-status-Cancelled" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Cancelled</button>
+      <span class="filter-label" style="margin-left:16px;">PHASE:</span>
+      <select id="rmf-phase" onchange="renderRoadmap()" style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 8px;cursor:pointer;border-radius:2px;">
+        <option value="">All Phases</option>
+        <option value="Phase 1a">Phase 1a</option>
+        <option value="Phase 1b">Phase 1b</option>
+        <option value="Phase 2">Phase 2</option>
+        <option value="Phase 3">Phase 3</option>
+        <option value="Ongoing">Ongoing</option>
+      </select>
+      <input class="filter-input" type="text" id="rmf-search" placeholder="Search items..." oninput="renderRoadmap()" style="margin-left:auto;width:200px;">
     </div>
 
-    <!-- DATABASE INTEGRATION ROADMAP -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#34d399; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🗄️ DATABASE INTEGRATION — Live Data Management
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(52,211,153,0.06); border:1px solid rgba(52,211,153,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: replace hardcoded HTML data with a live database so you can add, edit, and remove tickers, unicorns, and watchlist entries directly from Meridian — no coding required. Recommended stack: <strong style="color:#34d399;">Google Sheets</strong> as the database (free, familiar, no setup) → <strong style="color:#34d399;">Supabase</strong> for the full production upgrade when ready.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 1 — Google Sheets DB</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Free · No setup required</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Your Google Sheet becomes the database. One sheet per data type: Tickers, Unicorns, IPO Calendar, Political Holdings. Meridian fetches all data on load via Google Sheets API and renders it dynamically. Adding a ticker = adding a row to the sheet. Instant, familiar, zero cost. Requires a Google account and a published Sheet (read-only public link).</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 2 — Inline Add/Edit</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Meridian UI forms</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add a "+ Add Ticker" button to the Stock Tracker tab. A modal form appears — fill in ticker, company, sector, thesis, risk factors. Hit Save and it writes to your Google Sheet via the Sheets API and updates the table in real time. Same for unicorns, IPO entries, and political holdings. No sheet-opening required — manage everything from Meridian directly.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 3 — Edit &amp; Delete</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Full CRUD operations</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Every row in every table gets ✏️ Edit and 🗑️ Delete buttons. Click Edit — a pre-filled modal opens with all the current data. Make changes, hit Save — updates Google Sheet and re-renders the row instantly. Click Delete — confirmation prompt, then removes the row from the Sheet and the table. Full create/read/update/delete (CRUD) without ever touching a spreadsheet or CSV.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 4 — Supabase Upgrade</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Production database · Free tier</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When Meridian moves to GitHub Pages and needs a proper backend, migrate from Google Sheets to Supabase — a free, open-source PostgreSQL database with a REST API. Faster queries, better security, supports user authentication (so only you can write data), real-time subscriptions (data updates across all open browser tabs instantly), and scales to millions of rows. Free tier: 500MB storage, unlimited API calls.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #34d399; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Stage 5 — Claude Auto-Populate</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">AI-assisted data entry</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Type a ticker symbol into Meridian. Claude looks it up automatically — pulls current price, market cap, revenue, key investors, thesis summary — and pre-fills the Add Ticker form. You review, adjust if needed, and hit Save. Research that currently takes a full session gets compressed into seconds. The database becomes self-populating with AI assistance.</div>
-        </div>
-
-      </div>
+    <!-- Table -->
+    <div id="roadmap-empty" style="padding:60px;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:4px;display:none;">
+      <div style="font-size:28px;margin-bottom:10px;">🗺️</div>
+      <div style="font-size:13px;">No roadmap items yet. Click <strong>+ ADD ITEM</strong> to get started, or <strong>↺ SYNC</strong> to load from Sheets.</div>
     </div>
-
-    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian evolves from a static research file into a live, AI-powered trading terminal — auto-updating prices, embedded charts, news feed, bubble chart analytics, a live database you manage entirely from the browser, a Claude agent that monitors your watchlist and executes trades within rules you define, and a password-protected admin panel with an embedded AI analyst that knows your entire portfolio. The edge is the research foundation being built today.
-    </div>
-
-    <!-- ADMIN PANEL ROADMAP -->
-    <div style="margin-bottom:20px; margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#f472b6; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🔐 ADMIN PANEL — Password-Protected AI Command Center
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(244,114,182,0.06); border:1px solid rgba(244,114,182,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: a hidden, password-protected admin area inside Meridian with an embedded Claude AI analyst that has full context of your portfolio, can research tickers, update data, draft notes, and eventually trigger trades — all from a private command interface only you can access.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Layer 1 — Password Gate</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Client-side · Session-locked</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Admin tab hidden from nav by default. Unlocked by clicking a discrete trigger (e.g. the Meridian logo) or a hidden keystroke combo. Password prompt appears — enter correct password, admin panel unlocks for the session. Close browser = locked again automatically. Client-side JS protection — sufficient for personal use and shared GitHub Pages links. Upgrade to Supabase Auth for proper multi-user security.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Layer 2 — Embedded Claude Chat</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Anthropic API · Portfolio-aware</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Full Claude chat interface embedded directly in the admin panel. Every conversation automatically includes your current tracker data as context — Claude knows all 15+ tickers, your thesis on each, current prices, and unicorn watchlist. Ask anything: "What's the latest on KRMN?", "Compare CRSP vs NTLA", "Draft a research note on GENB earnings", "Who are Anduril's top investors?". Your own private AI analyst who knows your portfolio.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Layer 3 — Action Buttons</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">One-click data actions</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Claude's responses include smart action buttons: "➕ Add to Tracker", "📝 Save to Notes", "✏️ Update Entry", "🔔 Set Alert". Click Add to Tracker on a research response — a pre-filled form appears with all the data Claude just researched. One click to confirm and it writes to the database. Closes the loop between AI research and data management entirely within Meridian.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Layer 4 — Voice Commands</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Web Speech API · Free</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add a microphone button to the admin chat. Browser's built-in Web Speech API (free, no key required) transcribes speech to text, sends to Claude. "Hey Meridian, research Palantir and add it to my tracker" — hands-free research while you're reading something else. Chrome and Edge support this natively. No third-party service needed.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;">
-            <div style="font-weight:700; color:var(--text); font-size:13px;">Layer 5 — Trade Commands</div>
-            <div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Connects to trading phases</div>
-          </div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Once Alpaca paper trading is live, admin panel becomes the command interface: "Buy 100 shares of KRMN at market", "Set a stop loss on HAWK at $26", "Show me my paper P&L". Claude interprets the command, confirms the details with you, then executes via Alpaca API. Natural language trading — no forms, no clicks, just conversation. The full circle: research → analysis → decision → execution, all in one interface.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- APP DEPLOYMENT ROADMAP -->
-    <div style="margin-bottom:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#fb923c; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        📱 APP DEPLOYMENT — Desktop, Mobile &amp; PWA
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(251,146,60,0.06); border:1px solid rgba(251,146,60,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: package Meridian as a native desktop app, mobile app, and Progressive Web App — a professional installable research terminal on every device you own.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">PWA — Progressive Web App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Fastest path · Free · Any device</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add manifest.json and service worker to GitHub Pages. Users visit URL on any device and tap "Add to Home Screen" — installs like a native app. Full screen, works offline, push notifications. Zero App Store approval needed. One session to build. Recommended first step.</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Electron — Desktop App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Windows · Mac · Linux</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Wraps Meridian into a standalone .exe (Windows) or .app (Mac). System tray icon, desktop notifications, auto-launch on startup. API key stored in OS secure keychain. Existing HTML/JS works as-is. One session to build and package.</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Capacitor — Mobile App</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">iOS · Android · App Stores</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Wraps Meridian HTML into native iOS/Android apps. Same codebase. App Store + Google Play. Face ID/fingerprint instead of password. Secure keychain for API key. Haptic feedback. One to two sessions to build and submit.</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fb923c; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Custom Domain</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">GoDaddy → GitHub Pages</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Connect GoDaddy domain to GitHub Pages. Meridian lives at a custom URL (e.g. meridianresearch.com). One-time DNS setup. Required before App Store submissions.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- COMMERCIALIZATION ROADMAP -->
-    <div style="margin-bottom:20px;margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#fbbf24; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        💰 COMMERCIALIZATION — Legal, Licensing &amp; Monetization
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: legally charge subscription fees for Meridian as a commercial product. Key insight: as a pure research/data tool (not personalized investment advice) the regulatory barrier is low. The moment trade execution is added, structure it so users connect their own brokerage accounts — keeping Meridian in the "tools" category, not "broker-dealer" territory.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 1 — Business Formation</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">~$100-500 · LLC or Corp</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Form an LLC (or Delaware/Wyoming Corp for investor-friendliness). Required for liability protection, payment processing, and business banking. Services: Stripe Atlas, LegalZoom, or your state's Secretary of State website directly. This is the foundation everything else is built on.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 2 — Legal Documents</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">~$500-2,000 or DIY</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Three required documents: (1) Terms of Service with clear investment disclaimer — "information only, not personalized investment advice." (2) Privacy Policy — required by law if collecting any user data. (3) Subscription and refund policy. Draft with AI assistance, have a startup attorney review. One-hour consultation ~$300-500.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 3 — Data Licensing</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Key blocker for commercial launch</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Yahoo Finance and TradingView are free for personal use — commercial redistribution requires licensing. Switch to: <strong style="color:var(--accent);">Polygon.io</strong> ($29/mo — explicitly allows commercial use, real-time data) for price data. <strong style="color:var(--accent);">Intrinio</strong> or <strong style="color:var(--accent);">Tiingo</strong> as alternatives. News RSS feeds: most allow commercial use but verify per source. This upgrade also solves the 15-minute delay issue.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 4 — Payment Processing</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Stripe · One session to build</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Stripe handles subscriptions, tax collection, failed payment retries, invoicing, and international payments. Integrates with Supabase Auth for subscription gating — users who pay get access, users who don't are blocked. Suggested pricing tiers: Free (read-only), Pro $20-29/mo (full features), Team $49-99/mo (shared chat + multi-user). Stripe takes 2.9% + 30¢ per transaction.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 5 — User Auth + Gating</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Supabase Auth · Already on roadmap</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Supabase Auth (already in DB roadmap) handles user accounts, login, and session management. Stripe webhook updates Supabase user record when payment succeeds or fails. Meridian checks subscription status on load — Pro features locked for free users. Replaces the current localStorage password with proper per-user authentication.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 6 — Regulatory Boundaries</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">What NOT to do</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">
-            <span style="color:var(--green);">✓ OK — no registration needed:</span> Data/research tools, market data display, educational content, portfolio tracking, AI-assisted research (framed as information not advice).<br>
-            <span style="color:var(--warn);">⚠ Requires structure:</span> Trade execution — use user-owned Alpaca accounts. Meridian sends signals to THEIR account, never touches money directly.<br>
-            <span style="color:var(--red);">✗ Requires RIA registration:</span> Personalized investment advice, managing money on behalf of clients, discretionary trading of client funds. Avoid these entirely.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #fbbf24; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Step 7 — The Competitive Moat</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Why this is a real product</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Bloomberg charges $24K/year and has no AI layer. TradingView has charts but no portfolio-aware Claude assistant. Finviz has screeners but no unicorn tracking or political holdings intelligence. Meridian's moat is the combination: <strong style="color:var(--accent);">AI research + curated intelligence layer + trade execution + real-time data</strong> — at $20-50/month. That's a real gap in the market.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ADVANCED MARKET INTELLIGENCE -->
-    <div style="margin-bottom:20px;margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#06b6d4; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🔬 ADVANCED MARKET INTELLIGENCE — Options Flow, Dark Pool &amp; On-Chain
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: replicate what Unusual Whales, Nansen, and Quiver Quantitative charge $150-500/month for — options flow, dark pool prints, whale wallet tracking, on-chain intelligence, and congressional trading signals — all inside Meridian for under $100/month total. Combined with Claude analysis in the admin panel, this becomes a signal detection system that rivals institutional tools.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Options Flow Tab</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Unusual Whales API · $50/mo</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Real-time feed of unusual options activity. Ticker, expiry, strike, call/put, premium, side, exchange. Color coded: green sweeps (aggressive buyers hitting multiple exchanges simultaneously — strongest bullish signal), red puts, yellow dark pool. Filter by ticker, min premium ($100K+), expiry. Auto-flags activity on your tracked tickers. Sweep orders are the key signal — they indicate institutional conviction.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Dark Pool Monitor</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Unusual Whales API · Same subscription</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Large off-exchange block trades. When $50M+ of a tracked ticker trades in a dark pool, it surfaces immediately. Dark pool prints often precede major price moves — institutions executing large positions before news. Cross-reference with our political holdings tab for maximum signal.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Congressional Options Tracker</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Quiver Quantitative · $25/mo</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Cross-reference our existing political holdings tab with live options flow and congressional trade disclosures. Quiver Quantitative covers congressional trades, insider buying, government contracts, and options flow in one API. If a cabinet member or spouse buys calls days before a policy announcement — this surfaces it. Extends the political holdings tab from static to live.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Whale Wallet Tracker</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Etherscan + Blockchair · Free tier</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Paste any wallet address — Meridian shows current holdings, values, recent transactions, historical PnL, and whether it matches a known entity (exchange, VC, whale). Watch list of curated alpha wallets — when a monitored wallet buys a new token, it surfaces in the news feed. Starting point: World Liberty Financial (Trump family DeFi) smart contracts monitored live.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Smart Money Crypto Feed</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Nansen · $150/mo or Arkham</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Curated list of known alpha wallets (similar to how we track institutional 13F filings for stocks). When a watched wallet buys a new token — auto-alert in news feed. Nansen provides wallet labeling (identifies exchange, VC, whale wallets). Arkham Intelligence recently opened API access. Start with free Etherscan tier, upgrade to Nansen when signals prove valuable.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Token On-Chain Intelligence</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Glassnode · $29/mo basic</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">For every crypto in your tracker (BTC, ETH, SOL etc): exchange inflow/outflow trends, holder concentration (top 10 wallets % of supply), DEX vs CEX volume ratio, active addresses trend. Large exchange inflows = potential sell pressure. Large outflows = holders moving to cold storage = bullish. Glassnode $29/mo covers BTC + ETH fundamentals. The Graph (free) covers DeFi protocols.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Cross-Chain Transaction Tracer</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Blockchair multi-chain · Free tier</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Follow suspicious fund flows across ETH → BSC → SOL → BTC. Input a wallet or TX hash — Meridian traces the money across chains and visualizes the flow graph. Particularly powerful for tracking WLFI (World Liberty Financial) and USD1 stablecoin flows given the political holdings context already in Meridian. This is the actual blockchain sleuthing.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Crypto Tracker Tab</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">New tab · Extends stock tracker</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Dedicated crypto tab alongside stocks. Add BTC, ETH, SOL, and any token. Live prices via CoinGecko free API (no delay on crypto). On-chain metrics alongside price. Portfolio performance vs BTC benchmark. Wallet addresses linked to holdings. DeFi positions tracked. Integrates with Alpaca crypto trading when that phase is built.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #06b6d4; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Claude Signal Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Admin panel integration</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Once options flow + on-chain data is piped into Meridian, Claude in the admin panel can cross-analyze everything: "this wallet bought $2M of HAWK calls 3 days before the Golden Dome announcement" — that kind of pattern detection across political holdings + options flow + on-chain data + news feed. The combination is genuinely institutional-grade intelligence at retail cost.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- PYTHON BACKEND ROADMAP -->
-    <div style="margin-bottom:20px;margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#60a5fa; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🐍 PYTHON BACKEND — When to Add It and Why
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(96,165,250,0.06); border:1px solid rgba(96,165,250,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Current architecture: pure HTML/JS frontend hosted on GitHub Pages — zero cost, zero servers, one file. A Python backend is NOT needed now and would add significant complexity. Add it only when specific capabilities require it. The right model: keep the HTML/JS frontend, add a small Python backend only for what it uniquely enables. Best framework: <strong style="color:#60a5fa;">FastAPI</strong> — lightweight, async, automatic API docs, deploys free on Railway or Render.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 1 — Scheduled Alerts</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">First reason to add Python</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you need price alerts sent to your phone/email even when Meridian isn't open. A browser tab can't run background jobs — Python can. A 20-line FastAPI script on Railway (free tier) checks prices every minute, compares against your watchlist targets, and fires SMS (Twilio) or email alerts. This is the first capability that genuinely requires a backend.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 2 — API Key Security</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Required for commercial launch</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Currently API keys (Alpaca, Claude, Grok) live in localStorage — fine for personal use, not acceptable for a commercial product with paying users. A Python backend acts as a proxy: Meridian calls your backend, your backend calls the APIs with server-side keys. Users never see the keys. Required before charging subscription fees to strangers.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 3 — Backtesting Engine</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Pandas + NumPy + Backtrader</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you want to test trading strategies against historical data — "if I had bought HAWK at IPO and sold covered calls every month, what would my return be?" JavaScript can't do this efficiently. Python with Pandas, NumPy, and Backtrader can backtest years of tick data in seconds. Results feed back into Meridian via an API endpoint and display in a new Backtesting tab.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 4 — ML Signal Detection</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">scikit-learn · PyTorch</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When you want to add predictive models — pattern recognition on price data, sentiment scoring on news headlines, anomaly detection on options flow, or correlation analysis across your portfolio. Python's ML ecosystem (scikit-learn, PyTorch, HuggingFace) is unmatched for this. Train models on historical data, deploy predictions as API endpoints, display signals in Meridian.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Trigger 5 — Autonomous Agent</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude API · Alpaca · Scheduled</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The endgame — a Python process that runs 24/7, monitors news and price action, calls Claude to analyze signals, generates trade decisions, and executes via Alpaca — all without you being at the computer. This is Phase 5/6 of the trading roadmap. Browser-based JavaScript simply cannot do this. Python makes it possible with a scheduled task running on a $5/month server.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #60a5fa; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">The Hybrid Architecture</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Best of both worlds</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">
-            <strong style="color:#60a5fa;">Frontend (HTML/JS) — stays as-is:</strong> UI, charts, real-time display, user interaction, TradingView, D3, admin panel.<br><br>
-            <strong style="color:#60a5fa;">Backend (Python FastAPI) — added when needed:</strong> Scheduled jobs, API key proxying, backtesting, ML models, autonomous agent, commercial auth.<br><br>
-            Deploy backend free on <strong>Railway</strong> or <strong>Render</strong>. Connect to Meridian frontend via fetch() calls. Zero rewrite of existing code — pure addition.
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v4.0 — a fully autonomous AI-powered investment research and trading terminal. HTML/JS frontend on every device. Python backend running 24/7 autonomous agents, backtesting engines, and ML signal detection. Options flow, dark pool monitoring, on-chain intelligence. Commercially licensed at $20-50/month. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
-    </div>
-
-    <!-- AI CHART ANALYSIS ROADMAP -->
-    <div style="margin-bottom:20px;margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#e879f9; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        📸 AI CHART ANALYSIS — Claude + Grok Visual Chart Reading
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(232,121,249,0.06); border:1px solid rgba(232,121,249,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        Goal: add an "Analyze Chart" button to the Charts tab that screenshots the current TradingView chart and sends it directly to Claude Sonnet 4.6 and/or Grok-3 for visual analysis. Both models are multimodal — they can read charts, identify patterns, analyze indicator setups, and generate trade ideas from what they actually see. This closes the gap between visual chart analysis and AI reasoning entirely.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📸 Screenshot + Send</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">html2canvas · One button</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">An "Analyze Chart" button in the Charts tab captures the current TradingView chart using html2canvas (a free JS library). The screenshot is converted to base64 and sent directly to Claude or Grok via their respective APIs. No server needed — runs entirely in the browser. One click, instant AI analysis of whatever chart and indicators are currently displayed.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #f472b6; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">🤖 Claude Vision Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">claude-sonnet-4-6 · Multimodal</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Claude Sonnet 4.6 is natively multimodal — send it a chart image and it identifies: trend direction, support/resistance levels, MA crossovers, RSI overbought/oversold, MACD divergence, Bollinger Band squeezes, chart patterns (head and shoulders, flags, wedges, double tops). Returns a structured analysis with pattern identification, key levels, and suggested options strategies. Response appears directly in the admin panel Chat tab with full smart button support.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #63b3ed; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">⚡ Grok Vision Analysis</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">grok-3 · xAI · Multimodal</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Grok-3 also supports image inputs via the xAI API. Send the same chart to Grok for a second opinion — Grok's real-time X/Twitter data access means it can combine visual chart analysis with current market sentiment simultaneously. "The chart shows a bull flag forming AND X is buzzing about a Golden Dome contract announcement" — that combination is genuinely unique.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">🔀 Dual Analysis Mode</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Claude + Grok simultaneously</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Same chart sent to both Claude and Grok simultaneously — responses appear side by side in the admin panel using the existing BOTH agent mode. Claude focuses on technical pattern analysis and options strategy. Grok adds real-time sentiment and social signal context. Together they give a more complete picture than either alone. One click, two perspectives.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📐 Strategy Builder</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Chart → Analysis → Trade</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The full workflow: load a chart → apply indicators → click Analyze → Claude/Grok identify the setup → smart buttons let you add to tracker, view options chain, or place a paper trade — all without leaving Meridian. Example: RSI divergence on HAWK + Grok sees defense contract news on X → Claude suggests a bull call spread → one click opens the options chain at the suggested strikes → another click pre-fills a paper trade. Full circle.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #e879f9; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">📚 Strategy Library</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Saved analysis · Pattern history</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Every chart analysis auto-saves to a Strategy Library tab — ticker, date, chart screenshot thumbnail, Claude/Grok analysis, and outcome (if you placed a paper trade). Over time builds a personal trading journal with AI commentary on every setup. Identify which patterns and strategies work best on your specific tickers. Connects to the backtesting engine when the Python backend is built.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ROBINHOOD MCP INTEGRATION -->
-    <div style="margin-bottom:20px;margin-top:20px;">
-      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#00c805; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
-        🟢 ROBINHOOD MCP INTEGRATION — Research-Backed Autonomous Trading
-      </div>
-      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(0,200,5,0.06); border:1px solid rgba(0,200,5,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-        On May 27, 2026, Robinhood launched Agentic Trading — letting Claude, ChatGPT, and other AI agents trade equities autonomously through their MCP server. Meridian can connect to this same MCP, giving Claude access to a real Robinhood brokerage account. The difference vs vanilla Robinhood agentic trading: Meridian's Claude agent has full research context — your watchlist, options chain data, news feed, political holdings, and technical analysis — backing every trade decision. That's the edge.
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 1 — Connect MCP</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Robinhood MCP server · API key setup</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add Robinhood as a connected MCP server in Meridian's admin panel. Store the Robinhood MCP token in the Config sheet alongside Alpaca, Claude, and Grok keys. Claude in the admin panel can then read your Robinhood account value, buying power, positions, and order history — and execute trades on your behalf through the same chat interface you already use for research.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 2 — Research-Backed Orders</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Context-aware execution</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When Claude places a trade via Robinhood MCP, it does so with full Meridian context — your entry thesis, current options chain data, latest news, 50MA/200MA levels, RSI reading, and political holdings signals. You can ask "Buy 50 shares of HAWK if RSI is below 40 and there's no negative news today" — Claude checks all of it before executing. That's fundamentally different from a generic agent just pushing buttons.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 3 — Dual Broker Strategy</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Alpaca paper + Robinhood live</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Use Alpaca for paper trading and strategy testing — Robinhood for live execution. Test a strategy on Alpaca paper first, validate it, then deploy on Robinhood live with one command. Meridian becomes the research and risk management layer sitting above both brokers. Claude manages both accounts simultaneously — paper testing new ideas while running proven strategies live.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 4 — Autonomous Agent</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Python backend + scheduled execution</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The endgame — a Python process running 24/7 that monitors Meridian's full data stack (news, prices, options flow, on-chain signals), calls Claude to analyze, and executes via Robinhood MCP when conditions are met — without you being at the computer. Set rules like "if HAWK breaks $40 with volume 2x average and no negative news, buy 25 shares." Claude monitors everything and pulls the trigger. This is the Phase 5 autonomous agent on the roadmap, now with Robinhood as the execution layer.</div>
-        </div>
-
-        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
-          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Safety Controls</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Built-in guardrails</div></div>
-          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Robinhood's MCP includes a one-tap disconnect, push notifications for every trade, and optional manual approval for orders. Meridian adds its own layer — max position size limits, daily loss limits, required news check before execution, and a confirmation step in the admin panel. FINRA classifies AI agents as a new risk area — we build safety first. The goal is augmented decision-making, not fully blind automation.</div>
-        </div>
-
-      </div>
-    </div>
-
-    <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v5.0 — a fully autonomous AI-powered investment research and trading terminal. Claude + Grok agents with full research context executing on Robinhood (live) and Alpaca (paper) simultaneously. Python backend running 24/7 autonomous strategies. Options flow, dark pool monitoring, on-chain intelligence. Visual chart analysis. Shared research chat. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — with Robinhood as the execution layer. For the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
+    <div class="table-wrap" id="roadmap-table-wrap">
+      <table id="roadmap-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Phase</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Effort</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="roadmap-tbody"></tbody>
+      </table>
     </div>
   </section>
 
@@ -9120,6 +8626,159 @@ Be specific with price levels. Frame as research, not advice.`;
 
   // Wire into showTab
   // (handled in the existing showTab override below)
+
+
+  // ---- Roadmap ---------------------------------------------------------------
+  let roadmapData = [];
+  let roadmapStatusFilter = 'All';
+
+  const ROADMAP_STATUS_COLORS = {
+    'Planned':     { bg:'rgba(0,212,255,0.1)',    color:'var(--accent)', border:'rgba(0,212,255,0.3)'  },
+    'In Progress': { bg:'rgba(255,184,48,0.1)',   color:'var(--warn)',   border:'rgba(255,184,48,0.3)' },
+    'Completed':   { bg:'rgba(46,213,115,0.1)',   color:'var(--green)',  border:'rgba(46,213,115,0.3)' },
+    'Cancelled':   { bg:'rgba(122,157,181,0.08)', color:'var(--text3)',  border:'var(--border)'        },
+  };
+  const ROADMAP_PRIORITY_COLORS = { High:'var(--red)', Medium:'var(--warn)', Low:'var(--text3)' };
+  const ROADMAP_FIELDS = [
+    { key:'Title',    label:'Title',    required:true },
+    { key:'Phase',    label:'Phase',    type:'select',   options:['Phase 1a','Phase 1b','Phase 2','Phase 3','Ongoing','Backlog'] },
+    { key:'Status',   label:'Status',   type:'select',   options:['Planned','In Progress','Completed','Cancelled'] },
+    { key:'Category', label:'Category', type:'select',   options:['ML/AI','Infrastructure','UI','MCP','Quantum','Research','Security','Backlog'] },
+    { key:'Priority', label:'Priority', type:'select',   options:['High','Medium','Low'] },
+    { key:'Effort',   label:'Effort',   placeholder:'e.g. 1 session' },
+    { key:'Notes',    label:'Notes',    type:'textarea' },
+  ];
+
+  async function syncRoadmap() {
+    const btn = document.getElementById('roadmap-sync-btn');
+    if (btn) btn.textContent = '\u21ba SYNCING...';
+    try {
+      const res = await readFromSheet('Roadmap');
+      roadmapData = res.rows || [];
+      renderRoadmap();
+      const t = document.getElementById('roadmap-sync-time');
+      if (t) t.textContent = roadmapData.length + ' items \u00b7 ' + new Date().toLocaleTimeString('en-US',{hour12:false});
+    } catch(e) { showDBToast('Failed to sync roadmap: ' + e.message, 'warn'); }
+    if (btn) btn.textContent = '\u21ba SYNC';
+  }
+
+  function setRoadmapFilter(type, val) {
+    roadmapStatusFilter = val;
+    ['All','Planned','In Progress','Completed','Cancelled'].forEach(s => {
+      const btn = document.getElementById('rmf-status-' + s);
+      if (!btn) return;
+      const active = s === val;
+      btn.style.background  = active ? 'rgba(0,212,255,0.15)' : 'transparent';
+      btn.style.borderColor = active ? 'rgba(0,212,255,0.4)'  : 'var(--border)';
+      btn.style.color       = active ? 'var(--accent)'        : 'var(--text3)';
+    });
+    renderRoadmap();
+  }
+
+  function renderRoadmap() {
+    const tbody = document.getElementById('roadmap-tbody');
+    const empty = document.getElementById('roadmap-empty');
+    const wrap  = document.getElementById('roadmap-table-wrap');
+    if (!tbody) return;
+    const phase  = document.getElementById('rmf-phase')?.value || '';
+    const search = (document.getElementById('rmf-search')?.value || '').toLowerCase();
+    let rows = roadmapData.filter(r => {
+      if (roadmapStatusFilter !== 'All' && r.Status !== roadmapStatusFilter) return false;
+      if (phase && r.Phase !== phase) return false;
+      if (search && !Object.values(r).join(' ').toLowerCase().includes(search)) return false;
+      return true;
+    });
+    const order = { 'In Progress':0, Planned:1, Completed:2, Cancelled:3 };
+    rows.sort((a,b) => (order[a.Status]||99) - (order[b.Status]||99));
+    const counts = { Planned:0, 'In Progress':0, Completed:0, Cancelled:0 };
+    roadmapData.forEach(r => { if (counts[r.Status] !== undefined) counts[r.Status]++; });
+    document.getElementById('rm-stat-planned').textContent    = counts['Planned'];
+    document.getElementById('rm-stat-inprogress').textContent = counts['In Progress'];
+    document.getElementById('rm-stat-completed').textContent  = counts['Completed'];
+    document.getElementById('rm-stat-cancelled').textContent  = counts['Cancelled'];
+    document.getElementById('rm-stat-total').textContent      = roadmapData.length;
+    if (rows.length === 0) {
+      if (empty) empty.style.display = 'block';
+      if (wrap)  wrap.style.display  = 'none';
+      tbody.innerHTML = ''; return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (wrap)  wrap.style.display  = 'block';
+    tbody.innerHTML = rows.map(row => {
+      const sc = ROADMAP_STATUS_COLORS[row.Status] || ROADMAP_STATUS_COLORS['Planned'];
+      const pc = ROADMAP_PRIORITY_COLORS[row.Priority] || 'var(--text3)';
+      const rowJson = JSON.stringify(row).replace(/'/g,"&apos;");
+      return `<tr data-id="${row._id}">
+        <td><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.border};padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.06em;white-space:nowrap;">${row.Status||'\u2014'}</span></td>
+        <td style="color:var(--text2);font-size:11px;white-space:nowrap;">${row.Phase||'\u2014'}</td>
+        <td><strong style="color:var(--text);">${row.Title||'\u2014'}</strong></td>
+        <td><span class="tag">${row.Category||'\u2014'}</span></td>
+        <td style="color:${pc};font-size:11px;font-weight:700;">${row.Priority||'\u2014'}</td>
+        <td style="color:var(--text3);font-size:11px;">${row.Effort||'\u2014'}</td>
+        <td class="notes-cell" style="max-width:220px;">${row.Notes||'\u2014'}</td>
+        <td><div style="display:flex;gap:4px;">
+          <button onclick='openEditRoadmapItem(${rowJson})' style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">\u270f\ufe0f</button>
+          <button onclick='deleteRoadmapItem(${rowJson})' style="background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;">\u{1f5d1}\ufe0f</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openAddRoadmapItem() {
+    showRoadmapModal('Add Roadmap Item', async (data) => {
+      const ok = await writeToSheet('append', 'Roadmap', data);
+      if (ok) { showDBToast('\u2713 ' + data.Title + ' added!'); setTimeout(() => syncRoadmap(), 800); }
+    });
+  }
+
+  function openEditRoadmapItem(row) {
+    showRoadmapModal('Edit \u2014 ' + row.Title, async (data) => {
+      const ok = await writeToSheet('update', 'Roadmap', { ...data, _id: row._id });
+      if (ok) { showDBToast('\u2713 ' + data.Title + ' updated!'); setTimeout(() => syncRoadmap(), 800); }
+    }, row);
+  }
+
+  async function deleteRoadmapItem(row) {
+    if (!confirm('Delete "' + row.Title + '" from roadmap?')) return;
+    const ok = await writeToSheet('delete', 'Roadmap', { _id: row._id });
+    if (ok) { showDBToast('\u2713 Deleted'); setTimeout(() => syncRoadmap(), 800); }
+  }
+
+  function showRoadmapModal(title, onSave, prefill) {
+    prefill = prefill || {};
+    document.getElementById('roadmap-modal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'roadmap-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+    const fields = ROADMAP_FIELDS.map(f => {
+      const full = f.type === 'textarea' ? 'grid-column:1/-1;' : '';
+      let input;
+      if (f.type === 'select') {
+        const opts = f.options.map(o => '<option value="' + o + '" ' + ((prefill[f.key]||'')===o?'selected':'') + '>' + o + '</option>').join('');
+        input = '<select id="rm-field-' + f.key + '" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">' + opts + '</select>';
+      } else if (f.type === 'textarea') {
+        input = '<textarea id="rm-field-' + f.key + '" rows="3" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;resize:vertical;">' + (prefill[f.key]||'') + '</textarea>';
+      } else {
+        input = '<input id="rm-field-' + f.key + '" type="text" value="' + (prefill[f.key]||'') + '" placeholder="' + (f.placeholder||'') + '" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:3px;outline:none;">';
+      }
+      return '<div style="' + full + '"><label style="display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">' + f.label + (f.required?' *':'') + '</label>' + input + '</div>';
+    }).join('');
+    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;"><div style="font-family:var(--sans);font-size:18px;font-weight:800;color:var(--text);margin-bottom:20px;">' + title + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' + fields + '</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;"><button onclick="document.getElementById('roadmap-modal').remove()" style="background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px 16px;cursor:pointer;border-radius:3px;">CANCEL</button><button onclick="submitRoadmapModal()" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--green);font-family:var(--mono);font-size:11px;padding:8px 20px;cursor:pointer;border-radius:3px;letter-spacing:0.1em;">SAVE</button></div></div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    modal._onSave = onSave;
+    setTimeout(() => document.getElementById('rm-field-Title')?.focus(), 100);
+  }
+
+  async function submitRoadmapModal() {
+    const modal = document.getElementById('roadmap-modal');
+    if (!modal) return;
+    const data = {};
+    ROADMAP_FIELDS.forEach(f => { const el = document.getElementById('rm-field-' + f.key); if (el) data[f.key] = el.value.trim(); });
+    if (!data.Title) { showDBToast('Title is required', 'warn'); return; }
+    modal.remove();
+    await modal._onSave(data);
+  }
 
   // ---- Clock
   function updateClock() {
