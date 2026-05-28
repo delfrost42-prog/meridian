@@ -529,7 +529,7 @@
       </button>
       <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;color:#1e3448;letter-spacing:0.2em;">
         <!-- Hidden DB settings trigger — click the version number -->
-        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.3 &mdash; <span id="splash-date"></span></span>
+        <span id="splash-version-trigger" onclick="splashDBTrigger()" style="cursor:default;user-select:none;" title="">MERIDIAN v5.4 &mdash; <span id="splash-date"></span></span>
       </div>
     </div>
 
@@ -912,7 +912,7 @@ document.addEventListener('keydown', e => {
   <div class="header-meta">
     <span><span class="live-dot"></span>LOCAL SESSION</span>
     <span id="clock"></span>
-    <span>v5.3 &mdash; May 27 2026</span>
+    <span>v5.4 &mdash; May 27 2026</span>
   </div>
 </header>
 
@@ -1460,10 +1460,16 @@ document.addEventListener('keydown', e => {
       <span class="filter-label">FILTER:</span>
       <input class="filter-input" type="text" id="ipo-filter" placeholder="Search company, sector, status..." oninput="filterIPO(this.value)">
       <div style="margin-left:auto;display:flex;gap:6px;">
-        ${['All','Completed','Upcoming','Pipeline','Withdrawn'].map(s =>
-          `<button onclick="filterIPOByStatus('${s}')" id="ipo-status-${s.toLowerCase()}"
-            style="background:${s==='All'?'rgba(0,212,255,0.15)':'transparent'};border:1px solid ${s==='All'?'rgba(0,212,255,0.4)':'var(--border)'};color:${s==='All'?'var(--accent)':'var(--text3)'};font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">${s}</button>`
-        ).join('')}
+        <button onclick="filterIPOByStatus('All')" id="ipo-status-all"
+          style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">All</button>
+        <button onclick="filterIPOByStatus('Completed')" id="ipo-status-completed"
+          style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Completed</button>
+        <button onclick="filterIPOByStatus('Upcoming')" id="ipo-status-upcoming"
+          style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Upcoming</button>
+        <button onclick="filterIPOByStatus('Pipeline')" id="ipo-status-pipeline"
+          style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Pipeline</button>
+        <button onclick="filterIPOByStatus('Withdrawn')" id="ipo-status-withdrawn"
+          style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all 0.15s;">Withdrawn</button>
       </div>
     </div>
 
@@ -3037,7 +3043,7 @@ document.addEventListener('keydown', e => {
       <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value green">22</div></div>
       <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value warn">0</div></div>
       <div class="stat-card"><div class="stat-label">Planned</div><div class="stat-value accent">35</div></div>
-      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.3 — GitHub Pages</div></div>
+      <div class="stat-card"><div class="stat-label">Terminal Version</div><div class="stat-value" style="font-size:13px;">v5.4 — GitHub Pages</div></div>
     </div>
 
     <!-- COMPLETED -->
@@ -3550,8 +3556,46 @@ document.addEventListener('keydown', e => {
       </div>
     </div>
 
+    <!-- ROBINHOOD MCP INTEGRATION -->
+    <div style="margin-bottom:20px;margin-top:20px;">
+      <div style="font-family:var(--sans); font-size:14px; font-weight:700; color:#00c805; letter-spacing:0.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+        🟢 ROBINHOOD MCP INTEGRATION — Research-Backed Autonomous Trading
+      </div>
+      <div style="margin-bottom:10px; padding:10px 14px; background:rgba(0,200,5,0.06); border:1px solid rgba(0,200,5,0.2); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
+        On May 27, 2026, Robinhood launched Agentic Trading — letting Claude, ChatGPT, and other AI agents trade equities autonomously through their MCP server. Meridian can connect to this same MCP, giving Claude access to a real Robinhood brokerage account. The difference vs vanilla Robinhood agentic trading: Meridian's Claude agent has full research context — your watchlist, options chain data, news feed, political holdings, and technical analysis — backing every trade decision. That's the edge.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 1 — Connect MCP</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Robinhood MCP server · API key setup</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Add Robinhood as a connected MCP server in Meridian's admin panel. Store the Robinhood MCP token in the Config sheet alongside Alpaca, Claude, and Grok keys. Claude in the admin panel can then read your Robinhood account value, buying power, positions, and order history — and execute trades on your behalf through the same chat interface you already use for research.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 2 — Research-Backed Orders</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Context-aware execution</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">When Claude places a trade via Robinhood MCP, it does so with full Meridian context — your entry thesis, current options chain data, latest news, 50MA/200MA levels, RSI reading, and political holdings signals. You can ask "Buy 50 shares of HAWK if RSI is below 40 and there's no negative news today" — Claude checks all of it before executing. That's fundamentally different from a generic agent just pushing buttons.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 3 — Dual Broker Strategy</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Alpaca paper + Robinhood live</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Use Alpaca for paper trading and strategy testing — Robinhood for live execution. Test a strategy on Alpaca paper first, validate it, then deploy on Robinhood live with one command. Meridian becomes the research and risk management layer sitting above both brokers. Claude manages both accounts simultaneously — paper testing new ideas while running proven strategies live.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Phase 4 — Autonomous Agent</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Python backend + scheduled execution</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">The endgame — a Python process running 24/7 that monitors Meridian's full data stack (news, prices, options flow, on-chain signals), calls Claude to analyze, and executes via Robinhood MCP when conditions are met — without you being at the computer. Set rules like "if HAWK breaks $40 with volume 2x average and no negative news, buy 25 shares." Claude monitors everything and pulls the trigger. This is the Phase 5 autonomous agent on the roadmap, now with Robinhood as the execution layer.</div>
+        </div>
+
+        <div style="background:var(--panel); border:1px solid var(--border); border-left:3px solid #00c805; border-radius:3px; padding:12px 16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="min-width:180px;"><div style="font-weight:700; color:var(--text); font-size:13px;">Safety Controls</div><div style="color:var(--text3); font-size:10px; margin-top:2px; letter-spacing:0.1em;">Built-in guardrails</div></div>
+          <div style="color:var(--text2); font-size:12px; line-height:1.6;">Robinhood's MCP includes a one-tap disconnect, push notifications for every trade, and optional manual approval for orders. Meridian adds its own layer — max position size limits, daily loss limits, required news check before execution, and a confirmation step in the admin panel. FINRA classifies AI agents as a new risk area — we build safety first. The goal is augmented decision-making, not fully blind automation.</div>
+        </div>
+
+      </div>
+    </div>
+
     <div style="padding:12px 14px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:3px; font-size:11px; color:var(--text2); line-height:1.7;">
-      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v4.0 — a fully autonomous AI-powered investment research and trading terminal. HTML/JS frontend on every device. Python backend running 24/7 autonomous agents, backtesting engines, and ML signal detection. Options flow, dark pool monitoring, on-chain intelligence. Claude + Grok visual chart analysis with one-click strategy building. Commercially licensed at $20-50/month. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — for the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
+      <strong style="color:var(--accent);">LONG-TERM VISION:</strong> Meridian v5.0 — a fully autonomous AI-powered investment research and trading terminal. Claude + Grok agents with full research context executing on Robinhood (live) and Alpaca (paper) simultaneously. Python backend running 24/7 autonomous strategies. Options flow, dark pool monitoring, on-chain intelligence. Visual chart analysis. Shared research chat. Bloomberg Terminal meets Unusual Whales meets Nansen meets a quant hedge fund — with Robinhood as the execution layer. For the AI era, at 1% of the combined cost. Built from a single HTML file, one session at a time.
     </div>
   </section>
 
