@@ -2935,6 +2935,11 @@ document.addEventListener('keydown', e => {
 </footer>
 
 <script>
+  // ── Worker URL — update this if the worker is ever redeployed ──────────────
+  var MERIDIAN_WORKER_URL = 'https://twilight-dev-3ae7.delfrost42.workers.dev';
+  localStorage.setItem('meridian_worker_url', MERIDIAN_WORKER_URL);
+  // ──────────────────────────────────────────────────────────────────────────
+
   // Unicorn IPO filter
   function filterUnicornIPO(val) {
     const rows = document.querySelectorAll('#unicorn-table tbody tr');
