@@ -8218,10 +8218,12 @@ Be specific with price levels. Frame as research, not advice.`;
     const btn = document.getElementById('roadmap-sync-btn');
     if (btn) { btn.textContent = 'SYNCING...'; btn.style.opacity = '0.6'; }
     try {
-      const token = MERIDIAN_TOKEN || localStorage.getItem('meridian_token') || '';
-      const res = await fetch(APPS_SCRIPT_URL + '?action=getSheet&tab=Roadmap&token=' + encodeURIComponent(token), {
+      const workerBase = new URLSearchParams(window.location.search).get('worker') || localStorage.getItem('meridian_worker_url') || '';
+      if (!workerBase) throw new Error('Worker URL not configured');
+      const res = await fetch(workerBase + '/api/sheet?tab=Roadmap', {
         signal: AbortSignal.timeout(8000)
       });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Error loading Roadmap sheet');
       roadmapData = data.rows || [];
@@ -8557,6 +8559,29 @@ Be specific with price levels. Frame as research, not advice.`;
 }());
 </script>
 <!-- ── End Unicorn loader ─────────────────────────────────────────────── -->
+
+<!-- ── Roadmap — auto-load on tab open ───────────────────────────────── -->
+<script>
+(function () {
+  var _origShowTab = window.showTab;
+  window.showTab = function(id) {
+    if (_origShowTab) _origShowTab.apply(this, arguments);
+    if (id === 'roadmap' && typeof syncRoadmap === 'function') syncRoadmap();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      if (document.getElementById('tab-roadmap') &&
+          document.getElementById('tab-roadmap').classList.contains('active') &&
+          typeof syncRoadmap === 'function') syncRoadmap();
+    });
+  } else {
+    var s = document.getElementById('tab-roadmap');
+    if (s && s.classList.contains('active') && typeof syncRoadmap === 'function') syncRoadmap();
+  }
+}());
+</script>
+<!-- ── End Roadmap auto-load ──────────────────────────────────────────── -->
 
 <!-- ── IPO Calendar — auto-load on tab open ───────────────────────────── -->
 <script>
