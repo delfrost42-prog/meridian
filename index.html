@@ -3557,7 +3557,7 @@ document.addEventListener('keydown', e => {
   function renderTickerRow(row, idx) {
     const profitable = (row.Profitable || '').toLowerCase() === 'yes';
     const exchange = row.Exchange || 'NASDAQ';
-    const entryPrice = parseFloat((row.Price_At_Research||'').replace(/[$,]/g,'')) || null;
+    const entryPrice = parseFloat(String(row.Price_At_Research||'').replace(/[$,]/g,'')) || null;
     return `<tr data-idx="${idx}" data-ticker="${row.Ticker}">
       <td>
         <span class="ticker-badge" style="cursor:pointer;" onclick="loadChartTicker('${row.Ticker}')" title="Click to chart ${row.Ticker}"><a href="https://finance.yahoo.com/quote/${row.Ticker}/" target="_blank" onclick="event.stopPropagation()">${row.Ticker}</a></span>
