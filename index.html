@@ -589,6 +589,10 @@
 </style>
 
 <script>
+// ── Worker URL — seeded here (first script block) so it's available before
+// loadTickersFromSheet() fires on page load for the default active tab.
+localStorage.setItem('meridian_worker_url', 'https://twilight-dew-3ae7.delfrost42.workers.dev');
+
 // ---- GLOBAL ALPACA KEYS — declared first so ALL code can access them ----
 // Using var (not let) so they're truly global across both script blocks
 var alpacaKeyId  = localStorage.getItem('meridian_alpaca_key')    || '';
