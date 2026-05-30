@@ -1,0 +1,26 @@
+Ticker	TickerURL	CompanyName	CardSubtitle	Investor	InvestorType	Stake	StakeColor	Notes
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	Insight Partners	VC / PE	15.0%	yes	Led $145M Series D 2021. Largest pre-IPO backer.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	NightDragon	PE Defense/Cyber	9.7%	warn	Defense-focused growth equity.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	Razor's Edge	PE Nat. Security	5.0%		$1.25B+ AUM. Nat. security focused.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	BlackRock	Asset Manager	Led D-1 round		Led $58M Series D-1 2023.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	Leidos Ventures	Corporate VC	Unknown		Defense contractor. Strategic.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	Lockheed Martin Ventures	Corporate VC	Unknown		Defense contractor. Strategic.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	Raytheon	Corporate VC	Unknown		Defense contractor. Strategic.
+HAWK	https://finance.yahoo.com/quote/HAWK/	HawkEye 360	Total pre-IPO funding: ~$560M from 44 investors	NRO (Gov Grant)	U.S. Government	N/A		$40M grant Dec 2025. Non-dilutive.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	Google LLC (Alphabet)	Strategic / Corp.	10.18%	yes	31.94M shares ~$1.5B. Largest holder. Strategic partner.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	BlackRock	Asset Manager	Top 3		One of three largest institutional holders.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	Vanguard Group	Index Fund	Top 3		Increased stake +1.6% recently.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	D.E. Shaw & Co.	Hedge Fund (Quant)	Top 5		Quantitative hedge fund.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	Canada Pension Plan (CPP)	Sovereign Pension	Top 5		Sovereign pension fund.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	Capricorn Investment Group	Impact Investing	Top 10		Early backer.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	State Street Corp.	Index Fund	Top 10		Passive index holder.
+PL	https://finance.yahoo.com/quote/PL/	Planet Labs PBC	455 institutional owners — 67.6% institutional ownership	Driehaus Capital	Growth Equity	Top 5		Active growth manager.
+SATL	https://finance.yahoo.com/quote/SATL/	Satellogic	~48% institutional — 43% insider owned	Liberty 77 Capital L.P.	Private Investment	18.87%	yes	~20M shares. Largest institutional holder.
+SATL	https://finance.yahoo.com/quote/SATL/	Satellogic	~48% institutional — 43% insider owned	Cantor Fitzgerald L.P.	Investment Bank	17.62%	warn	25.21M shares ~$160M. Also acts as analyst (PT $10).
+SATL	https://finance.yahoo.com/quote/SATL/	Satellogic	~48% institutional — 43% insider owned	BlackRock Funding	Asset Manager	4.74%		5.02M shares ~$43M.
+SATL	https://finance.yahoo.com/quote/SATL/	Satellogic	~48% institutional — 43% insider owned	Emiliano Kargieman (CEO)	Insider	~8.8%		Co-founder and Board member.
+IONQ	https://finance.yahoo.com/quote/IONQ/	IonQ Inc	52.8% institutional — 37% insider ownership	GV 2016 GP LLC (Google Ventures)	Corporate VC	4.01%	yes	14.71M shares ~$645M. Google's venture arm. Strategic.
+IONQ	https://finance.yahoo.com/quote/IONQ/	IonQ Inc	52.8% institutional — 37% insider ownership	BlackRock Inc.	Asset Manager	5%+ (13G)	warn	Filed 13G indicating 5%+ ownership ~$1B+.
+IONQ	https://finance.yahoo.com/quote/IONQ/	IonQ Inc	52.8% institutional — 37% insider ownership	Morgan Stanley Inv. Mgmt.	Asset Manager	5%+ (13G)		Filed 13G via MS Investment Management.
+IONQ	https://finance.yahoo.com/quote/IONQ/	IonQ Inc	52.8% institutional — 37% insider ownership	Vanguard Group	Index Fund	Top 5		Passive index holder.
+IONQ	https://finance.yahoo.com/quote/IONQ/	IonQ Inc	52.8% institutional — 37% insider ownership	ARK Invest	Active ETF	Top institutional		Core IONQ holding in ARKK + ARKQ ETFs.

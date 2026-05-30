@@ -1,0 +1,641 @@
+// MERIDIAN MCP SERVER — Cloudflare Worker v2
+// Compatible format for Cloudflare Workers editor
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+const MCP_SERVER_INFO = {
+  name: "Meridian Research Terminal",
+  version: "1.0.0",
+  description: "Live access to your Meridian portfolio, IPO calendar, research notes, watchlist, and Alpaca trading"
+}
+
+const TOOLS = [
+  {
+    name: "get_portfolio",
+    description: "Get all tickers in your Meridian stock tracker with entry prices, shares, and sector info",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "add_ticker",
+    description: "Add a new stock ticker to your Meridian tracker in Google Sheets",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Ticker:     { type: "string", description: "Stock ticker symbol e.g. HAWK" },
+        Company:    { type: "string", description: "Company name" },
+        Sector:     { type: "string", description: "Sector e.g. Space / Defense" },
+        EntryPrice: { type: "string", description: "Entry price e.g. 28.50" },
+        Shares:     { type: "string", description: "Number of shares" },
+        Exchange:   { type: "string", description: "Exchange e.g. NYSE or NASDAQ" },
+        Notes:      { type: "string", description: "Research notes or thesis" }
+      },
+      required: ["Ticker", "Company"]
+    }
+  },
+  {
+    name: "update_ticker",
+    description: "Update a field on an existing ticker in your Meridian tracker",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Ticker: { type: "string", description: "Ticker to update" },
+        field:  { type: "string", description: "Field name to update e.g. Notes, EntryPrice, Shares" },
+        value:  { type: "string", description: "New value" }
+      },
+      required: ["Ticker", "field", "value"]
+    }
+  },
+  {
+    name: "delete_ticker",
+    description: "Remove a ticker from your Meridian tracker",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Ticker: { type: "string", description: "Ticker symbol to remove" }
+      },
+      required: ["Ticker"]
+    }
+  },
+  {
+    name: "get_ipo_calendar",
+    description: "Get your Meridian IPO calendar with status, dates, and valuations",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", description: "Filter: All, Completed, Upcoming, Pipeline, Withdrawn" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "add_ipo",
+    description: "Add a new IPO entry to your Meridian IPO calendar",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Company:      { type: "string", description: "Company name" },
+        Ticker:       { type: "string", description: "Expected ticker or TBD" },
+        Status:       { type: "string", description: "Pipeline, Upcoming, Completed, or Withdrawn" },
+        Sector:       { type: "string", description: "Sector e.g. AI, Fintech" },
+        ExpectedDate: { type: "string", description: "Expected date e.g. Q3 2026" },
+        Valuation:    { type: "string", description: "Expected valuation e.g. ~$10B" },
+        Exchange:     { type: "string", description: "Exchange e.g. NASDAQ" },
+        Notes:        { type: "string", description: "Key details about the IPO" }
+      },
+      required: ["Company", "Status"]
+    }
+  },
+  {
+    name: "update_ipo",
+    description: "Update a field on an existing IPO entry in your Meridian IPO calendar",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Company: { type: "string", description: "Company name of the IPO to update" },
+        field:   { type: "string", description: "Field to update e.g. Status, ExpectedDate, Valuation, Notes" },
+        value:   { type: "string", description: "New value" }
+      },
+      required: ["Company", "field", "value"]
+    }
+  },
+  {
+    name: "delete_ipo",
+    description: "Remove an IPO entry from your Meridian IPO calendar",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Company: { type: "string", description: "Company name of the IPO to delete" }
+      },
+      required: ["Company"]
+    }
+  },
+  {
+    name: "get_research_notes",
+    description: "Get your saved research notes from Meridian",
+    inputSchema: {
+      type: "object",
+      properties: {
+        search: { type: "string", description: "Optional search query to filter notes" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "add_research_note",
+    description: "Save a research note to your Meridian notes database",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ticker:  { type: "string", description: "Related ticker symbol (optional)" },
+        title:   { type: "string", description: "Note title" },
+        content: { type: "string", description: "Note content" }
+      },
+      required: ["title", "content"]
+    }
+  },
+  {
+    name: "get_news",
+    description: "Get latest news from Alpaca/Benzinga for your tracked tickers or a specific ticker",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tickers: { type: "string", description: "Comma-separated tickers e.g. HAWK,IONQ or leave empty for all" },
+        limit:   { type: "number", description: "Number of articles (default 20, max 50)" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_price",
+    description: "Get live price and daily change for a stock ticker via Alpaca",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ticker: { type: "string", description: "Stock ticker symbol" }
+      },
+      required: ["ticker"]
+    }
+  },
+  {
+    name: "place_paper_trade",
+    description: "Place a paper trade on Alpaca - simulated, no real money",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ticker:     { type: "string", description: "Stock ticker symbol" },
+        side:       { type: "string", description: "buy or sell" },
+        qty:        { type: "number", description: "Number of shares" },
+        orderType:  { type: "string", description: "market, limit, or stop" },
+        limitPrice: { type: "number", description: "Limit price if limit order" }
+      },
+      required: ["ticker", "side", "qty"]
+    }
+  },
+  {
+    name: "get_paper_positions",
+    description: "Get your current Alpaca paper trading positions and account balance",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  },
+  {
+    name: "get_roadmap",
+    description: "Get all items in the Meridian development roadmap",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status:   { type: "string", description: "Filter by status: All, Planned, In Progress, Completed, Cancelled" },
+        phase:    { type: "string", description: "Filter by phase e.g. Phase 1a, Phase 2, Ongoing" }
+      },
+      required: []
+    }
+  },
+  {
+    name: "add_roadmap_item",
+    description: "Add a new item to the Meridian development roadmap",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Title:         { type: "string", description: "Feature or task title" },
+        Phase:         { type: "string", description: "Phase e.g. Phase 1a, Phase 2, Ongoing" },
+        Status:        { type: "string", description: "Planned, In Progress, Completed, or Cancelled" },
+        Category:      { type: "string", description: "Category e.g. ML/AI, Infrastructure, UI, MCP" },
+        Priority:      { type: "string", description: "High, Medium, or Low" },
+        Effort:        { type: "string", description: "Estimated effort e.g. 1 session, 2-3 sessions" },
+        Notes:         { type: "string", description: "Additional details or context" }
+      },
+      required: ["Title", "Status"]
+    }
+  },
+  {
+    name: "update_roadmap_item",
+    description: "Update a field on an existing roadmap item",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Title:  { type: "string", description: "Title of the roadmap item to update" },
+        field:  { type: "string", description: "Field to update e.g. Status, Phase, Priority, Notes" },
+        value:  { type: "string", description: "New value" }
+      },
+      required: ["Title", "field", "value"]
+    }
+  },
+  {
+    name: "delete_roadmap_item",
+    description: "Remove an item from the Meridian development roadmap",
+    inputSchema: {
+      type: "object",
+      properties: {
+        Title: { type: "string", description: "Title of the roadmap item to delete" }
+      },
+      required: ["Title"]
+    }
+  },
+  {
+    name: "get_watchlist",
+    description: "Get your Meridian watchlist tickers",
+    inputSchema: { type: "object", properties: {}, required: [] }
+  }
+]
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+}
+
+async function handleRequest(request) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers: CORS })
+  }
+
+  const url = new URL(request.url)
+  const path = url.pathname
+
+  // Health check
+  if (path === '/') {
+    return new Response(JSON.stringify({
+      name: MCP_SERVER_INFO.name,
+      version: MCP_SERVER_INFO.version,
+      status: 'ok',
+      tools: TOOLS.length
+    }), { headers: Object.assign({ 'Content-Type': 'application/json' }, CORS) })
+  }
+
+  // MCP endpoint
+  if (path === '/mcp' || path === '/sse') {
+    if (request.method === 'POST') {
+      var body = await request.json()
+      var response = await handleJSONRPC(body)
+      return new Response(JSON.stringify(response), {
+        headers: Object.assign({ 'Content-Type': 'application/json' }, CORS)
+      })
+    }
+    // GET - SSE stream
+    var encoder = new TextEncoder()
+    var stream = new ReadableStream({
+      start: function(controller) {
+        controller.enqueue(encoder.encode('data: ' + JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'notifications/initialized'
+        }) + '\n\n'))
+        controller.close()
+      }
+    })
+    return new Response(stream, {
+      headers: Object.assign({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache'
+      }, CORS)
+    })
+  }
+
+  // ── Read-only sheet API ───────────────────────────────────────────────────
+  // Browser-facing: fetches a Sheet tab and returns its rows as JSON.
+  // The token is used only inside sheetsGet (server-side) and never appears
+  // in any response. Only explicitly allowlisted tab names are accepted.
+  if (path === '/api/sheet') {
+    var ALLOWED_TABS = ['Unicorns', 'Institutional', 'Political', 'Biotech', 'Tickers', 'IPO', 'Notes']
+    var tab = url.searchParams.get('tab')
+    if (!tab || ALLOWED_TABS.indexOf(tab) === -1) {
+      return new Response(JSON.stringify({ error: 'Tab not in allowlist' }), {
+        status: 403,
+        headers: Object.assign({ 'Content-Type': 'application/json' }, CORS)
+      })
+    }
+    var sheetData = await sheetsGet(tab, APPS_SCRIPT_URL, MERIDIAN_TOKEN)
+    return new Response(JSON.stringify(sheetData), {
+      headers: Object.assign({ 'Content-Type': 'application/json' }, CORS)
+    })
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  return new Response('Not found', { status: 404, headers: CORS })
+}
+
+async function handleJSONRPC(body) {
+  var method = body.method
+  var params = body.params || {}
+  var id = body.id
+
+  try {
+    if (method === 'initialize') {
+      return {
+        jsonrpc: '2.0', id: id,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: { tools: {} },
+          serverInfo: MCP_SERVER_INFO
+        }
+      }
+    }
+
+    if (method === 'tools/list') {
+      return { jsonrpc: '2.0', id: id, result: { tools: TOOLS } }
+    }
+
+    if (method === 'tools/call') {
+      var result = await executeTool(params.name, params.arguments || {})
+      return {
+        jsonrpc: '2.0', id: id,
+        result: { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
+      }
+    }
+
+    return { jsonrpc: '2.0', id: id, error: { code: -32601, message: 'Method not found' } }
+
+  } catch(e) {
+    return { jsonrpc: '2.0', id: id, error: { code: -32603, message: e.message } }
+  }
+}
+
+async function executeTool(name, args) {
+  var scriptUrl = APPS_SCRIPT_URL
+  var token = MERIDIAN_TOKEN
+  var alpacaKey = ALPACA_KEY
+  var alpacaSecret = ALPACA_SECRET
+
+  if (name === 'get_portfolio') {
+    var data = await sheetsGet('Tickers', scriptUrl, token)
+    return { tickers: data.rows || [], count: (data.rows || []).length }
+  }
+
+  if (name === 'add_ticker') {
+    var r = await sheetsPost('append', 'Tickers', args, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Ticker + ' added to your Meridian tracker' }
+  }
+
+  if (name === 'update_ticker') {
+    var data = await sheetsGet('Tickers', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Ticker && r.Ticker.toUpperCase() === args.Ticker.toUpperCase()
+    })
+    if (!row) return { success: false, message: 'Ticker ' + args.Ticker + ' not found' }
+    var updated = Object.assign({}, row)
+    updated[args.field] = args.value
+    var r = await sheetsPost('update', 'Tickers', updated, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Ticker + ' ' + args.field + ' updated to ' + args.value }
+  }
+
+  if (name === 'delete_ticker') {
+    var data = await sheetsGet('Tickers', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Ticker && r.Ticker.toUpperCase() === args.Ticker.toUpperCase()
+    })
+    if (!row) return { success: false, message: 'Ticker ' + args.Ticker + ' not found' }
+    var r = await sheetsPost('delete', 'Tickers', { _id: row._id }, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Ticker + ' removed from tracker' }
+  }
+
+  if (name === 'get_ipo_calendar') {
+    var data = await sheetsGet('IPO', scriptUrl, token)
+    var rows = data.rows || []
+    if (args.status && args.status !== 'All') {
+      rows = rows.filter(function(r) { return r.Status === args.status })
+    }
+    return { ipos: rows, count: rows.length }
+  }
+
+  if (name === 'add_ipo') {
+    var r = await sheetsPost('append', 'IPO', args, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Company + ' added to IPO calendar' }
+  }
+
+  if (name === 'update_ipo') {
+    var data = await sheetsGet('IPO', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Company && r.Company.toLowerCase() === args.Company.toLowerCase()
+    })
+    if (!row) return { success: false, message: 'IPO "' + args.Company + '" not found' }
+    var updated = Object.assign({}, row)
+    updated[args.field] = args.value
+    var r = await sheetsPost('update', 'IPO', updated, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Company + ' ' + args.field + ' updated to "' + args.value + '"' }
+  }
+
+  if (name === 'delete_ipo') {
+    var data = await sheetsGet('IPO', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Company && r.Company.toLowerCase() === args.Company.toLowerCase()
+    })
+    if (!row) return { success: false, message: 'IPO "' + args.Company + '" not found' }
+    var r = await sheetsPost('delete', 'IPO', { _id: row._id }, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: args.Company + ' removed from IPO calendar' }
+  }
+
+  if (name === 'get_research_notes') {
+    var data = await sheetsGet('Notes', scriptUrl, token)
+    var rows = data.rows || []
+    if (args.search) {
+      var q = args.search.toLowerCase()
+      rows = rows.filter(function(r) {
+        return JSON.stringify(r).toLowerCase().indexOf(q) !== -1
+      })
+    }
+    return { notes: rows, count: rows.length }
+  }
+
+  if (name === 'add_research_note') {
+    var note = {
+      timestamp: new Date().toISOString(),
+      ticker: args.ticker || '',
+      title: args.title,
+      content: args.content
+    }
+    var r = await sheetsPost('append', 'Notes', note, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: 'Note saved: ' + args.title }
+  }
+
+  if (name === 'get_roadmap') {
+    var data = await sheetsGet('Roadmap', scriptUrl, token)
+    var rows = data.rows || []
+    if (args.status && args.status !== 'All') {
+      rows = rows.filter(function(r) { return r.Status === args.status })
+    }
+    if (args.phase) {
+      rows = rows.filter(function(r) { return r.Phase === args.phase })
+    }
+    return { items: rows, count: rows.length }
+  }
+
+  if (name === 'add_roadmap_item') {
+    var r = await sheetsPost('append', 'Roadmap', args, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: '"' + args.Title + '" added to roadmap' }
+  }
+
+  if (name === 'update_roadmap_item') {
+    var data = await sheetsGet('Roadmap', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Title && r.Title.toLowerCase() === args.Title.toLowerCase()
+    })
+    if (!row) return { success: false, message: 'Roadmap item "' + args.Title + '" not found' }
+    var updated = Object.assign({}, row)
+    updated[args.field] = args.value
+    var r = await sheetsPost('update', 'Roadmap', updated, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: '"' + args.Title + '" ' + args.field + ' updated to "' + args.value + '"' }
+  }
+
+  if (name === 'delete_roadmap_item') {
+    var data = await sheetsGet('Roadmap', scriptUrl, token)
+    var row = (data.rows || []).find(function(r) {
+      return r.Title && r.Title.toLowerCase() === args.Title.toLowerCase()
+    })
+    if (!row) return { success: false, message: 'Roadmap item "' + args.Title + '" not found' }
+    var r = await sheetsPost('delete', 'Roadmap', { _id: row._id }, scriptUrl, token)
+    if (r && r.status === 'error') throw new Error(r.message)
+    return { success: true, message: '"' + args.Title + '" removed from roadmap' }
+  }
+
+  if (name === 'get_watchlist') {
+    var data = await sheetsGet('Tickers', scriptUrl, token)
+    var tickers = (data.rows || []).map(function(r) { return r.Ticker }).filter(Boolean)
+    return { watchlist: tickers }
+  }
+
+  if (name === 'get_news') {
+    if (!alpacaKey) return { error: 'Alpaca keys not configured' }
+    var tickers = args.tickers
+    if (!tickers) {
+      var sheetData = await sheetsGet('Tickers', scriptUrl, token)
+      tickers = (sheetData.rows || []).map(function(r) { return r.Ticker }).filter(Boolean).join(',')
+    }
+    var limit = Math.min(args.limit || 20, 50)
+    var res = await fetch(
+      'https://data.alpaca.markets/v1beta1/news?symbols=' + encodeURIComponent(tickers) + '&limit=' + limit + '&sort=desc',
+      { headers: { 'APCA-API-KEY-ID': alpacaKey, 'APCA-API-SECRET-KEY': alpacaSecret } }
+    )
+    var data = await res.json()
+    return {
+      articles: (data.news || []).map(function(n) {
+        return {
+          ticker: n.symbols && n.symbols[0],
+          headline: n.headline,
+          source: n.source,
+          time: n.created_at,
+          url: n.url,
+          summary: n.summary
+        }
+      }),
+      count: (data.news || []).length
+    }
+  }
+
+  if (name === 'get_price') {
+    if (!alpacaKey) return { error: 'Alpaca keys not configured' }
+    var ticker = args.ticker.toUpperCase()
+    var res = await fetch(
+      'https://data.alpaca.markets/v2/stocks/' + ticker + '/snapshot?feed=iex',
+      { headers: { 'APCA-API-KEY-ID': alpacaKey, 'APCA-API-SECRET-KEY': alpacaSecret } }
+    )
+    var data = await res.json()
+    var price = data && data.latestTrade && data.latestTrade.p
+    var prev = data && data.prevDailyBar && data.prevDailyBar.c
+    if (!price) return { error: 'No price data for ' + ticker }
+    return {
+      ticker: ticker,
+      price: price,
+      previousClose: prev,
+      change: prev ? (price - prev).toFixed(2) : null,
+      changePct: prev ? ((price - prev) / prev * 100).toFixed(2) + '%' : null
+    }
+  }
+
+  if (name === 'place_paper_trade') {
+    if (!alpacaKey) return { error: 'Alpaca keys not configured' }
+    var order = {
+      symbol: args.ticker.toUpperCase(),
+      qty: args.qty,
+      side: args.side,
+      type: args.orderType || 'market',
+      time_in_force: 'day'
+    }
+    if (args.limitPrice && order.type === 'limit') {
+      order.limit_price = args.limitPrice
+    }
+    var res = await fetch('https://paper-api.alpaca.markets/v2/orders', {
+      method: 'POST',
+      headers: {
+        'APCA-API-KEY-ID': alpacaKey,
+        'APCA-API-SECRET-KEY': alpacaSecret,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(order)
+    })
+    var data = await res.json()
+    if (data.message) return { error: data.message }
+    return {
+      success: true,
+      orderId: data.id,
+      message: 'Paper order placed: ' + args.side.toUpperCase() + ' ' + args.qty + ' ' + args.ticker,
+      status: data.status
+    }
+  }
+
+  if (name === 'get_paper_positions') {
+    if (!alpacaKey) return { error: 'Alpaca keys not configured' }
+    var accountRes = await fetch('https://paper-api.alpaca.markets/v2/account', {
+      headers: { 'APCA-API-KEY-ID': alpacaKey, 'APCA-API-SECRET-KEY': alpacaSecret }
+    })
+    var positionsRes = await fetch('https://paper-api.alpaca.markets/v2/positions', {
+      headers: { 'APCA-API-KEY-ID': alpacaKey, 'APCA-API-SECRET-KEY': alpacaSecret }
+    })
+    var account = await accountRes.json()
+    var positions = await positionsRes.json()
+    return {
+      portfolioValue: account.portfolio_value,
+      buyingPower: account.buying_power,
+      todayPL: (parseFloat(account.equity) - parseFloat(account.last_equity)).toFixed(2),
+      positions: (positions || []).map(function(p) {
+        return {
+          ticker: p.symbol,
+          qty: p.qty,
+          avgCost: parseFloat(p.avg_entry_price).toFixed(2),
+          currentPrice: parseFloat(p.current_price).toFixed(2),
+          unrealizedPL: parseFloat(p.unrealized_pl).toFixed(2),
+          unrealizedPLPct: (parseFloat(p.unrealized_plpc) * 100).toFixed(2) + '%'
+        }
+      })
+    }
+  }
+
+  return { error: 'Unknown tool: ' + name }
+}
+
+// ─── FIX: Safe GET with text-based JSON parsing ───────────────────────────────
+async function sheetsGet(tab, scriptUrl, token) {
+  var res = await fetch(
+    scriptUrl + '?action=getSheet&tab=' + tab + '&token=' + encodeURIComponent(token),
+    { redirect: 'follow' }
+  )
+  var text = await res.text()
+  try {
+    return JSON.parse(text)
+  } catch(e) {
+    throw new Error('Apps Script GET returned non-JSON for tab "' + tab + '": ' + text.substring(0, 200))
+  }
+}
+
+// ─── FIX: Send writes via GET + encoded payload to bypass POST redirect ───────
+// Google Apps Script redirects POST requests (302/303) to googleusercontent.com
+// which returns 405 for POST. Solution: encode the write payload as a URL param
+// and send as GET — doGet in the Apps Script detects and delegates to doPost.
+async function sheetsPost(action, tab, data, scriptUrl, token) {
+  var payload = JSON.stringify({ action: action, tab: tab, data: data, token: token })
+  var url = scriptUrl + '?token=' + encodeURIComponent(token) + '&write=' + encodeURIComponent(encodeURIComponent(payload))
+  var res = await fetch(url, { redirect: 'follow' })
+  var text = await res.text()
+  try {
+    return JSON.parse(text)
+  } catch(e) {
+    throw new Error('Apps Script write returned non-JSON (status ' + res.status + '): ' + text.substring(0, 200))
+  }
+}
