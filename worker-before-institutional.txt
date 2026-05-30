@@ -295,7 +295,7 @@ async function handleRequest(request) {
   // The token is used only inside sheetsGet (server-side) and never appears
   // in any response. Only explicitly allowlisted tab names are accepted.
   if (path === '/api/sheet') {
-    var ALLOWED_TABS = ['Unicorns', 'Institutional', 'Political', 'Biotech']
+    var ALLOWED_TABS = ['Unicorns', 'Institutional', 'Political', 'Biotech', 'Tickers', 'IPO', 'Notes']
     var tab = url.searchParams.get('tab')
     if (!tab || ALLOWED_TABS.indexOf(tab) === -1) {
       return new Response(JSON.stringify({ error: 'Tab not in allowlist' }), {
