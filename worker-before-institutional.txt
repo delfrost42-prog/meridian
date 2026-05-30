@@ -1,6 +1,11 @@
 // MERIDIAN MCP SERVER — Cloudflare Worker v2
 // Compatible format for Cloudflare Workers editor
 
+// ── Secrets — update these if the Apps Script is ever redeployed ──────────
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgHGmRaCN61ATcevovrP0ycIVE1XxlodcB0qJP84h5s7cpdZ6lc6rkiHYf5Vo-J420/exec';
+var MERIDIAN_TOKEN  = 'Tricap2020';
+// ──────────────────────────────────────────────────────────────────────────
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
