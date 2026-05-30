@@ -1333,10 +1333,7 @@ document.addEventListener('keydown', e => {
       <!-- Portfolio view switcher -->
       <div style="display:flex;gap:4px;">
         <span style="font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;align-self:center;margin-right:4px;">Portfolio:</span>
-        <button onclick="setPerfView('myportfolio')" id="pv-myportfolio" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:var(--accent);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">My Tracker</button>
-        <button onclick="setPerfView('trump')" id="pv-trump" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">Trump Q1</button>
-        <button onclick="setPerfView('blackrock')" id="pv-blackrock" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">BlackRock</button>
-        <button onclick="setPerfView('ark')" id="pv-ark" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">ARK Invest</button>
+        <div id="perf-portfolio-buttons" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
       </div>
 
       <!-- Weighting switcher -->
@@ -3879,7 +3876,13 @@ function jsonResponse(obj) {
       // Load SPX by default if no chart is loaded yet
       if (!currentChartTicker) loadChartTicker('SPX');
     }
-    if (id === 'performance' && Object.keys(perfChartData).length === 0) loadPerformanceData();
+    if (id === 'performance') {
+      if (Object.keys(PERF_PORTFOLIOS).length === 0) {
+        loadPerfPortfolios().then(ok => { if (ok !== false) loadPerformanceData(); });
+      } else if (Object.keys(perfChartData).length === 0) {
+        loadPerformanceData();
+      }
+    }
     if (id === 'bubbles') setTimeout(() => renderBubbleChart(currentBubbleView), 50);
     if (id === 'optionschain') { buildQuickTickers(); }
     if (id === 'sharedchat') initChatTab();
@@ -5098,32 +5101,7 @@ function jsonResponse(obj) {
   // ============================================================
 
   // Portfolio definitions
-  const PERF_PORTFOLIOS = {
-    myportfolio: {
-      label: 'My Tracker',
-      color: '#00d4ff',
-      tickers: ['HAWK','PL','SATL','IONQ','KRMN','VOYG','FLY','MDA','RXRX','CRSP','GENB','KLRA','CBRS','XNDU','INFQ'],
-      entryPrices: { HAWK:30.44, PL:42.48, SATL:7.55, IONQ:47.68, KRMN:22, VOYG:31, FLY:45, MDA:20, RXRX:3.37, CRSP:50.36, GENB:16, KLRA:16, CBRS:185, XNDU:10, INFQ:12 }
-    },
-    trump: {
-      label: 'Trump Q1 Portfolio',
-      color: '#f59e0b',
-      tickers: ['NVDA','MSFT','AMZN','ORCL','AVGO','AAPL','AMD','GOOGL','GS','JPM','COIN','HOOD','SOFI','DELL','INTC'],
-      entryPrices: { NVDA:110, MSFT:380, AMZN:195, ORCL:165, AVGO:185, AAPL:222, AMD:110, GOOGL:175, GS:520, JPM:235, COIN:265, HOOD:38, SOFI:13, DELL:110, INTC:22 }
-    },
-    blackrock: {
-      label: 'BlackRock Holdings',
-      color: '#a78bfa',
-      tickers: ['AAPL','MSFT','AMZN','NVDA','GOOGL','META','TSLA','BRK-B','JPM','JNJ'],
-      entryPrices: {}
-    },
-    ark: {
-      label: 'ARK Invest',
-      color: '#f472b6',
-      tickers: ['TSLA','CRSP','BEAM','NTLA','COIN','HOOD','IONQ','RXRX','SDGR','RKLB'],
-      entryPrices: {}
-    }
-  };
+  let PERF_PORTFOLIOS = {}; // populated from PerfPortfolios Sheet tab
 
   let currentPerfView = 'myportfolio';
   let currentPerfWeight = 'equal';
@@ -5140,6 +5118,55 @@ function jsonResponse(obj) {
     '6M':  { range: '6mo', interval: '1wk' },
     '1Y':  { range: '1y',  interval: '1wk' },
   };
+
+  async function loadPerfPortfolios() {
+    const container = document.getElementById('perf-portfolio-buttons');
+    const workerBase = new URLSearchParams(window.location.search).get('worker') || localStorage.getItem('meridian_worker_url') || '';
+    if (!workerBase) {
+      if (container) container.innerHTML = '<span style="color:var(--warn);font-size:11px;">Worker URL not configured</span>';
+      return false;
+    }
+    if (container) container.innerHTML = '<span style="color:var(--text3);font-size:11px;letter-spacing:0.08em;">LOADING…</span>';
+    try {
+      const res = await fetch(workerBase + '/api/sheet?tab=PerfPortfolios');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Failed to load portfolios');
+      const rows = data.rows || [];
+      if (!rows.length) throw new Error('No rows in PerfPortfolios sheet');
+
+      PERF_PORTFOLIOS = {};
+      rows.forEach(r => {
+        const key = (r.Name || '').toLowerCase().replace(/[^a-z0-9]/g, '') || String(Object.keys(PERF_PORTFOLIOS).length);
+        const tickers = (r.Tickers || '').split(',').map(t => t.trim()).filter(Boolean);
+        const entryPrices = {};
+        if (r.EntryPrices && String(r.EntryPrices).trim()) {
+          String(r.EntryPrices).split(',').forEach(pair => {
+            const parts = pair.trim().split(':');
+            if (parts.length === 2 && parts[0] && parts[1]) {
+              const n = Number(parts[1]);
+              if (!isNaN(n)) entryPrices[parts[0].trim()] = n;
+            }
+          });
+        }
+        PERF_PORTFOLIOS[key] = { label: r.Name || key, color: r.Color || '#00d4ff', tickers, entryPrices };
+      });
+
+      currentPerfView = Object.keys(PERF_PORTFOLIOS)[0];
+
+      if (container) {
+        container.innerHTML = Object.keys(PERF_PORTFOLIOS).map((key, i) => {
+          const p = PERF_PORTFOLIOS[key];
+          const active = i === 0;
+          return `<button onclick="setPerfView('${key}')" id="pv-${key}" style="background:${active ? 'rgba(0,212,255,0.15)' : 'transparent'};border:1px solid ${active ? 'rgba(0,212,255,0.4)' : 'var(--border)'};color:${active ? 'var(--accent)' : 'var(--text3)'};font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer;border-radius:3px;transition:all 0.2s;">${p.label}</button>`;
+        }).join('');
+      }
+      return true;
+    } catch(e) {
+      if (container) container.innerHTML = `<span style="color:var(--red);font-size:11px;">Portfolio load failed: ${e.message}</span>`;
+      return false;
+    }
+  }
 
   function setPerfView(view) {
     currentPerfView = view;
